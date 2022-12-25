@@ -45,7 +45,7 @@ func (s *HandlerTestSuite) TestPost() {
 	})
 
 	s.Run("it should return error when fail to create user", func() {
-		usecase := new(mocks.UserUsecase)
+		usecase := &mocks.UserUsecase{}
 		usecase.On("Create", mock.Anything, mock.Anything).Return(domain.CreateUserOut{}, errors.New("some error"))
 
 		handler := New(usecase)
@@ -72,7 +72,7 @@ func (s *HandlerTestSuite) TestPost() {
 			Email: "gopher@go.dev",
 		}
 
-		usecase := new(mocks.UserUsecase)
+		usecase := &mocks.UserUsecase{}
 		usecase.On("Create", mock.Anything, mock.Anything).Return(usecaseResult, nil)
 
 		handler := New(usecase)

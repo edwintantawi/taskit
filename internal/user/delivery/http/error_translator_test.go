@@ -11,15 +11,15 @@ import (
 	"github.com/edwintantawi/taskit/internal/user/repository"
 )
 
-type ErrorTranslatorTestSuite struct {
+type UserErrorTranslatorTestSuite struct {
 	suite.Suite
 }
 
-func TestErrorTranslatorSuite(t *testing.T) {
-	suite.Run(t, new(ErrorTranslatorTestSuite))
+func TestUserErrorTranslatorSuite(t *testing.T) {
+	suite.Run(t, new(UserErrorTranslatorTestSuite))
 }
 
-func (s *ErrorTranslatorTestSuite) TestErrorTranslator() {
+func (s *UserErrorTranslatorTestSuite) TestErrorTranslator() {
 	tests := []struct {
 		err          error
 		expectedCode int

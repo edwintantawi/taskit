@@ -10,7 +10,7 @@ type UserEntityTestSuite struct {
 	suite.Suite
 }
 
-func TestEntitySuite(t *testing.T) {
+func TestUserEntitySuite(t *testing.T) {
 	suite.Run(t, new(UserEntityTestSuite))
 }
 
