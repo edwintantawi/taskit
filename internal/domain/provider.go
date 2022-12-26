@@ -1,6 +1,10 @@
 package domain
 
-import "time"
+import (
+	"time"
+
+	"github.com/edwintantawi/taskit/internal/domain/entity"
+)
 
 // IDProvider represent id generator contract
 type IDProvider interface {
@@ -15,6 +19,7 @@ type HashProvider interface {
 
 // JWTProvider represent jwt generator contract.
 type JWTProvider interface {
-	GenerateAccessToken(payload map[string]interface{}) (string, time.Time, error)
-	GenerateRefreshToken(payload map[string]interface{}) (string, time.Time, error)
+	GenerateAccessToken(userID entity.UserID) (string, time.Time, error)
+	GenerateRefreshToken(userID entity.UserID) (string, time.Time, error)
+	VerifyAccessToken(rawToken string) (entity.UserID, error)
 }

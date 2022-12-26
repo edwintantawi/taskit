@@ -55,7 +55,7 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 	s.Run("it should return an error if the access token cannot be generated", func() {
 		ctx := context.Background()
 		payload := &domain.LoginAuthIn{Email: "gopher@go.dev", Password: "secret_password"}
-		tokenPayload := map[string]interface{}{"user_id": entity.UserID("xxxxx")}
+		auth := &entity.Auth{UserID: "xxxxx"}
 
 		mockUserRepo := &mocks.UserRepository{}
 		mockUserRepo.On("FindByEmail", ctx, payload.Email).Return(entity.User{ID: "xxxxx"}, nil)
@@ -64,7 +64,7 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 		mockHashProvider.On("Compare", payload.Password, mock.Anything).Return(nil)
 
 		mockJWTProvider := &mocks.JWTProvider{}
-		mockJWTProvider.On("GenerateAccessToken", tokenPayload).Return("", time.Time{}, errors.New("failed to generate token"))
+		mockJWTProvider.On("GenerateAccessToken", auth.UserID).Return("", time.Time{}, errors.New("failed to generate token"))
 
 		usecase := New(nil, mockUserRepo, mockHashProvider, mockJWTProvider)
 		_, err := usecase.Login(ctx, payload)
@@ -75,7 +75,7 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 	s.Run("it should return an error if the refresh token cannot be generated", func() {
 		ctx := context.Background()
 		payload := &domain.LoginAuthIn{Email: "gopher@go.dev", Password: "secret_password"}
-		tokenPayload := map[string]interface{}{"user_id": entity.UserID("xxxxx")}
+		auth := &entity.Auth{UserID: "xxxxx"}
 
 		mockUserRepo := &mocks.UserRepository{}
 		mockUserRepo.On("FindByEmail", ctx, payload.Email).Return(entity.User{ID: "xxxxx"}, nil)
@@ -84,8 +84,8 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 		mockHashProvider.On("Compare", payload.Password, mock.Anything).Return(nil)
 
 		mockJWTProvider := &mocks.JWTProvider{}
-		mockJWTProvider.On("GenerateAccessToken", tokenPayload).Return("", time.Time{}, nil)
-		mockJWTProvider.On("GenerateRefreshToken", tokenPayload).Return("", time.Time{}, errors.New("failed to generate token"))
+		mockJWTProvider.On("GenerateAccessToken", auth.UserID).Return("", time.Time{}, nil)
+		mockJWTProvider.On("GenerateRefreshToken", auth.UserID).Return("", time.Time{}, errors.New("failed to generate token"))
 
 		usecase := New(nil, mockUserRepo, mockHashProvider, mockJWTProvider)
 		_, err := usecase.Login(ctx, payload)
@@ -96,7 +96,7 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 	s.Run("it should return an error if the auth cannot be saved", func() {
 		ctx := context.Background()
 		payload := &domain.LoginAuthIn{Email: "gopher@go.dev", Password: "secret_password"}
-		tokenPayload := map[string]interface{}{"user_id": entity.UserID("xxxxx")}
+		auth := &entity.Auth{UserID: "xxxxx"}
 
 		mockUserRepo := &mocks.UserRepository{}
 		mockUserRepo.On("FindByEmail", ctx, payload.Email).Return(entity.User{ID: "xxxxx"}, nil)
@@ -105,8 +105,8 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 		mockHashProvider.On("Compare", payload.Password, mock.Anything).Return(nil)
 
 		mockJWTProvider := &mocks.JWTProvider{}
-		mockJWTProvider.On("GenerateAccessToken", tokenPayload).Return("", time.Time{}, nil)
-		mockJWTProvider.On("GenerateRefreshToken", tokenPayload).Return("", time.Time{}, nil)
+		mockJWTProvider.On("GenerateAccessToken", auth.UserID).Return("", time.Time{}, nil)
+		mockJWTProvider.On("GenerateRefreshToken", auth.UserID).Return("", time.Time{}, nil)
 
 		mockAuthRepo := &mocks.AuthRepository{}
 		mockAuthRepo.On("Store", mock.Anything, mock.Anything).Return(errors.New("failed to save auth"))
@@ -120,7 +120,6 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 	s.Run("it should return an auth if the login is successful", func() {
 		ctx := context.Background()
 		payload := &domain.LoginAuthIn{Email: "gopher@go.dev", Password: "secret_password"}
-		tokenPayload := map[string]interface{}{"user_id": entity.UserID("xxxxx")}
 		auth := &entity.Auth{UserID: "xxxxx", Token: "refresh_token", ExpiresAt: time.Now().Add(time.Hour * 24 * 7)}
 
 		mockUserRepo := &mocks.UserRepository{}
@@ -130,8 +129,8 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 		mockHashProvider.On("Compare", payload.Password, mock.Anything).Return(nil)
 
 		mockJWTProvider := &mocks.JWTProvider{}
-		mockJWTProvider.On("GenerateAccessToken", tokenPayload).Return("access_token", time.Time{}, nil)
-		mockJWTProvider.On("GenerateRefreshToken", tokenPayload).Return("refresh_token", auth.ExpiresAt, nil)
+		mockJWTProvider.On("GenerateAccessToken", auth.UserID).Return("access_token", time.Time{}, nil)
+		mockJWTProvider.On("GenerateRefreshToken", auth.UserID).Return("refresh_token", auth.ExpiresAt, nil)
 
 		mockAuthRepo := &mocks.AuthRepository{}
 		mockAuthRepo.On("Store", ctx, auth).Return(nil)
