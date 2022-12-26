@@ -5,12 +5,8 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/edwintantawi/taskit/internal/user/domain"
-	"github.com/edwintantawi/taskit/internal/user/domain/entity"
-)
-
-var (
-	ErrEmailNotAvailable = errors.New("email_not_available")
+	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/entity"
 )
 
 type repository struct {
@@ -18,6 +14,7 @@ type repository struct {
 	idProvider domain.IDProvider
 }
 
+// New create a new user repository.
 func New(db *sql.DB, idProvider domain.IDProvider) domain.UserRepository {
 	return &repository{db: db, idProvider: idProvider}
 }
@@ -33,15 +30,30 @@ func (r *repository) Store(ctx context.Context, u *entity.User) (entity.UserID, 
 	return id, nil
 }
 
+// VerifyAvailableEmail check if the email is available.
 func (r *repository) VerifyAvailableEmail(ctx context.Context, email string) error {
 	var id entity.UserID
 	q := `SELECT id FROM users WHERE email = $1`
 	err := r.db.QueryRowContext(ctx, q, email).Scan(&id)
 	if err == nil {
-		return ErrEmailNotAvailable
+		return domain.ErrEmailNotAvailable
 	}
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil
 	}
 	return err
+}
+
+// FindByEmail find a user by email.
+func (r *repository) FindByEmail(ctx context.Context, email string) (entity.User, error) {
+	var u entity.User
+	q := `SELECT id, name, email, password, created_at, updated_at FROM users WHERE email = $1`
+	err := r.db.QueryRowContext(ctx, q, email).Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.CreatedAt, &u.UpdatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return u, domain.ErrUserEmailNotFound
+	}
+	if err != nil {
+		return u, err
+	}
+	return u, nil
 }

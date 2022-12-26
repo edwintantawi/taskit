@@ -7,10 +7,9 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/edwintantawi/taskit/internal/user/domain"
-	"github.com/edwintantawi/taskit/internal/user/domain/entity"
-	"github.com/edwintantawi/taskit/internal/user/domain/mocks"
-	"github.com/edwintantawi/taskit/internal/user/repository"
+	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/entity"
+	"github.com/edwintantawi/taskit/internal/domain/mocks"
 )
 
 type UserUsecaseTestSuite struct {
@@ -37,12 +36,12 @@ func (s *UserUsecaseTestSuite) TestCreate() {
 		payload := &domain.CreateUserIn{Name: "Gopher", Email: "gopher@go.dev", Password: "secret_password"}
 
 		mockRepo := &mocks.UserRepository{}
-		mockRepo.On("VerifyAvailableEmail", ctx, payload.Email).Return(repository.ErrEmailNotAvailable)
+		mockRepo.On("VerifyAvailableEmail", ctx, payload.Email).Return(domain.ErrEmailNotAvailable)
 
 		usecase := New(mockRepo, nil)
 		r, err := usecase.Create(ctx, payload)
 
-		s.Equal(repository.ErrEmailNotAvailable, err)
+		s.Equal(domain.ErrEmailNotAvailable, err)
 		s.Empty(r)
 	})
 

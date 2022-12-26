@@ -16,22 +16,22 @@ import (
 	"github.com/edwintantawi/taskit/pkg/response"
 )
 
-type UserHTTPHandlerTestSuite struct {
+type AuthHTTPHandlerTestSuite struct {
 	suite.Suite
 }
 
-func TestUserHTTPHandlerSuite(t *testing.T) {
-	suite.Run(t, new(UserHTTPHandlerTestSuite))
+func TestAuthHTTPHandlerSuite(t *testing.T) {
+	suite.Run(t, new(AuthHTTPHandlerTestSuite))
 }
 
-func (s *UserHTTPHandlerTestSuite) TestPost() {
+func (s *AuthHTTPHandlerTestSuite) TestPost() {
 	s.Run("it should return error when request body is invalid", func() {
 		handler := New(nil)
 
 		reqBody := bytes.NewReader(nil)
 
 		rr := httptest.NewRecorder()
-		req := httptest.NewRequest("POST", "/users", reqBody)
+		req := httptest.NewRequest("POST", "/authentications", reqBody)
 
 		handler.Post(rr, req)
 
@@ -45,16 +45,16 @@ func (s *UserHTTPHandlerTestSuite) TestPost() {
 		s.Equal("Invalid request body", resBody.Error)
 	})
 
-	s.Run("it should return error when fail to create user", func() {
-		usecase := &mocks.UserUsecase{}
-		usecase.On("Create", mock.Anything, mock.Anything).Return(domain.CreateUserOut{}, errors.New("some error"))
+	s.Run("it should return error when fail to login with existing user", func() {
+		usecase := &mocks.AuthUsecase{}
+		usecase.On("Login", mock.Anything, mock.Anything).Return(domain.LoginAuthOut{}, errors.New("some error"))
 
 		handler := New(usecase)
 
 		reqBody := bytes.NewReader([]byte(`{}`))
 
 		rr := httptest.NewRecorder()
-		req := httptest.NewRequest("POST", "/users", reqBody)
+		req := httptest.NewRequest("POST", "/authentications", reqBody)
 
 		handler.Post(rr, req)
 
@@ -68,21 +68,21 @@ func (s *UserHTTPHandlerTestSuite) TestPost() {
 		s.Equal("Something went wrong", resBody.Error)
 	})
 
-	s.Run("it should return success when successfully create user", func() {
-		usecaseResult := domain.CreateUserOut{
-			ID:    "xxxxx",
-			Email: "gopher@go.dev",
+	s.Run("it should return success when successfully login with existing user", func() {
+		usecaseResult := domain.LoginAuthOut{
+			AccessToken:  "access_token",
+			RefreshToken: "refresh_token",
 		}
 
-		usecase := &mocks.UserUsecase{}
-		usecase.On("Create", mock.Anything, mock.Anything).Return(usecaseResult, nil)
+		usecase := &mocks.AuthUsecase{}
+		usecase.On("Login", mock.Anything, mock.Anything).Return(usecaseResult, nil)
 
 		handler := New(usecase)
 
 		reqBody := bytes.NewReader([]byte(`{}`))
 
 		rr := httptest.NewRecorder()
-		req := httptest.NewRequest("POST", "/users", reqBody)
+		req := httptest.NewRequest("POST", "/authentications", reqBody)
 
 		handler.Post(rr, req)
 
@@ -91,10 +91,10 @@ func (s *UserHTTPHandlerTestSuite) TestPost() {
 		resPayload := resBody.Payload.(map[string]any)
 
 		s.Equal("application/json", rr.Header().Get("Content-Type"))
-		s.Equal(201, rr.Code)
-		s.Equal(201, resBody.StatusCode)
-		s.Equal("Successfully registered user", resBody.Message)
-		s.Equal(string(usecaseResult.ID), resPayload["id"])
-		s.Equal(usecaseResult.Email, resPayload["email"])
+		s.Equal(200, rr.Code)
+		s.Equal(200, resBody.StatusCode)
+		s.Equal("Successfully logged in user", resBody.Message)
+		s.Equal(string(usecaseResult.AccessToken), resPayload["access_token"])
+		s.Equal(usecaseResult.RefreshToken, resPayload["refresh_token"])
 	})
 }

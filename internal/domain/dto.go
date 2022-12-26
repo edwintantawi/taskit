@@ -1,6 +1,6 @@
 package domain
 
-import "github.com/edwintantawi/taskit/internal/user/domain/entity"
+import "github.com/edwintantawi/taskit/internal/domain/entity"
 
 // CreateUserIn represents the input of user creation.
 type CreateUserIn struct {
@@ -13,4 +13,16 @@ type CreateUserIn struct {
 type CreateUserOut struct {
 	ID    entity.UserID `json:"id"`
 	Email string        `json:"email"`
+}
+
+// LoginAuthIn represent login input.
+type LoginAuthIn struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+// LoginAuthOut represent login output.
+type LoginAuthOut struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }

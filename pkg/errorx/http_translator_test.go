@@ -1,4 +1,4 @@
-package http
+package errorx
 
 import (
 	"errors"
@@ -7,19 +7,19 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/edwintantawi/taskit/internal/user/domain/entity"
-	"github.com/edwintantawi/taskit/internal/user/repository"
+	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/entity"
 )
 
-type UserErrorTranslatorTestSuite struct {
+type HTTPErrorTranslatorTestSuite struct {
 	suite.Suite
 }
 
-func TestUserErrorTranslatorSuite(t *testing.T) {
-	suite.Run(t, new(UserErrorTranslatorTestSuite))
+func TestHTTPErrorTranslatorSuite(t *testing.T) {
+	suite.Run(t, new(HTTPErrorTranslatorTestSuite))
 }
 
-func (s *UserErrorTranslatorTestSuite) TestErrorTranslator() {
+func (s *HTTPErrorTranslatorTestSuite) TestErrorTranslator() {
 	tests := []struct {
 		err          error
 		expectedCode int
@@ -30,12 +30,14 @@ func (s *UserErrorTranslatorTestSuite) TestErrorTranslator() {
 		{entity.ErrPasswordEmpty, 400, "Password is required field"},
 		{entity.ErrPasswordTooShort, 400, fmt.Sprintf("Password must be greater then %d character in length", entity.MinPasswordLength)},
 		{entity.ErrNameEmpty, 400, "Name is required field"},
-		{repository.ErrEmailNotAvailable, 400, "Email is not available"},
+		{domain.ErrEmailNotAvailable, 400, "Email is not available"},
+		{domain.ErrUserEmailNotFound, 400, "User email not found"},
+		{domain.ErrPasswordIncorrect, 400, "Password is incorrect"},
 		{errors.New("other error"), 500, "Something went wrong"},
 	}
 
 	for _, test := range tests {
-		code, msg := ErrorTranslator(test.err)
+		code, msg := HTTPErrorTranslator(test.err)
 		s.Equal(test.expectedCode, code)
 		s.Equal(test.expectedMsg, msg)
 	}
