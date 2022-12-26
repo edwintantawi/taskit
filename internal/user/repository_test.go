@@ -1,4 +1,4 @@
-package repository
+package user
 
 import (
 	"context"
@@ -10,19 +10,19 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/edwintantawi/taskit/internal/user/domain/entity"
-	"github.com/edwintantawi/taskit/internal/user/domain/mocks"
+	"github.com/edwintantawi/taskit/internal/domain/entity"
+	"github.com/edwintantawi/taskit/internal/domain/mocks"
 )
 
-type UserRepositoryTestSuite struct {
+type RepositoryTestSuite struct {
 	suite.Suite
 }
 
-func TestUserRepositorySuite(t *testing.T) {
-	suite.Run(t, new(UserRepositoryTestSuite))
+func TestRepositorySuite(t *testing.T) {
+	suite.Run(t, new(RepositoryTestSuite))
 }
 
-func (s *UserRepositoryTestSuite) TestCreate() {
+func (s *RepositoryTestSuite) TestCreate() {
 	s.Run("it should return error when database fail", func() {
 		db, mockDB, err := sqlmock.New()
 		if err != nil {
@@ -44,7 +44,7 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 		mockUUID := &mocks.IDProvider{}
 		mockUUID.On("Generate").Return(string(u.ID))
 
-		repo := New(db, mockUUID)
+		repo := NewRepository(db, mockUUID)
 		r, err := repo.Store(context.Background(), &u)
 
 		s.Equal(errors.New("database error"), err)
@@ -72,7 +72,7 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 		mockUUID := &mocks.IDProvider{}
 		mockUUID.On("Generate").Return(string(u.ID))
 
-		repo := New(db, mockUUID)
+		repo := NewRepository(db, mockUUID)
 		userID, err := repo.Store(context.Background(), &u)
 
 		s.NoError(err)
@@ -80,7 +80,7 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 	})
 }
 
-func (s *UserRepositoryTestSuite) TestVerifyAvailableEmail() {
+func (s *RepositoryTestSuite) TestVerifyAvailableEmail() {
 	s.Run("it should return error when database fail", func() {
 		db, mockDB, err := sqlmock.New()
 		if err != nil {
@@ -96,7 +96,7 @@ func (s *UserRepositoryTestSuite) TestVerifyAvailableEmail() {
 			WithArgs(u.Email).
 			WillReturnError(errors.New("database error"))
 
-		repo := New(db, nil)
+		repo := NewRepository(db, nil)
 		err = repo.VerifyAvailableEmail(context.Background(), u.Email)
 
 		s.Equal(errors.New("database error"), err)
@@ -119,7 +119,7 @@ func (s *UserRepositoryTestSuite) TestVerifyAvailableEmail() {
 			WithArgs(u.Email).
 			WillReturnRows(mockRow)
 
-		repo := New(db, nil)
+		repo := NewRepository(db, nil)
 		err = repo.VerifyAvailableEmail(context.Background(), u.Email)
 
 		s.Equal(ErrEmailNotAvailable, err)
@@ -141,7 +141,7 @@ func (s *UserRepositoryTestSuite) TestVerifyAvailableEmail() {
 			WithArgs(u.Email).
 			WillReturnError(sql.ErrNoRows)
 
-		repo := New(db, nil)
+		repo := NewRepository(db, nil)
 		err = repo.VerifyAvailableEmail(context.Background(), u.Email)
 
 		s.NoError(err)
