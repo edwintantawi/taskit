@@ -1,4 +1,4 @@
-package user
+package repository
 
 import (
 	"context"
@@ -6,23 +6,25 @@ import (
 	"errors"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/edwintantawi/taskit/internal/domain"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/internal/domain/mocks"
 )
 
-type RepositoryTestSuite struct {
+type UserRepositoryTestSuite struct {
 	suite.Suite
 }
 
-func TestRepositorySuite(t *testing.T) {
-	suite.Run(t, new(RepositoryTestSuite))
+func TestUserRepositorySuite(t *testing.T) {
+	suite.Run(t, new(UserRepositoryTestSuite))
 }
 
-func (s *RepositoryTestSuite) TestCreate() {
+func (s *UserRepositoryTestSuite) TestCreate() {
 	s.Run("it should return error when database fail", func() {
 		db, mockDB, err := sqlmock.New()
 		if err != nil {
@@ -41,10 +43,10 @@ func (s *RepositoryTestSuite) TestCreate() {
 			WithArgs(u.ID, u.Name, u.Email, u.Password).
 			WillReturnError(errors.New("database error"))
 
-		mockUUID := &mocks.IDProvider{}
-		mockUUID.On("Generate").Return(string(u.ID))
+		mockIDProvider := &mocks.IDProvider{}
+		mockIDProvider.On("Generate").Return(string(u.ID))
 
-		repo := NewRepository(db, mockUUID)
+		repo := New(db, mockIDProvider)
 		r, err := repo.Store(context.Background(), &u)
 
 		s.Equal(errors.New("database error"), err)
@@ -69,10 +71,10 @@ func (s *RepositoryTestSuite) TestCreate() {
 			WithArgs(u.ID, u.Name, u.Email, u.Password).
 			WillReturnResult(sqlmock.NewResult(1, 1))
 
-		mockUUID := &mocks.IDProvider{}
-		mockUUID.On("Generate").Return(string(u.ID))
+		mockIDProvider := &mocks.IDProvider{}
+		mockIDProvider.On("Generate").Return(string(u.ID))
 
-		repo := NewRepository(db, mockUUID)
+		repo := New(db, mockIDProvider)
 		userID, err := repo.Store(context.Background(), &u)
 
 		s.NoError(err)
@@ -80,7 +82,7 @@ func (s *RepositoryTestSuite) TestCreate() {
 	})
 }
 
-func (s *RepositoryTestSuite) TestVerifyAvailableEmail() {
+func (s *UserRepositoryTestSuite) TestVerifyAvailableEmail() {
 	s.Run("it should return error when database fail", func() {
 		db, mockDB, err := sqlmock.New()
 		if err != nil {
@@ -96,7 +98,7 @@ func (s *RepositoryTestSuite) TestVerifyAvailableEmail() {
 			WithArgs(u.Email).
 			WillReturnError(errors.New("database error"))
 
-		repo := NewRepository(db, nil)
+		repo := New(db, nil)
 		err = repo.VerifyAvailableEmail(context.Background(), u.Email)
 
 		s.Equal(errors.New("database error"), err)
@@ -119,10 +121,10 @@ func (s *RepositoryTestSuite) TestVerifyAvailableEmail() {
 			WithArgs(u.Email).
 			WillReturnRows(mockRow)
 
-		repo := NewRepository(db, nil)
+		repo := New(db, nil)
 		err = repo.VerifyAvailableEmail(context.Background(), u.Email)
 
-		s.Equal(ErrEmailNotAvailable, err)
+		s.Equal(domain.ErrEmailNotAvailable, err)
 	})
 
 	s.Run("it should return error nil when email is available", func() {
@@ -141,9 +143,83 @@ func (s *RepositoryTestSuite) TestVerifyAvailableEmail() {
 			WithArgs(u.Email).
 			WillReturnError(sql.ErrNoRows)
 
-		repo := NewRepository(db, nil)
+		repo := New(db, nil)
 		err = repo.VerifyAvailableEmail(context.Background(), u.Email)
 
 		s.NoError(err)
+	})
+}
+
+func (s *UserRepositoryTestSuite) TestGetByEmail() {
+	s.Run("it should return error when database fail", func() {
+		db, mockDB, err := sqlmock.New()
+		if err != nil {
+			s.FailNow("an error '%s' was not expected when opening a stub database connection", err)
+		}
+		defer db.Close()
+
+		u := entity.User{
+			Email: "gopher@go.dev",
+		}
+
+		mockDB.ExpectQuery(regexp.QuoteMeta("SELECT id, name, email, password, created_at, updated_at FROM users WHERE email = $1")).
+			WithArgs(u.Email).
+			WillReturnError(errors.New("database error"))
+
+		repo := New(db, nil)
+		user, err := repo.FindByEmail(context.Background(), u.Email)
+
+		s.Equal(errors.New("database error"), err)
+		s.Empty(user)
+	})
+
+	s.Run("it should return error user not found when user is not exist", func() {
+		db, mockDB, err := sqlmock.New()
+		if err != nil {
+			s.FailNow("an error '%s' was not expected when opening a stub database connection", err)
+		}
+		defer db.Close()
+
+		u := entity.User{
+			Email: "gopher@go.dev",
+		}
+
+		mockDB.ExpectQuery(regexp.QuoteMeta("SELECT id, name, email, password, created_at, updated_at FROM users WHERE email = $1")).
+			WithArgs(u.Email).
+			WillReturnError(sql.ErrNoRows)
+
+		repo := New(db, nil)
+		user, err := repo.FindByEmail(context.Background(), u.Email)
+
+		s.Equal(domain.ErrUserEmailNotFound, err)
+		s.Empty(user)
+	})
+
+	s.Run("it should return user when user is exist", func() {
+		db, mockDB, err := sqlmock.New()
+		if err != nil {
+			s.FailNow("an error '%s' was not expected when opening a stub database connection", err)
+		}
+		defer db.Close()
+
+		u := entity.User{
+			ID:        "xxxxx",
+			Name:      "Gopher",
+			Email:     "gopher@go.dev",
+			Password:  "secret_password",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+
+		mockRow := sqlmock.NewRows([]string{"id", "name", "email", "password", "created_at", "updated_at"}).AddRow(u.ID, u.Name, u.Email, u.Password, u.CreatedAt, u.UpdatedAt)
+		mockDB.ExpectQuery(regexp.QuoteMeta("SELECT id, name, email, password, created_at, updated_at FROM users WHERE email = $1")).
+			WithArgs(u.Email).
+			WillReturnRows(mockRow)
+
+		repo := New(db, nil)
+		user, err := repo.FindByEmail(context.Background(), u.Email)
+
+		s.NoError(err)
+		s.Equal(u, user)
 	})
 }

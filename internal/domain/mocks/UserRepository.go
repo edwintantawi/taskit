@@ -15,6 +15,27 @@ type UserRepository struct {
 	mock.Mock
 }
 
+// FindByEmail provides a mock function with given fields: ctx, email
+func (_m *UserRepository) FindByEmail(ctx context.Context, email string) (entity.User, error) {
+	ret := _m.Called(ctx, email)
+
+	var r0 entity.User
+	if rf, ok := ret.Get(0).(func(context.Context, string) entity.User); ok {
+		r0 = rf(ctx, email)
+	} else {
+		r0 = ret.Get(0).(entity.User)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, email)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Store provides a mock function with given fields: ctx, u
 func (_m *UserRepository) Store(ctx context.Context, u *entity.User) (entity.UserID, error) {
 	ret := _m.Called(ctx, u)

@@ -9,6 +9,20 @@ type HashProvider struct {
 	mock.Mock
 }
 
+// Compare provides a mock function with given fields: raw, hashed
+func (_m *HashProvider) Compare(raw string, hashed string) error {
+	ret := _m.Called(raw, hashed)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(raw, hashed)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Hash provides a mock function with given fields: raw
 func (_m *HashProvider) Hash(raw string) ([]byte, error) {
 	ret := _m.Called(raw)

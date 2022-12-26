@@ -1,4 +1,4 @@
-package user
+package usecase
 
 import (
 	"context"
@@ -12,19 +12,19 @@ import (
 	"github.com/edwintantawi/taskit/internal/domain/mocks"
 )
 
-type UsecaseTestSuite struct {
+type UserUsecaseTestSuite struct {
 	suite.Suite
 }
 
-func TestUsecaseSuite(t *testing.T) {
-	suite.Run(t, new(UsecaseTestSuite))
+func TestUserUsecaseSuite(t *testing.T) {
+	suite.Run(t, new(UserUsecaseTestSuite))
 }
 
-func (s *UsecaseTestSuite) TestCreate() {
+func (s *UserUsecaseTestSuite) TestCreate() {
 	s.Run("it should return error when user validation fail", func() {
 		ctx := context.Background()
 		payload := &domain.CreateUserIn{}
-		usecase := NewUsecase(nil, nil)
+		usecase := New(nil, nil)
 		r, err := usecase.Create(ctx, payload)
 
 		s.Error(err)
@@ -36,12 +36,12 @@ func (s *UsecaseTestSuite) TestCreate() {
 		payload := &domain.CreateUserIn{Name: "Gopher", Email: "gopher@go.dev", Password: "secret_password"}
 
 		mockRepo := &mocks.UserRepository{}
-		mockRepo.On("VerifyAvailableEmail", ctx, payload.Email).Return(ErrEmailNotAvailable)
+		mockRepo.On("VerifyAvailableEmail", ctx, payload.Email).Return(domain.ErrEmailNotAvailable)
 
-		usecase := NewUsecase(mockRepo, nil)
+		usecase := New(mockRepo, nil)
 		r, err := usecase.Create(ctx, payload)
 
-		s.Equal(ErrEmailNotAvailable, err)
+		s.Equal(domain.ErrEmailNotAvailable, err)
 		s.Empty(r)
 	})
 
@@ -55,7 +55,7 @@ func (s *UsecaseTestSuite) TestCreate() {
 		mockHash := &mocks.HashProvider{}
 		mockHash.On("Hash", payload.Password).Return(nil, errors.New("password hash fail"))
 
-		usecase := NewUsecase(mockRepo, mockHash)
+		usecase := New(mockRepo, mockHash)
 		r, err := usecase.Create(ctx, payload)
 
 		s.Equal(errors.New("password hash fail"), err)
@@ -74,7 +74,7 @@ func (s *UsecaseTestSuite) TestCreate() {
 		mockHash := &mocks.HashProvider{}
 		mockHash.On("Hash", payload.Password).Return([]byte("secure_hash_password"), nil)
 
-		usecase := NewUsecase(mockRepo, mockHash)
+		usecase := New(mockRepo, mockHash)
 		r, err := usecase.Create(ctx, payload)
 
 		s.Equal(errors.New("repository error"), err)
@@ -94,7 +94,7 @@ func (s *UsecaseTestSuite) TestCreate() {
 		mockHash := &mocks.HashProvider{}
 		mockHash.On("Hash", payload.Password).Return([]byte("secure_hash_password"), nil)
 
-		usecase := NewUsecase(mockRepo, mockHash)
+		usecase := New(mockRepo, mockHash)
 		r, err := usecase.Create(ctx, payload)
 
 		s.NoError(err)

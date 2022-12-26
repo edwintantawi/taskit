@@ -6,7 +6,9 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/edwintantawi/taskit/cmd/config"
-	"github.com/edwintantawi/taskit/internal/user"
+	userHTTPHandler "github.com/edwintantawi/taskit/internal/user/delivery/http"
+	userRepository "github.com/edwintantawi/taskit/internal/user/repository"
+	userUsecase "github.com/edwintantawi/taskit/internal/user/usecase"
 	"github.com/edwintantawi/taskit/pkg/httpsvr"
 	"github.com/edwintantawi/taskit/pkg/idgen"
 	"github.com/edwintantawi/taskit/pkg/postgres"
@@ -25,9 +27,9 @@ func main() {
 	hashProvider := security.NewBcrypt()
 	idProvider := idgen.NewUUID()
 
-	userRepository := user.NewRepository(db, idProvider)
-	userUsecase := user.NewUsecase(userRepository, hashProvider)
-	userHTTPHandler := user.NewHTTPHandler(userUsecase)
+	userRepository := userRepository.New(db, idProvider)
+	userUsecase := userUsecase.New(userRepository, hashProvider)
+	userHTTPHandler := userHTTPHandler.New(userUsecase)
 
 	r := chi.NewRouter()
 	r.Post("/api/users", userHTTPHandler.Post)
