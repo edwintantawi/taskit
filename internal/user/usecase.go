@@ -1,10 +1,10 @@
-package usecase
+package user
 
 import (
 	"context"
 
-	"github.com/edwintantawi/taskit/internal/user/domain"
-	"github.com/edwintantawi/taskit/internal/user/domain/entity"
+	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/entity"
 )
 
 type usecase struct {
@@ -12,7 +12,7 @@ type usecase struct {
 	hashProvider   domain.HashProvider
 }
 
-func New(userRepository domain.UserRepository, hashProvider domain.HashProvider) domain.UserUsecase {
+func NewUsecase(userRepository domain.UserRepository, hashProvider domain.HashProvider) domain.UserUsecase {
 	return &usecase{userRepository: userRepository, hashProvider: hashProvider}
 }
 

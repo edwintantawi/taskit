@@ -1,12 +1,12 @@
-package repository
+package user
 
 import (
 	"context"
 	"database/sql"
 	"errors"
 
-	"github.com/edwintantawi/taskit/internal/user/domain"
-	"github.com/edwintantawi/taskit/internal/user/domain/entity"
+	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/entity"
 )
 
 var (
@@ -18,7 +18,7 @@ type repository struct {
 	idProvider domain.IDProvider
 }
 
-func New(db *sql.DB, idProvider domain.IDProvider) domain.UserRepository {
+func NewRepository(db *sql.DB, idProvider domain.IDProvider) domain.UserRepository {
 	return &repository{db: db, idProvider: idProvider}
 }
 
@@ -33,6 +33,7 @@ func (r *repository) Store(ctx context.Context, u *entity.User) (entity.UserID, 
 	return id, nil
 }
 
+// VerifyAvailableEmail check if the email is available.
 func (r *repository) VerifyAvailableEmail(ctx context.Context, email string) error {
 	var id entity.UserID
 	q := `SELECT id FROM users WHERE email = $1`

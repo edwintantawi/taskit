@@ -1,23 +1,23 @@
-package http
+package user
 
 import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/edwintantawi/taskit/internal/user/domain"
+	"github.com/edwintantawi/taskit/internal/domain"
 	"github.com/edwintantawi/taskit/pkg/response"
 )
 
-type Handler struct {
+type HTTPHandler struct {
 	userUsecase domain.UserUsecase
 }
 
-func New(userUsecase domain.UserUsecase) *Handler {
-	return &Handler{userUsecase: userUsecase}
+func NewHTTPHandler(userUsecase domain.UserUsecase) *HTTPHandler {
+	return &HTTPHandler{userUsecase: userUsecase}
 }
 
 // POST /users to create new user
-func (h *Handler) Post(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 
@@ -30,7 +30,7 @@ func (h *Handler) Post(w http.ResponseWriter, r *http.Request) {
 
 	result, err := h.userUsecase.Create(r.Context(), &payload)
 	if err != nil {
-		code, msg := ErrorTranslator(err)
+		code, msg := HTTPErrorTranslator(err)
 		w.WriteHeader(code)
 		encoder.Encode(response.Error(code, msg))
 		return

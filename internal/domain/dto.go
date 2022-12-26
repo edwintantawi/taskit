@@ -1,6 +1,6 @@
 package domain
 
-import "github.com/edwintantawi/taskit/internal/user/domain/entity"
+import "github.com/edwintantawi/taskit/internal/domain/entity"
 
 // CreateUserIn represents the input of user creation.
 type CreateUserIn struct {

@@ -1,4 +1,4 @@
-package http
+package user
 
 import (
 	"bytes"
@@ -11,22 +11,22 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/edwintantawi/taskit/internal/user/domain"
-	"github.com/edwintantawi/taskit/internal/user/domain/mocks"
+	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/mocks"
 	"github.com/edwintantawi/taskit/pkg/response"
 )
 
-type HandlerTestSuite struct {
+type HTTPHandlerTestSuite struct {
 	suite.Suite
 }
 
-func TestHandlerSuite(t *testing.T) {
-	suite.Run(t, new(HandlerTestSuite))
+func TestHTTPHandlerSuite(t *testing.T) {
+	suite.Run(t, new(HTTPHandlerTestSuite))
 }
 
-func (s *HandlerTestSuite) TestPost() {
+func (s *HTTPHandlerTestSuite) TestPost() {
 	s.Run("it should return error when request body is invalid", func() {
-		handler := New(nil)
+		handler := NewHTTPHandler(nil)
 
 		reqBody := bytes.NewReader(nil)
 
@@ -48,7 +48,7 @@ func (s *HandlerTestSuite) TestPost() {
 		usecase := &mocks.UserUsecase{}
 		usecase.On("Create", mock.Anything, mock.Anything).Return(domain.CreateUserOut{}, errors.New("some error"))
 
-		handler := New(usecase)
+		handler := NewHTTPHandler(usecase)
 
 		reqBody := bytes.NewReader([]byte(`{}`))
 
@@ -75,7 +75,7 @@ func (s *HandlerTestSuite) TestPost() {
 		usecase := &mocks.UserUsecase{}
 		usecase.On("Create", mock.Anything, mock.Anything).Return(usecaseResult, nil)
 
-		handler := New(usecase)
+		handler := NewHTTPHandler(usecase)
 
 		reqBody := bytes.NewReader([]byte(`{}`))
 
