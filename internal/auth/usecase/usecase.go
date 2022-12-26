@@ -35,12 +35,11 @@ func (u *usecase) Login(ctx context.Context, payload *domain.LoginAuthIn) (domai
 		return domain.LoginAuthOut{}, domain.ErrPasswordIncorrect
 	}
 
-	tokenPayload := map[string]interface{}{"user_id": user.ID}
-	accessToken, _, err := u.jwtProvider.GenerateAccessToken(tokenPayload)
+	accessToken, _, err := u.jwtProvider.GenerateAccessToken(user.ID)
 	if err != nil {
 		return domain.LoginAuthOut{}, err
 	}
-	refreshToken, expires, err := u.jwtProvider.GenerateRefreshToken(tokenPayload)
+	refreshToken, expires, err := u.jwtProvider.GenerateRefreshToken(user.ID)
 	if err != nil {
 		return domain.LoginAuthOut{}, err
 	}
