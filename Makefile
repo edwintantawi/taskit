@@ -13,6 +13,11 @@ help:
 dev:
 	@go run cmd/main.go
 
+## mocks: generate or update mocks
+.PHONY: mocks
+mocks:
+	@cd internal/domain && mockery --all
+
 ## test: run tests
 .PHONY: test
 test:
