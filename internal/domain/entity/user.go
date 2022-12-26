@@ -16,11 +16,11 @@ const (
 var (
 	emailRegex = regexp.MustCompile(emailRegexStr)
 
-	ErrEmailEmpty       = errors.New("user.email_empty")
-	ErrEmailInvalid     = errors.New("user.email_invalid")
-	ErrPasswordEmpty    = errors.New("user.password_empty")
-	ErrPasswordTooShort = errors.New("user.password_too_short")
-	ErrNameEmpty        = errors.New("user.name_empty")
+	ErrEmailEmpty       = errors.New("user.entity.email_empty")
+	ErrEmailInvalid     = errors.New("user.entity.email_invalid")
+	ErrPasswordEmpty    = errors.New("user.entity.password_empty")
+	ErrPasswordTooShort = errors.New("user.entity.password_too_short")
+	ErrNameEmpty        = errors.New("user.entity.name_empty")
 )
 
 type UserID string

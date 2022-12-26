@@ -1,4 +1,4 @@
-package user
+package errorx
 
 import (
 	"errors"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	"github.com/edwintantawi/taskit/internal/domain"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 )
 
@@ -29,7 +30,9 @@ func (s *HTTPErrorTranslatorTestSuite) TestErrorTranslator() {
 		{entity.ErrPasswordEmpty, 400, "Password is required field"},
 		{entity.ErrPasswordTooShort, 400, fmt.Sprintf("Password must be greater then %d character in length", entity.MinPasswordLength)},
 		{entity.ErrNameEmpty, 400, "Name is required field"},
-		{ErrEmailNotAvailable, 400, "Email is not available"},
+		{domain.ErrEmailNotAvailable, 400, "Email is not available"},
+		{domain.ErrUserEmailNotFound, 400, "User email not found"},
+		{domain.ErrPasswordIncorrect, 400, "Password is incorrect"},
 		{errors.New("other error"), 500, "Something went wrong"},
 	}
 

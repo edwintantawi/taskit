@@ -12,3 +12,8 @@ func NewBcrypt() *bcryptx {
 func (b *bcryptx) Hash(raw string) ([]byte, error) {
 	return bcrypt.GenerateFromPassword([]byte(raw), bcrypt.DefaultCost)
 }
+
+// Compare compares a raw string with a hashed string.
+func (b *bcryptx) Compare(raw string, hashed string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hashed), []byte(raw))
+}

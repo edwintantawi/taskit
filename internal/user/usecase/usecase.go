@@ -1,4 +1,4 @@
-package user
+package usecase
 
 import (
 	"context"
@@ -12,7 +12,8 @@ type usecase struct {
 	hashProvider   domain.HashProvider
 }
 
-func NewUsecase(userRepository domain.UserRepository, hashProvider domain.HashProvider) domain.UserUsecase {
+// New create a new user usecase.
+func New(userRepository domain.UserRepository, hashProvider domain.HashProvider) domain.UserUsecase {
 	return &usecase{userRepository: userRepository, hashProvider: hashProvider}
 }
 

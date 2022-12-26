@@ -1,4 +1,4 @@
-package user
+package http
 
 import (
 	"bytes"
@@ -16,17 +16,17 @@ import (
 	"github.com/edwintantawi/taskit/pkg/response"
 )
 
-type HTTPHandlerTestSuite struct {
+type UserHTTPHandlerTestSuite struct {
 	suite.Suite
 }
 
-func TestHTTPHandlerSuite(t *testing.T) {
-	suite.Run(t, new(HTTPHandlerTestSuite))
+func TestUserHTTPHandlerSuite(t *testing.T) {
+	suite.Run(t, new(UserHTTPHandlerTestSuite))
 }
 
-func (s *HTTPHandlerTestSuite) TestPost() {
+func (s *UserHTTPHandlerTestSuite) TestPost() {
 	s.Run("it should return error when request body is invalid", func() {
-		handler := NewHTTPHandler(nil)
+		handler := New(nil)
 
 		reqBody := bytes.NewReader(nil)
 
@@ -38,6 +38,7 @@ func (s *HTTPHandlerTestSuite) TestPost() {
 		var resBody response.E
 		json.NewDecoder(rr.Body).Decode(&resBody)
 
+		s.Equal("application/json", rr.Header().Get("Content-Type"))
 		s.Equal(400, rr.Code)
 		s.Equal(400, resBody.StatusCode)
 		s.Equal(http.StatusText(400), resBody.Message)
@@ -48,7 +49,7 @@ func (s *HTTPHandlerTestSuite) TestPost() {
 		usecase := &mocks.UserUsecase{}
 		usecase.On("Create", mock.Anything, mock.Anything).Return(domain.CreateUserOut{}, errors.New("some error"))
 
-		handler := NewHTTPHandler(usecase)
+		handler := New(usecase)
 
 		reqBody := bytes.NewReader([]byte(`{}`))
 
@@ -60,6 +61,7 @@ func (s *HTTPHandlerTestSuite) TestPost() {
 		var resBody response.E
 		json.NewDecoder(rr.Body).Decode(&resBody)
 
+		s.Equal("application/json", rr.Header().Get("Content-Type"))
 		s.Equal(500, rr.Code)
 		s.Equal(500, resBody.StatusCode)
 		s.Equal(http.StatusText(500), resBody.Message)
@@ -75,7 +77,7 @@ func (s *HTTPHandlerTestSuite) TestPost() {
 		usecase := &mocks.UserUsecase{}
 		usecase.On("Create", mock.Anything, mock.Anything).Return(usecaseResult, nil)
 
-		handler := NewHTTPHandler(usecase)
+		handler := New(usecase)
 
 		reqBody := bytes.NewReader([]byte(`{}`))
 
@@ -88,6 +90,7 @@ func (s *HTTPHandlerTestSuite) TestPost() {
 		json.NewDecoder(rr.Body).Decode(&resBody)
 		resPayload := resBody.Payload.(map[string]any)
 
+		s.Equal("application/json", rr.Header().Get("Content-Type"))
 		s.Equal(201, rr.Code)
 		s.Equal(201, resBody.StatusCode)
 		s.Equal("Successfully registered user", resBody.Message)
