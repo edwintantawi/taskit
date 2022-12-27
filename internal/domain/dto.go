@@ -31,3 +31,15 @@ type LoginAuthOut struct {
 type LogoutAuthIn struct {
 	RefreshToken string `json:"refresh_token"`
 }
+
+// GetProfileAuthIn represent profile input
+type GetProfileAuthIn struct {
+	UserID entity.UserID `json:"user_id"`
+}
+
+// GetProfileAuthOut represent profile output
+type GetProfileAuthOut struct {
+	ID    entity.UserID `json:"id"`
+	Name  string        `json:"name"`
+	Email string        `json:"email"`
+}

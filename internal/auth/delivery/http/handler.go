@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/pkg/errorx"
 	"github.com/edwintantawi/taskit/pkg/response"
 )
@@ -18,7 +19,7 @@ func New(authUsecase domain.AuthUsecase) *HTTPHandler {
 	return &HTTPHandler{authUsecase: authUsecase}
 }
 
-// POST /auth to login user
+// POST /authentications to login user
 func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
@@ -42,6 +43,7 @@ func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 	encoder.Encode(response.Success(http.StatusOK, "Successfully logged in user", result))
 }
 
+// DELETE /authentications to logout from current authentication
 func (h *HTTPHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
@@ -63,4 +65,24 @@ func (h *HTTPHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	encoder.Encode(response.Success(http.StatusOK, "Successfully logout user", nil))
+}
+
+// GET /authentications to get user authenticated profile
+func (h *HTTPHandler) Get(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	encoder := json.NewEncoder(w)
+
+	userID := r.Context().Value(entity.AuthUserIDKey("user_id")).(entity.UserID)
+	payload := domain.GetProfileAuthIn{UserID: userID}
+
+	user, err := h.authUsecase.GetProfile(r.Context(), &payload)
+	if err != nil {
+		code, msg := errorx.HTTPErrorTranslator(err)
+		w.WriteHeader(code)
+		encoder.Encode(response.Error(code, msg))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	encoder.Encode(response.Success(http.StatusOK, http.StatusText(http.StatusOK), user))
 }

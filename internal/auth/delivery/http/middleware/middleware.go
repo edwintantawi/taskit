@@ -3,7 +3,6 @@ package middleware
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"net/http"
 	"strings"
 
@@ -32,7 +31,6 @@ func New(jwtProvider domain.JWTProvider) middleware {
 			rawToken := strings.TrimPrefix(bearerToken, "Bearer ")
 			userId, err := jwtProvider.VerifyAccessToken(rawToken)
 			if err != nil {
-				log.Println(err)
 				w.WriteHeader(http.StatusUnauthorized)
 				encoder.Encode(response.Error(http.StatusUnauthorized, "The access token provided is invalid"))
 				return

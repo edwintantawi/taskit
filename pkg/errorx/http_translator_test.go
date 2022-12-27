@@ -35,6 +35,7 @@ func (s *HTTPErrorTranslatorTestSuite) TestErrorTranslator() {
 		{domain.ErrUserEmailNotExist, 400, "User email not found"},
 		{domain.ErrPasswordIncorrect, 400, "Password is incorrect"},
 		{domain.ErrAuthNotExist, 400, "Authentication token not exist"},
+		{domain.ErrUserIDNotExist, 404, "User not found"},
 		{errors.New("other error"), 500, "Something went wrong"},
 	}
 

@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/internal/domain/mocks"
 	"github.com/edwintantawi/taskit/pkg/response"
 )
@@ -164,5 +166,66 @@ func (s *AuthHTTPHandlerTestSuite) TestDelete() {
 		s.Equal(200, resBody.StatusCode)
 		s.Equal("Successfully logout user", resBody.Message)
 		s.Nil(resBody.Payload)
+	})
+}
+
+func (s *AuthHTTPHandlerTestSuite) TestGet() {
+	s.Run("it should return error response when fail find the profile", func() {
+		userProfile := domain.GetProfileAuthOut{
+			ID:    "xxxxx",
+			Name:  "Gopher",
+			Email: "gopher@go.dev",
+		}
+
+		usecase := &mocks.AuthUsecase{}
+		usecase.On("GetProfile", mock.Anything, mock.Anything).Return(domain.GetProfileAuthOut{}, errors.New("unexpected error"))
+
+		handler := New(usecase)
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest("GET", "/authentications", nil)
+		req = req.WithContext(context.WithValue(req.Context(), entity.AuthUserIDKey("user_id"), userProfile.ID))
+
+		handler.Get(rr, req)
+
+		var resBody response.E
+		json.NewDecoder(rr.Body).Decode(&resBody)
+
+		s.Equal("application/json", rr.Header().Get("Content-Type"))
+		s.Equal(500, rr.Code)
+		s.Equal(500, resBody.StatusCode)
+		s.Equal(http.StatusText(500), resBody.Message)
+		s.NotEmpty(resBody.Error)
+	})
+
+	s.Run("it should return user profile response when success find the profile", func() {
+		userProfile := domain.GetProfileAuthOut{
+			ID:    "xxxxx",
+			Name:  "Gopher",
+			Email: "gopher@go.dev",
+		}
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest("GET", "/authentications", nil)
+		req = req.WithContext(context.WithValue(req.Context(), entity.AuthUserIDKey("user_id"), userProfile.ID))
+
+		usecase := &mocks.AuthUsecase{}
+		usecase.On("GetProfile", req.Context(), &domain.GetProfileAuthIn{UserID: userProfile.ID}).Return(userProfile, nil)
+
+		handler := New(usecase)
+
+		handler.Get(rr, req)
+
+		var resBody response.S
+		json.NewDecoder(rr.Body).Decode(&resBody)
+		resPayload := resBody.Payload.(map[string]any)
+
+		s.Equal("application/json", rr.Header().Get("Content-Type"))
+		s.Equal(200, rr.Code)
+		s.Equal(200, resBody.StatusCode)
+		s.Equal(http.StatusText(200), resBody.Message)
+		s.Equal(string(userProfile.ID), resPayload["id"])
+		s.Equal(userProfile.Name, resPayload["name"])
+		s.Equal(userProfile.Email, resPayload["email"])
 	})
 }

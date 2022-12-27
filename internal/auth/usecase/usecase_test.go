@@ -192,3 +192,36 @@ func (s *AuthUsecaseTestSuite) TestLogout() {
 		s.NoError(err)
 	})
 }
+
+func (s *AuthUsecaseTestSuite) TestGetProfile() {
+	s.Run("it should return error when fail to find user by id", func() {
+		ctx := context.Background()
+		payload := domain.GetProfileAuthIn{UserID: "xxxxx"}
+
+		mockUserRepo := &mocks.UserRepository{}
+		mockUserRepo.On("FindByID", ctx, payload.UserID).Return(entity.User{}, errors.New("unexpected error"))
+
+		usecase := New(nil, mockUserRepo, nil, nil)
+		u, err := usecase.GetProfile(ctx, &payload)
+
+		s.Equal(errors.New("unexpected error"), err)
+		s.Empty(u)
+	})
+
+	s.Run("it should return user when success to find user by id", func() {
+		ctx := context.Background()
+		payload := domain.GetProfileAuthIn{UserID: "xxxxx"}
+		user := entity.User{ID: payload.UserID, Name: "Gopher", Email: "gopher@go.dev"}
+
+		mockUserRepo := &mocks.UserRepository{}
+		mockUserRepo.On("FindByID", ctx, payload.UserID).Return(user, nil)
+
+		usecase := New(nil, mockUserRepo, nil, nil)
+		u, err := usecase.GetProfile(ctx, &payload)
+
+		s.NoError(err)
+		s.Equal(user.ID, u.ID)
+		s.Equal(user.Name, u.Name)
+		s.Equal(user.Email, u.Email)
+	})
+}

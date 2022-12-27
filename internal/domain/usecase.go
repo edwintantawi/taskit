@@ -17,4 +17,5 @@ type UserUsecase interface {
 type AuthUsecase interface {
 	Login(ctx context.Context, payload *LoginAuthIn) (LoginAuthOut, error)
 	Logout(ctx context.Context, payload *LogoutAuthIn) error
+	GetProfile(ctx context.Context, payload *GetProfileAuthIn) (GetProfileAuthOut, error)
 }
