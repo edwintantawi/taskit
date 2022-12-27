@@ -52,6 +52,7 @@ func (u *usecase) Login(ctx context.Context, payload *domain.LoginAuthIn) (domai
 	return domain.LoginAuthOut{AccessToken: accessToken, RefreshToken: refreshToken}, nil
 }
 
+// Logout remove user authentication.
 func (u *usecase) Logout(ctx context.Context, payload *domain.LogoutAuthIn) error {
 	auth := &entity.Auth{Token: payload.RefreshToken}
 	if err := auth.Validate(); err != nil {
@@ -66,10 +67,42 @@ func (u *usecase) Logout(ctx context.Context, payload *domain.LogoutAuthIn) erro
 	return nil
 }
 
+// GetProfile get user authenticated profile.
 func (u *usecase) GetProfile(ctx context.Context, payload *domain.GetProfileAuthIn) (domain.GetProfileAuthOut, error) {
 	user, err := u.userRepository.FindByID(ctx, payload.UserID)
 	if err != nil {
 		return domain.GetProfileAuthOut{}, err
 	}
 	return domain.GetProfileAuthOut{ID: user.ID, Name: user.Name, Email: user.Email}, nil
+}
+
+// Refresh refresh user authentication token.
+func (u *usecase) Refresh(ctx context.Context, payload *domain.RefreshAuthIn) (domain.RefreshAuthOut, error) {
+	auth, err := u.authRepository.FindByToken(ctx, payload.RefreshToken)
+	if err != nil {
+		return domain.RefreshAuthOut{}, err
+	}
+	if err := auth.VerifyTokenExpires(); err != nil {
+		return domain.RefreshAuthOut{}, err
+	}
+
+	accessToken, _, err := u.jwtProvider.GenerateAccessToken(auth.UserID)
+	if err != nil {
+		return domain.RefreshAuthOut{}, err
+	}
+	refreshToken, expires, err := u.jwtProvider.GenerateRefreshToken(auth.UserID)
+	if err != nil {
+		return domain.RefreshAuthOut{}, err
+	}
+
+	if err := u.authRepository.Delete(ctx, &auth); err != nil {
+		return domain.RefreshAuthOut{}, err
+	}
+
+	newAuth := &entity.Auth{UserID: auth.UserID, Token: refreshToken, ExpiresAt: expires}
+	if err := u.authRepository.Store(ctx, newAuth); err != nil {
+		return domain.RefreshAuthOut{}, err
+	}
+
+	return domain.RefreshAuthOut{AccessToken: accessToken, RefreshToken: refreshToken}, nil
 }

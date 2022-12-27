@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	ErrAuthTokenEmpty = errors.New("auth.entity.token.empty")
+	ErrAuthTokenEmpty   = errors.New("auth.entity.token.empty")
+	ErrAuthTokenExpired = errors.New("auth.entity.token.expired")
 )
 
 type AuthID string
@@ -28,6 +29,13 @@ func (a *Auth) Validate() error {
 	switch {
 	case a.Token == "":
 		return ErrAuthTokenEmpty
+	}
+	return nil
+}
+
+func (a *Auth) VerifyTokenExpires() error {
+	if a.ExpiresAt.Before(time.Now()) {
+		return ErrAuthTokenExpired
 	}
 	return nil
 }

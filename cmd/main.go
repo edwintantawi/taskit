@@ -52,6 +52,7 @@ func main() {
 	r.Group(func(r chi.Router) {
 		r.Post("/api/users", userHTTPHandler.Post)
 		r.Post("/api/authentications", authHTTPHandler.Post)
+		r.Put("/api/authentications", authHTTPHandler.Put)
 	})
 
 	// private routes (need authentication)

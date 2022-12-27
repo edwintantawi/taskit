@@ -27,4 +27,5 @@ type UserRepository interface {
 type AuthRepository interface {
 	Store(ctx context.Context, a *entity.Auth) error
 	Delete(ctx context.Context, a *entity.Auth) error
+	FindByToken(ctx context.Context, token string) (entity.Auth, error)
 }

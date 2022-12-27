@@ -229,3 +229,77 @@ func (s *AuthHTTPHandlerTestSuite) TestGet() {
 		s.Equal(userProfile.Email, resPayload["email"])
 	})
 }
+
+func (s *AuthHTTPHandlerTestSuite) TestPut() {
+	s.Run("it should return error response when request body is invalid", func() {
+		handler := New(nil)
+
+		reqBody := bytes.NewReader(nil)
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest("PUT", "/authentications", reqBody)
+
+		handler.Put(rr, req)
+
+		var resBody response.E
+		json.NewDecoder(rr.Body).Decode(&resBody)
+
+		s.Equal("application/json", rr.Header().Get("Content-Type"))
+		s.Equal(400, rr.Code)
+		s.Equal(400, resBody.StatusCode)
+		s.Equal(http.StatusText(400), resBody.Message)
+		s.Equal("Invalid request body", resBody.Error)
+	})
+
+	s.Run("it should return error response when fail to refresh authentication token", func() {
+		usecase := &mocks.AuthUsecase{}
+		usecase.On("Refresh", mock.Anything, mock.Anything).Return(domain.RefreshAuthOut{}, errors.New("unexpected error"))
+
+		handler := New(usecase)
+
+		reqBody := bytes.NewReader([]byte(`{}`))
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest("PUT", "/authentications", reqBody)
+
+		handler.Put(rr, req)
+
+		var resBody response.E
+		json.NewDecoder(rr.Body).Decode(&resBody)
+
+		s.Equal("application/json", rr.Header().Get("Content-Type"))
+		s.Equal(500, rr.Code)
+		s.Equal(500, resBody.StatusCode)
+		s.Equal(http.StatusText(500), resBody.Message)
+		s.NotEmpty(resBody.Error)
+	})
+
+	s.Run("it should return authentication token response when success to refresh authentication token", func() {
+		result := domain.RefreshAuthOut{
+			AccessToken:  "xxxxx.xxxxx.xxxxx",
+			RefreshToken: "yyyyy.yyyyy.yyyyy",
+		}
+		usecase := &mocks.AuthUsecase{}
+		usecase.On("Refresh", mock.Anything, mock.Anything).Return(result, nil)
+
+		handler := New(usecase)
+
+		reqBody := bytes.NewReader([]byte(`{}`))
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest("PUT", "/authentications", reqBody)
+
+		handler.Put(rr, req)
+
+		var resBody response.S
+		json.NewDecoder(rr.Body).Decode(&resBody)
+		resPayload := resBody.Payload.(map[string]any)
+
+		s.Equal("application/json", rr.Header().Get("Content-Type"))
+		s.Equal(200, rr.Code)
+		s.Equal(200, resBody.StatusCode)
+		s.Equal("Successfully refreshed authentication token", resBody.Message)
+		s.Equal(result.AccessToken, resPayload["access_token"])
+		s.Equal(result.RefreshToken, resPayload["refresh_token"])
+	})
+}

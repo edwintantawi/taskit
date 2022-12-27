@@ -86,3 +86,27 @@ func (h *HTTPHandler) Get(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	encoder.Encode(response.Success(http.StatusOK, http.StatusText(http.StatusOK), user))
 }
+
+// PUT /authentications to refresh authentication token
+func (h *HTTPHandler) Put(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	encoder := json.NewEncoder(w)
+
+	var payload domain.RefreshAuthIn
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		encoder.Encode(response.Error(http.StatusBadRequest, "Invalid request body"))
+		return
+	}
+
+	result, err := h.authUsecase.Refresh(r.Context(), &payload)
+	if err != nil {
+		code, msg := errorx.HTTPErrorTranslator(err)
+		w.WriteHeader(code)
+		encoder.Encode(response.Error(code, msg))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	encoder.Encode(response.Success(http.StatusOK, "Successfully refreshed authentication token", result))
+}
