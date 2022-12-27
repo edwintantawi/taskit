@@ -33,6 +33,8 @@ func HTTPErrorTranslator(err error) (code int, msg string) {
 		return http.StatusBadRequest, "Password is incorrect"
 	case domain.ErrAuthNotExist:
 		return http.StatusBadRequest, "Authentication token not exist"
+	case domain.ErrUserIDNotExist:
+		return http.StatusNotFound, "User not found"
 	default:
 		return http.StatusInternalServerError, "Something went wrong"
 	}

@@ -65,3 +65,11 @@ func (u *usecase) Logout(ctx context.Context, payload *domain.LogoutAuthIn) erro
 
 	return nil
 }
+
+func (u *usecase) GetProfile(ctx context.Context, payload *domain.GetProfileAuthIn) (domain.GetProfileAuthOut, error) {
+	user, err := u.userRepository.FindByID(ctx, payload.UserID)
+	if err != nil {
+		return domain.GetProfileAuthOut{}, err
+	}
+	return domain.GetProfileAuthOut{ID: user.ID, Name: user.Name, Email: user.Email}, nil
+}

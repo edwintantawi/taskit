@@ -57,6 +57,7 @@ func main() {
 	// private routes (need authentication)
 	r.Group(func(r chi.Router) {
 		r.Use(authMiddleware)
+		r.Get("/api/authentications", authHTTPHandler.Get)
 		r.Delete("/api/authentications", authHTTPHandler.Delete)
 	})
 

@@ -14,6 +14,27 @@ type AuthUsecase struct {
 	mock.Mock
 }
 
+// GetProfile provides a mock function with given fields: ctx, payload
+func (_m *AuthUsecase) GetProfile(ctx context.Context, payload *domain.GetProfileAuthIn) (domain.GetProfileAuthOut, error) {
+	ret := _m.Called(ctx, payload)
+
+	var r0 domain.GetProfileAuthOut
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.GetProfileAuthIn) domain.GetProfileAuthOut); ok {
+		r0 = rf(ctx, payload)
+	} else {
+		r0 = ret.Get(0).(domain.GetProfileAuthOut)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *domain.GetProfileAuthIn) error); ok {
+		r1 = rf(ctx, payload)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Login provides a mock function with given fields: ctx, payload
 func (_m *AuthUsecase) Login(ctx context.Context, payload *domain.LoginAuthIn) (domain.LoginAuthOut, error) {
 	ret := _m.Called(ctx, payload)
