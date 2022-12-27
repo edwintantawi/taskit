@@ -50,7 +50,20 @@ func (r *repository) FindByEmail(ctx context.Context, email string) (entity.User
 	q := `SELECT id, name, email, password, created_at, updated_at FROM users WHERE email = $1`
 	err := r.db.QueryRowContext(ctx, q, email).Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.CreatedAt, &u.UpdatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
-		return u, domain.ErrUserEmailNotFound
+		return u, domain.ErrUserEmailNotExist
+	}
+	if err != nil {
+		return u, err
+	}
+	return u, nil
+}
+
+func (r *repository) FindByID(ctx context.Context, id entity.UserID) (entity.User, error) {
+	var u entity.User
+	q := `SELECT id, name, email, created_at, updated_at FROM users WHERE id = $1`
+	err := r.db.QueryRowContext(ctx, q, id).Scan(&u.ID, &u.Name, &u.Email, &u.CreatedAt, &u.UpdatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return u, domain.ErrUserIDNotExist
 	}
 	if err != nil {
 		return u, err

@@ -30,9 +30,13 @@ func (s *HTTPErrorTranslatorTestSuite) TestErrorTranslator() {
 		{entity.ErrPasswordEmpty, 400, "Password is required field"},
 		{entity.ErrPasswordTooShort, 400, fmt.Sprintf("Password must be greater then %d character in length", entity.MinPasswordLength)},
 		{entity.ErrNameEmpty, 400, "Name is required field"},
+		{entity.ErrAuthTokenEmpty, 400, "Refresh token is required field"},
+		{entity.ErrAuthTokenExpired, 400, "Refresh token is expired"},
 		{domain.ErrEmailNotAvailable, 400, "Email is not available"},
-		{domain.ErrUserEmailNotFound, 400, "User email not found"},
+		{domain.ErrUserEmailNotExist, 400, "User email not found"},
 		{domain.ErrPasswordIncorrect, 400, "Password is incorrect"},
+		{domain.ErrAuthNotExist, 400, "Authentication token not exist"},
+		{domain.ErrUserIDNotExist, 404, "User not found"},
 		{errors.New("other error"), 500, "Something went wrong"},
 	}
 
