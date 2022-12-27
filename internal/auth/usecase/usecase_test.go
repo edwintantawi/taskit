@@ -28,12 +28,12 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 		payload := &domain.LoginAuthIn{Email: "gopher@go.dev"}
 
 		mockUserRepo := &mocks.UserRepository{}
-		mockUserRepo.On("FindByEmail", ctx, payload.Email).Return(entity.User{}, domain.ErrUserEmailNotFound)
+		mockUserRepo.On("FindByEmail", ctx, payload.Email).Return(entity.User{}, domain.ErrUserEmailNotExist)
 
 		usecase := New(nil, mockUserRepo, nil, nil)
 		_, err := usecase.Login(ctx, payload)
 
-		s.Equal(domain.ErrUserEmailNotFound, err)
+		s.Equal(domain.ErrUserEmailNotExist, err)
 	})
 
 	s.Run("it should return an error if the password is incorrect", func() {
@@ -113,7 +113,18 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 
 		usecase := New(mockAuthRepo, mockUserRepo, mockHashProvider, mockJWTProvider)
 		_, err := usecase.Login(ctx, payload)
+		s.Run("it should return an error if the user does not exist", func() {
+			ctx := context.Background()
+			payload := &domain.LoginAuthIn{Email: "gopher@go.dev"}
 
+			mockUserRepo := &mocks.UserRepository{}
+			mockUserRepo.On("FindByEmail", ctx, payload.Email).Return(entity.User{}, domain.ErrUserEmailNotExist)
+
+			usecase := New(nil, mockUserRepo, nil, nil)
+			_, err := usecase.Login(ctx, payload)
+
+			s.Equal(domain.ErrUserEmailNotExist, err)
+		})
 		s.Equal(errors.New("failed to save auth"), err)
 	})
 
@@ -141,5 +152,43 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 		s.NoError(err)
 		s.Equal("access_token", r.AccessToken)
 		s.Equal("refresh_token", r.RefreshToken)
+	})
+}
+
+func (s *AuthUsecaseTestSuite) TestLogout() {
+	s.Run("it should return error when auth validation fail", func() {
+		ctx := context.Background()
+		payload := &domain.LogoutAuthIn{}
+
+		usecase := New(nil, nil, nil, nil)
+		err := usecase.Logout(ctx, payload)
+
+		s.Equal(entity.ErrAuthTokenEmpty, err)
+	})
+
+	s.Run("it should return error when fail to delete token", func() {
+		ctx := context.Background()
+		payload := &domain.LogoutAuthIn{RefreshToken: "xxxxx.xxxxx.xxxxx"}
+
+		mockAuthRepo := &mocks.AuthRepository{}
+		mockAuthRepo.On("Delete", ctx, &entity.Auth{Token: payload.RefreshToken}).Return(domain.ErrAuthNotExist)
+
+		usecase := New(mockAuthRepo, nil, nil, nil)
+		err := usecase.Logout(ctx, payload)
+
+		s.Equal(domain.ErrAuthNotExist, err)
+	})
+
+	s.Run("it should return error nil when successfully delete authentication", func() {
+		ctx := context.Background()
+		payload := &domain.LogoutAuthIn{RefreshToken: "xxxxx.xxxxx.xxxxx"}
+
+		mockAuthRepo := &mocks.AuthRepository{}
+		mockAuthRepo.On("Delete", ctx, &entity.Auth{Token: payload.RefreshToken}).Return(nil)
+
+		usecase := New(mockAuthRepo, nil, nil, nil)
+		err := usecase.Logout(ctx, payload)
+
+		s.NoError(err)
 	})
 }

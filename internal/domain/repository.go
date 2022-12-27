@@ -9,7 +9,9 @@ import (
 
 var (
 	ErrEmailNotAvailable = errors.New("user.repository.email_not_available")
-	ErrUserEmailNotFound = errors.New("user.repository.user_email_not_found")
+	ErrUserEmailNotExist = errors.New("user.repository.user_email_not_exist")
+
+	ErrAuthNotExist = errors.New("auth.repository.auth_not_exist")
 )
 
 // UserRepository represent user repository contract.
@@ -22,4 +24,5 @@ type UserRepository interface {
 // AuthRepository represent auth repository contract.
 type AuthRepository interface {
 	Store(ctx context.Context, a *entity.Auth) error
+	Delete(ctx context.Context, a *entity.Auth) error
 }

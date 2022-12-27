@@ -41,3 +41,26 @@ func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	encoder.Encode(response.Success(http.StatusOK, "Successfully logged in user", result))
 }
+
+func (h *HTTPHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	encoder := json.NewEncoder(w)
+
+	var payload domain.LogoutAuthIn
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		encoder.Encode(response.Error(http.StatusBadRequest, "Invalid request body"))
+		return
+	}
+
+	err := h.authUsecase.Logout(r.Context(), &payload)
+	if err != nil {
+		code, msg := errorx.HTTPErrorTranslator(err)
+		w.WriteHeader(code)
+		encoder.Encode(response.Error(code, msg))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	encoder.Encode(response.Success(http.StatusOK, "Successfully logout user", nil))
+}

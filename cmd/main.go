@@ -4,9 +4,11 @@ import (
 	"log"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/edwintantawi/taskit/cmd/config"
 	authHTTPHandler "github.com/edwintantawi/taskit/internal/auth/delivery/http"
+	authMiddleware "github.com/edwintantawi/taskit/internal/auth/delivery/http/middleware"
 	authRepository "github.com/edwintantawi/taskit/internal/auth/repository"
 	authUsecase "github.com/edwintantawi/taskit/internal/auth/usecase"
 	userHTTPHandler "github.com/edwintantawi/taskit/internal/user/delivery/http"
@@ -41,10 +43,22 @@ func main() {
 	authRepository := authRepository.New(db, idProvider)
 	authUsecase := authUsecase.New(authRepository, userRepository, hashProvider, jwtProvider)
 	authHTTPHandler := authHTTPHandler.New(authUsecase)
+	authMiddleware := authMiddleware.New(jwtProvider)
 
 	r := chi.NewRouter()
-	r.Post("/api/users", userHTTPHandler.Post)
-	r.Post("/api/authentications", authHTTPHandler.Post)
+	r.Use(middleware.Logger)
+
+	// public routes
+	r.Group(func(r chi.Router) {
+		r.Post("/api/users", userHTTPHandler.Post)
+		r.Post("/api/authentications", authHTTPHandler.Post)
+	})
+
+	// private routes (need authentication)
+	r.Group(func(r chi.Router) {
+		r.Use(authMiddleware)
+		r.Delete("/api/authentications", authHTTPHandler.Delete)
+	})
 
 	log.Printf("Server running at %s", cfg.ServerAddr)
 	svr := httpsvr.New(cfg.ServerAddr, r)

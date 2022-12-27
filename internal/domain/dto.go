@@ -26,3 +26,8 @@ type LoginAuthOut struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 }
+
+// LogoutAuthIn represent logout input.
+type LogoutAuthIn struct {
+	RefreshToken string `json:"refresh_token"`
+}

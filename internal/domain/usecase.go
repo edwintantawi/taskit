@@ -16,4 +16,5 @@ type UserUsecase interface {
 // AuthUsecase represent auth usecase contract.
 type AuthUsecase interface {
 	Login(ctx context.Context, payload *LoginAuthIn) (LoginAuthOut, error)
+	Logout(ctx context.Context, payload *LogoutAuthIn) error
 }

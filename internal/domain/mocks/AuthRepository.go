@@ -15,6 +15,20 @@ type AuthRepository struct {
 	mock.Mock
 }
 
+// Delete provides a mock function with given fields: ctx, a
+func (_m *AuthRepository) Delete(ctx context.Context, a *entity.Auth) error {
+	ret := _m.Called(ctx, a)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *entity.Auth) error); ok {
+		r0 = rf(ctx, a)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Store provides a mock function with given fields: ctx, a
 func (_m *AuthRepository) Store(ctx context.Context, a *entity.Auth) error {
 	ret := _m.Called(ctx, a)
