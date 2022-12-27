@@ -23,12 +23,16 @@ func HTTPErrorTranslator(err error) (code int, msg string) {
 		return http.StatusBadRequest, fmt.Sprintf("Password must be greater then %d character in length", entity.MinPasswordLength)
 	case entity.ErrNameEmpty:
 		return http.StatusBadRequest, "Name is required field"
+	case entity.ErrAuthTokenEmpty:
+		return http.StatusBadRequest, "Refresh token is required field"
 	case domain.ErrEmailNotAvailable:
 		return http.StatusBadRequest, "Email is not available"
-	case domain.ErrUserEmailNotFound:
+	case domain.ErrUserEmailNotExist:
 		return http.StatusBadRequest, "User email not found"
 	case domain.ErrPasswordIncorrect:
 		return http.StatusBadRequest, "Password is incorrect"
+	case domain.ErrAuthNotExist:
+		return http.StatusBadRequest, "Authentication token not exist"
 	default:
 		return http.StatusInternalServerError, "Something went wrong"
 	}

@@ -28,3 +28,20 @@ func (r *repository) Store(ctx context.Context, a *entity.Auth) error {
 	}
 	return nil
 }
+
+// Delete remove an auth from database.
+func (r *repository) Delete(ctx context.Context, a *entity.Auth) error {
+	q := `DELETE FROM authentications WHERE token = $1`
+	result, err := r.db.ExecContext(ctx, q, a.Token)
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return domain.ErrAuthNotExist
+	}
+	return nil
+}

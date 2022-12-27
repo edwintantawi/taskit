@@ -191,7 +191,7 @@ func (s *UserRepositoryTestSuite) TestGetByEmail() {
 		repo := New(db, nil)
 		user, err := repo.FindByEmail(context.Background(), u.Email)
 
-		s.Equal(domain.ErrUserEmailNotFound, err)
+		s.Equal(domain.ErrUserEmailNotExist, err)
 		s.Empty(user)
 	})
 

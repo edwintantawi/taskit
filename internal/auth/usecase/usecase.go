@@ -51,3 +51,17 @@ func (u *usecase) Login(ctx context.Context, payload *domain.LoginAuthIn) (domai
 
 	return domain.LoginAuthOut{AccessToken: accessToken, RefreshToken: refreshToken}, nil
 }
+
+func (u *usecase) Logout(ctx context.Context, payload *domain.LogoutAuthIn) error {
+	auth := &entity.Auth{Token: payload.RefreshToken}
+	if err := auth.Validate(); err != nil {
+		return err
+	}
+
+	err := u.authRepository.Delete(ctx, auth)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
