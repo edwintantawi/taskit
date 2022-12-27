@@ -9,6 +9,7 @@ import (
 
 const Driver = "postgres"
 
+// New create new postgres connection.
 func New(dsn string) *sql.DB {
 	db, err := sql.Open(Driver, dsn)
 	if err != nil {

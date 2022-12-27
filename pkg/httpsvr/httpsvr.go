@@ -18,6 +18,7 @@ type Server struct {
 	Router *chi.Mux
 }
 
+// New creates a new HTTP server.
 func New(addr string, r *chi.Mux) *Server {
 	return &Server{Addr: addr, Router: r}
 }

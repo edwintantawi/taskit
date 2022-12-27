@@ -22,6 +22,7 @@ type Auth struct {
 	ExpiresAt time.Time
 }
 
+// Validate auth fields.
 func (a *Auth) Validate() error {
 	// remove all leading and trailing spaces
 	a.Token = strings.TrimSpace(a.Token)
@@ -33,6 +34,7 @@ func (a *Auth) Validate() error {
 	return nil
 }
 
+// VerifyTokenExpires checks if the token has expired.
 func (a *Auth) VerifyTokenExpires() error {
 	if a.ExpiresAt.Before(time.Now()) {
 		return ErrAuthTokenExpired
