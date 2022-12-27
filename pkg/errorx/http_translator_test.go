@@ -31,6 +31,7 @@ func (s *HTTPErrorTranslatorTestSuite) TestErrorTranslator() {
 		{entity.ErrPasswordTooShort, 400, fmt.Sprintf("Password must be greater then %d character in length", entity.MinPasswordLength)},
 		{entity.ErrNameEmpty, 400, "Name is required field"},
 		{entity.ErrAuthTokenEmpty, 400, "Refresh token is required field"},
+		{entity.ErrAuthTokenExpired, 400, "Refresh token is expired"},
 		{domain.ErrEmailNotAvailable, 400, "Email is not available"},
 		{domain.ErrUserEmailNotExist, 400, "User email not found"},
 		{domain.ErrPasswordIncorrect, 400, "Password is incorrect"},

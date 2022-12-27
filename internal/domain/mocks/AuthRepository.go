@@ -29,6 +29,27 @@ func (_m *AuthRepository) Delete(ctx context.Context, a *entity.Auth) error {
 	return r0
 }
 
+// FindByToken provides a mock function with given fields: ctx, token
+func (_m *AuthRepository) FindByToken(ctx context.Context, token string) (entity.Auth, error) {
+	ret := _m.Called(ctx, token)
+
+	var r0 entity.Auth
+	if rf, ok := ret.Get(0).(func(context.Context, string) entity.Auth); ok {
+		r0 = rf(ctx, token)
+	} else {
+		r0 = ret.Get(0).(entity.Auth)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, token)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Store provides a mock function with given fields: ctx, a
 func (_m *AuthRepository) Store(ctx context.Context, a *entity.Auth) error {
 	ret := _m.Called(ctx, a)

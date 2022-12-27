@@ -25,6 +25,8 @@ func HTTPErrorTranslator(err error) (code int, msg string) {
 		return http.StatusBadRequest, "Name is required field"
 	case entity.ErrAuthTokenEmpty:
 		return http.StatusBadRequest, "Refresh token is required field"
+	case entity.ErrAuthTokenExpired:
+		return http.StatusBadRequest, "Refresh token is expired"
 	case domain.ErrEmailNotAvailable:
 		return http.StatusBadRequest, "Email is not available"
 	case domain.ErrUserEmailNotExist:

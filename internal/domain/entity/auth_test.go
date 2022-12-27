@@ -2,6 +2,7 @@ package entity
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 )
@@ -29,5 +30,25 @@ func (s *AuthEntityTestSuite) TestValidate() {
 		err := u.Validate()
 
 		s.Nil(err)
+	})
+}
+
+func (s *AuthEntityTestSuite) TestIsExpired() {
+	s.Run("it should return error when auth is expired", func() {
+		a := Auth{
+			ExpiresAt: time.Now().Add(-1 * time.Hour),
+		}
+		err := a.VerifyTokenExpires()
+
+		s.Equal(ErrAuthTokenExpired, err)
+	})
+
+	s.Run("it should return error nil when auth is not expired", func() {
+		a := Auth{
+			ExpiresAt: time.Now().Add(1 * time.Hour),
+		}
+		err := a.VerifyTokenExpires()
+
+		s.NoError(err)
 	})
 }

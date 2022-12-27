@@ -43,3 +43,14 @@ type GetProfileAuthOut struct {
 	Name  string        `json:"name"`
 	Email string        `json:"email"`
 }
+
+// RefreshAuthIn represent refresh input.
+type RefreshAuthIn struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
+// RefreshAuthOut represent refresh output.
+type RefreshAuthOut struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
