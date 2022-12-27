@@ -4,6 +4,7 @@ import "github.com/google/uuid"
 
 type uuidx struct{}
 
+// NewUUID creates a new UUID generator.
 func NewUUID() *uuidx {
 	return &uuidx{}
 }

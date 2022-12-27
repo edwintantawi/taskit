@@ -58,6 +58,7 @@ func (r *repository) FindByEmail(ctx context.Context, email string) (entity.User
 	return u, nil
 }
 
+// FindByID find a user by id.
 func (r *repository) FindByID(ctx context.Context, id entity.UserID) (entity.User, error) {
 	var u entity.User
 	q := `SELECT id, name, email, created_at, updated_at FROM users WHERE id = $1`

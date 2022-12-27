@@ -35,7 +35,7 @@ type User struct {
 	UpdatedAt time.Time
 }
 
-// Validate user fields
+// Validate user fields.
 func (u *User) Validate() error {
 	// remove all leading and trailing spaces
 	u.Email = strings.TrimSpace(u.Email)

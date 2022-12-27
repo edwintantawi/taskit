@@ -9,6 +9,7 @@ var (
 	ErrPasswordIncorrect = errors.New("auth.usecase.password_incorrect")
 )
 
+// UserUsecase represent user usecase contract.
 type UserUsecase interface {
 	Create(ctx context.Context, payload *CreateUserIn) (CreateUserOut, error)
 }
