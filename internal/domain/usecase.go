@@ -21,3 +21,8 @@ type AuthUsecase interface {
 	GetProfile(ctx context.Context, payload *GetProfileAuthIn) (GetProfileAuthOut, error)
 	Refresh(ctx context.Context, payload *RefreshAuthIn) (RefreshAuthOut, error)
 }
+
+// TaskUsecase represent task usecase contract.
+type TaskUsecase interface {
+	Create(ctx context.Context, payload *CreateTaskIn) (CreateTaskOut, error)
+}
