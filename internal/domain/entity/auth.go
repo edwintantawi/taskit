@@ -45,6 +45,7 @@ func (a *Auth) VerifyTokenExpires() error {
 	return nil
 }
 
+// GetAuthContext get the AuthUserIDKey from the context.
 func GetAuthContext(ctx context.Context) UserID {
 	userID := ctx.Value(AuthUserIDKey)
 	if userID == nil {
