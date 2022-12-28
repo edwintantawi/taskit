@@ -11,7 +11,7 @@ import (
 	"github.com/edwintantawi/taskit/pkg/response"
 )
 
-const authUserIDKey = entity.AuthUserIDKey("user_id")
+const authUserIDKey = entity.AuthUserIDKey
 
 type middleware func(next http.Handler) http.Handler
 

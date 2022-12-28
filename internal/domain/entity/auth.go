@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"time"
@@ -12,7 +13,9 @@ var (
 )
 
 type AuthID string
-type AuthUserIDKey string
+type authUserIDKey string
+
+const AuthUserIDKey = authUserIDKey("user_id")
 
 // Auth represents an authentication in the system.
 type Auth struct {
@@ -40,4 +43,12 @@ func (a *Auth) VerifyTokenExpires() error {
 		return ErrAuthTokenExpired
 	}
 	return nil
+}
+
+func GetAuthContext(ctx context.Context) UserID {
+	userID := ctx.Value(AuthUserIDKey)
+	if userID == nil {
+		panic("Auth Context: Cannot get auth context, required context value user_id from auth middleware")
+	}
+	return userID.(UserID)
 }
