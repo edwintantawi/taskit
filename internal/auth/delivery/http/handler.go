@@ -72,8 +72,8 @@ func (h *HTTPHandler) Get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 
-	userID := r.Context().Value(entity.AuthUserIDKey).(entity.UserID)
-	payload := domain.GetProfileAuthIn{UserID: userID}
+	var payload domain.GetProfileAuthIn
+	payload.UserID = entity.GetAuthContext(r.Context())
 
 	user, err := h.authUsecase.GetProfile(r.Context(), &payload)
 	if err != nil {
