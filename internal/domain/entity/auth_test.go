@@ -17,41 +17,38 @@ func TestAuthEntitySuite(t *testing.T) {
 }
 
 func (s *AuthEntityTestSuite) TestValidate() {
-	s.Run("it should return error when token is empty", func() {
-		u := Auth{}
-		err := u.Validate()
+	tests := []struct {
+		name     string
+		input    Auth
+		expected error
+	}{
+		{name: "it should return error when token is empty", input: Auth{}, expected: ErrAuthTokenEmpty},
+		{name: "it should return nil when all fields are valid", input: Auth{Token: "xxxxx.xxxxx.xxxxx"}, expected: nil},
+	}
 
-		s.Equal(ErrAuthTokenEmpty, err)
-	})
-
-	s.Run("it should return nil when all fields are valid", func() {
-		u := Auth{
-			Token: "xxxxx.xxxxx.xxxxx",
-		}
-		err := u.Validate()
-
-		s.Nil(err)
-	})
+	for _, test := range tests {
+		s.Run(test.name, func() {
+			err := test.input.Validate()
+			s.Equal(test.expected, err)
+		})
+	}
 }
 
-func (s *AuthEntityTestSuite) TestIsExpired() {
-	s.Run("it should return error when auth is expired", func() {
-		a := Auth{
-			ExpiresAt: time.Now().Add(-1 * time.Hour),
-		}
-		err := a.VerifyTokenExpires()
+func (s *AuthEntityTestSuite) TestVerifyTokenExpires() {
+	tests := []struct {
+		name     string
+		input    Auth
+		expected error
+	}{
+		{name: "it should return error when auth is expired", input: Auth{ExpiresAt: time.Now().Add(-1 * time.Hour)}, expected: ErrAuthTokenExpired},
+		{name: "it should return nill when auth is not expired", input: Auth{ExpiresAt: time.Now().Add(1 * time.Hour)}, expected: nil},
+	}
 
-		s.Equal(ErrAuthTokenExpired, err)
-	})
-
-	s.Run("it should return error nil when auth is not expired", func() {
-		a := Auth{
-			ExpiresAt: time.Now().Add(1 * time.Hour),
-		}
-		err := a.VerifyTokenExpires()
-
-		s.NoError(err)
-	})
+	for _, test := range tests {
+		s.Run(test.name, func() {
+			s.Equal(test.expected, test.input.VerifyTokenExpires())
+		})
+	}
 }
 
 func (s *AuthEntityTestSuite) TestGetAuthContext() {
