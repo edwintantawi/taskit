@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -50,5 +51,19 @@ func (s *AuthEntityTestSuite) TestIsExpired() {
 		err := a.VerifyTokenExpires()
 
 		s.NoError(err)
+	})
+}
+
+func (s *AuthEntityTestSuite) TestGetAuthContext() {
+	s.Run("it should panic when auth context is not set", func() {
+		s.Panics(func() {
+			GetAuthContext(context.Background())
+		})
+	})
+
+	s.Run("it should return user id when auth context is set", func() {
+		userID := UserID("xxxxx")
+		ctx := context.WithValue(context.Background(), AuthUserIDKey, userID)
+		s.Equal(userID, GetAuthContext(ctx))
 	})
 }
