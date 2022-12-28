@@ -3,7 +3,6 @@ package entity
 import (
 	"context"
 	"errors"
-	"strings"
 	"time"
 )
 
@@ -27,9 +26,6 @@ type Auth struct {
 
 // Validate auth fields.
 func (a *Auth) Validate() error {
-	// remove all leading and trailing spaces
-	a.Token = strings.TrimSpace(a.Token)
-
 	switch {
 	case a.Token == "":
 		return ErrAuthTokenEmpty

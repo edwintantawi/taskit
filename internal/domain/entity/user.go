@@ -3,7 +3,6 @@ package entity
 import (
 	"errors"
 	"regexp"
-	"strings"
 	"time"
 )
 
@@ -37,11 +36,6 @@ type User struct {
 
 // Validate user fields.
 func (u *User) Validate() error {
-	// remove all leading and trailing spaces
-	u.Email = strings.TrimSpace(u.Email)
-	u.Password = strings.TrimSpace(u.Password)
-	u.Name = strings.TrimSpace(u.Name)
-
 	switch {
 	case u.Email == "":
 		return ErrEmailEmpty
