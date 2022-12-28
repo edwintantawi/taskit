@@ -3,10 +3,8 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/suite"
@@ -14,6 +12,7 @@ import (
 	"github.com/edwintantawi/taskit/internal/domain"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/internal/domain/mocks"
+	"github.com/edwintantawi/taskit/test"
 )
 
 type AuthRepositoryTestSuite struct {
@@ -24,211 +23,236 @@ func TestAuthRepositorySuite(t *testing.T) {
 	suite.Run(t, new(AuthRepositoryTestSuite))
 }
 
+type dependency struct {
+	mockDB     sqlmock.Sqlmock
+	idProvider *mocks.IDProvider
+}
+
 func (s *AuthRepositoryTestSuite) TestStore() {
-	s.Run("it should return error when database failed to store token", func() {
-		db, mockDB, err := sqlmock.New()
-		if err != nil {
-			s.FailNow("an error '%s' was not expected when opening a stub database connection", err)
-		}
-		defer db.Close()
+	type args struct {
+		ctx  context.Context
+		auth *entity.Auth
+	}
+	tests := []struct {
+		name     string
+		args     args
+		expected error
+		setup    func(d *dependency)
+	}{
+		{
+			name:     "it should return error when database fail to store",
+			args:     args{ctx: context.Background(), auth: &entity.Auth{UserID: "user-xxxxx", Token: "yyyyy.yyyyy.yyyyy", ExpiresAt: test.TimeAfterNow}},
+			expected: test.ErrDatabase,
+			setup: func(d *dependency) {
+				d.idProvider.On("Generate").Return(string("auth-xxxxx"))
+				d.mockDB.ExpectExec(regexp.QuoteMeta(`INSERT INTO authentications (id, user_id, token, expires_at) VALUES ($1, $2, $3, $4)`)).
+					WithArgs("auth-xxxxx", "user-xxxxx", "yyyyy.yyyyy.yyyyy", test.TimeAfterNow).
+					WillReturnError(test.ErrDatabase)
+			},
+		},
+		{
+			name:     "it should return nil when successfully store",
+			args:     args{ctx: context.Background(), auth: &entity.Auth{UserID: "user-xxxxx", Token: "yyyyy.yyyyy.yyyyy", ExpiresAt: test.TimeAfterNow}},
+			expected: nil,
+			setup: func(d *dependency) {
+				d.idProvider.On("Generate").Return(string("auth-xxxxx"))
+				d.mockDB.ExpectExec(regexp.QuoteMeta(`INSERT INTO authentications (id, user_id, token, expires_at) VALUES ($1, $2, $3, $4)`)).
+					WithArgs("auth-xxxxx", "user-xxxxx", "yyyyy.yyyyy.yyyyy", test.TimeAfterNow).
+					WillReturnResult(sqlmock.NewResult(1, 1))
+			},
+		},
+	}
 
-		a := entity.Auth{
-			ID:     "yyyyy",
-			UserID: "xxxxx",
-			Token:  "xxxxx.xxxxx.xxxxx",
-		}
+	for _, t := range tests {
+		s.Run(t.name, func() {
+			db, mockDB, err := sqlmock.New()
+			if err != nil {
+				s.FailNow("an error '%s' was not expected when opening a database mock connection", err)
+			}
 
-		mockDB.ExpectExec(regexp.QuoteMeta(`INSERT INTO authentications (id, user_id, token, expires_at) VALUES ($1, $2, $3, $4)`)).
-			WithArgs(a.ID, a.UserID, a.Token, a.ExpiresAt).
-			WillReturnError(errors.New("database error"))
+			deps := &dependency{
+				mockDB:     mockDB,
+				idProvider: &mocks.IDProvider{},
+			}
+			t.setup(deps)
 
-		mockIDProvider := &mocks.IDProvider{}
-		mockIDProvider.On("Generate").Return(string(a.ID))
+			repo := New(db, deps.idProvider)
+			err = repo.Store(t.args.ctx, t.args.auth)
 
-		repo := New(db, mockIDProvider)
-		err = repo.Store(context.Background(), &a)
-
-		s.Equal(err, errors.New("database error"))
-	})
-
-	s.Run("it should return error nil when successfully store token", func() {
-		db, mockDB, err := sqlmock.New()
-		if err != nil {
-			s.FailNow("an error '%s' was not expected when opening a stub database connection", err)
-		}
-		defer db.Close()
-
-		a := entity.Auth{
-			ID:     "yyyyy",
-			UserID: "xxxxx",
-			Token:  "xxxxx.xxxxx.xxxxx",
-		}
-
-		mockDB.ExpectExec(regexp.QuoteMeta(`INSERT INTO authentications (id, user_id, token, expires_at) VALUES ($1, $2, $3, $4)`)).
-			WithArgs(a.ID, a.UserID, a.Token, a.ExpiresAt).
-			WillReturnResult(sqlmock.NewResult(1, 1))
-
-		mockIDProvider := &mocks.IDProvider{}
-		mockIDProvider.On("Generate").Return(string(a.ID))
-
-		repo := New(db, mockIDProvider)
-		err = repo.Store(context.Background(), &a)
-
-		s.NoError(err)
-	})
+			s.Equal(t.expected, err)
+		})
+	}
 }
 
 func (s *AuthRepositoryTestSuite) TestDelete() {
-	s.Run("it should return error when database fail", func() {
-		db, mockDB, err := sqlmock.New()
-		if err != nil {
-			s.FailNow("an error '%s' was not expected when opening a stub database connection", err)
-		}
-		defer db.Close()
+	type args struct {
+		ctx  context.Context
+		auth *entity.Auth
+	}
+	tests := []struct {
+		name     string
+		args     args
+		expected error
+		setup    func(d *dependency)
+	}{
+		{
+			name:     "it should return error when database fail to delete",
+			args:     args{ctx: context.Background(), auth: &entity.Auth{Token: "yyyyy.yyyyy.yyyyy"}},
+			expected: test.ErrDatabase,
+			setup: func(d *dependency) {
+				d.mockDB.ExpectExec(regexp.QuoteMeta(`DELETE FROM authentications WHERE token = $1`)).
+					WithArgs("yyyyy.yyyyy.yyyyy").
+					WillReturnError(test.ErrDatabase)
+			},
+		},
+		{
+			name:     "it should return error when rowAffected is return an error",
+			args:     args{ctx: context.Background(), auth: &entity.Auth{Token: "yyyyy.yyyyy.yyyyy"}},
+			expected: test.ErrRowAffected,
+			setup: func(d *dependency) {
+				d.mockDB.ExpectExec(regexp.QuoteMeta(`DELETE FROM authentications WHERE token = $1`)).
+					WithArgs("yyyyy.yyyyy.yyyyy").
+					WillReturnResult(sqlmock.NewErrorResult(test.ErrRowAffected))
+			},
+		},
+		{
+			name:     "it should return error ErrAuthNotExist when token not found",
+			args:     args{ctx: context.Background(), auth: &entity.Auth{Token: "yyyyy.yyyyy.yyyyy"}},
+			expected: domain.ErrAuthNotExist,
+			setup: func(d *dependency) {
+				d.mockDB.ExpectExec(regexp.QuoteMeta(`DELETE FROM authentications WHERE token = $1`)).
+					WithArgs("yyyyy.yyyyy.yyyyy").
+					WillReturnResult(sqlmock.NewResult(0, 0))
+			},
+		},
+		{
+			name:     "it should return nil when successfully delete",
+			args:     args{ctx: context.Background(), auth: &entity.Auth{Token: "yyyyy.yyyyy.yyyyy"}},
+			expected: nil,
+			setup: func(d *dependency) {
+				d.mockDB.ExpectExec(regexp.QuoteMeta(`DELETE FROM authentications WHERE token = $1`)).
+					WithArgs("yyyyy.yyyyy.yyyyy").
+					WillReturnResult(sqlmock.NewResult(1, 1))
+			},
+		},
+	}
 
-		a := entity.Auth{UserID: "xxxxx", Token: "xxxxx.xxxxx.xxxxx"}
-		mockDB.ExpectExec(regexp.QuoteMeta(`DELETE FROM authentications WHERE token = $1`)).
-			WithArgs(a.Token).
-			WillReturnError(errors.New("database error"))
+	for _, t := range tests {
+		s.Run(t.name, func() {
+			db, mockDB, err := sqlmock.New()
+			if err != nil {
+				s.FailNow("an error '%s' was not expected when opening a database mock connection", err)
+			}
 
-		repo := New(db, nil)
-		err = repo.Delete(context.Background(), &a)
+			d := &dependency{
+				mockDB:     mockDB,
+				idProvider: &mocks.IDProvider{},
+			}
+			t.setup(d)
 
-		s.Equal(errors.New("database error"), err)
-	})
+			repo := New(db, nil)
+			err = repo.Delete(t.args.ctx, t.args.auth)
 
-	s.Run("it should return error when user id or token not found", func() {
-		db, mockDB, err := sqlmock.New()
-		if err != nil {
-			s.FailNow("an error '%s' was not expected when opening a stub database connection", err)
-		}
-		defer db.Close()
-
-		a := entity.Auth{UserID: "xxxxx", Token: "xxxxx.xxxxx.xxxxx"}
-		mockDB.ExpectExec(regexp.QuoteMeta(`DELETE FROM authentications WHERE token = $1`)).
-			WithArgs(a.Token).
-			WillReturnResult(sqlmock.NewResult(0, 0))
-
-		repo := New(db, nil)
-		err = repo.Delete(context.Background(), &a)
-
-		s.Equal(domain.ErrAuthNotExist, err)
-	})
-
-	s.Run("it should return error when fail to get rows affected", func() {
-		db, mockDB, err := sqlmock.New()
-		if err != nil {
-			s.FailNow("an error '%s' was not expected when opening a stub database connection", err)
-		}
-		defer db.Close()
-
-		a := entity.Auth{UserID: "xxxxx", Token: "xxxxx.xxxxx.xxxxx"}
-		mockDB.ExpectExec(regexp.QuoteMeta(`DELETE FROM authentications WHERE token = $1`)).
-			WithArgs(a.Token).
-			WillReturnResult(sqlmock.NewErrorResult(errors.New("unexpected error")))
-
-		repo := New(db, nil)
-		err = repo.Delete(context.Background(), &a)
-
-		s.Equal(errors.New("unexpected error"), err)
-	})
-
-	s.Run("it should return error nil when authentication deleted successfully", func() {
-		db, mockDB, err := sqlmock.New()
-		if err != nil {
-			s.FailNow("an error '%s' was not expected when opening a stub database connection", err)
-		}
-		defer db.Close()
-
-		a := entity.Auth{UserID: "xxxxx", Token: "xxxxx.xxxxx.xxxxx"}
-
-		mockDB.ExpectExec(regexp.QuoteMeta(`DELETE FROM authentications WHERE token = $1`)).
-			WithArgs(a.Token).
-			WillReturnResult(sqlmock.NewResult(1, 1))
-
-		repo := New(db, nil)
-		err = repo.Delete(context.Background(), &a)
-
-		s.NoError(err)
-	})
+			s.Equal(t.expected, err)
+		})
+	}
 }
 
 func (s *AuthRepositoryTestSuite) TestFindByToken() {
-	s.Run("it should return error when database fail", func() {
-		db, mockDB, err := sqlmock.New()
-		if err != nil {
-			s.FailNow("an error '%s' was not expected when opening a stub database connection", err)
-		}
-		defer db.Close()
+	type args struct {
+		ctx   context.Context
+		token string
+	}
+	type expected struct {
+		auth entity.Auth
+		err  error
+	}
+	tests := []struct {
+		name     string
+		args     args
+		expected expected
+		setup    func(d *dependency)
+	}{
+		{
+			name: "it should return error when database fail to find",
+			args: args{ctx: context.Background(), token: "yyyyy.yyyyy.yyyyy"},
+			expected: expected{
+				auth: entity.Auth{},
+				err:  test.ErrDatabase,
+			},
+			setup: func(d *dependency) {
+				d.mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id, user_id, token, expires_at FROM authentications WHERE token = $1`)).
+					WithArgs("yyyyy.yyyyy.yyyyy").
+					WillReturnError(test.ErrDatabase)
+			},
+		},
+		{
+			name: "it should return error when row not found",
+			args: args{ctx: context.Background(), token: "yyyyy.yyyyy.yyyyy"},
+			expected: expected{
+				auth: entity.Auth{},
+				err:  domain.ErrAuthNotExist,
+			},
+			setup: func(d *dependency) {
+				d.mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id, user_id, token, expires_at FROM authentications WHERE token = $1`)).
+					WithArgs("yyyyy.yyyyy.yyyyy").
+					WillReturnError(sql.ErrNoRows)
+			},
+		},
+		{
+			name: "it should return error when fail to scan row",
+			args: args{ctx: context.Background(), token: "yyyyy.yyyyy.yyyyy"},
+			expected: expected{
+				auth: entity.Auth{},
+				err:  test.ErrRowScan,
+			},
+			setup: func(d *dependency) {
+				d.mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id, user_id, token, expires_at FROM authentications WHERE token = $1`)).
+					WithArgs("yyyyy.yyyyy.yyyyy").
+					WillReturnError(test.ErrRowScan)
+			},
+		},
+		{
+			name: "it should return error nil and authentication when found",
+			args: args{ctx: context.Background(), token: "yyyyy.yyyyy.yyyyy"},
+			expected: expected{
+				auth: entity.Auth{
+					ID:        "auth-xxxxx",
+					UserID:    "user-xxxxx",
+					Token:     "yyyyy.yyyyy.yyyyy",
+					ExpiresAt: test.TimeAfterNow,
+				},
+				err: nil,
+			},
+			setup: func(d *dependency) {
+				mockRow := sqlmock.NewRows([]string{"id", "user_id", "token", "expires_at"}).
+					AddRow("auth-xxxxx", "user-xxxxx", "yyyyy.yyyyy.yyyyy", test.TimeAfterNow)
 
-		token := "xxxxx.xxxxx.xxxxx"
+				d.mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id, user_id, token, expires_at FROM authentications WHERE token = $1`)).
+					WithArgs("yyyyy.yyyyy.yyyyy").
+					WillReturnRows(mockRow)
+			},
+		},
+	}
 
-		mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id, user_id, token, expires_at FROM authentications WHERE token = $1`)).
-			WithArgs(token).
-			WillReturnError(errors.New("database error"))
+	for _, t := range tests {
+		s.Run(t.name, func() {
+			db, mockDB, err := sqlmock.New()
+			if err != nil {
+				s.FailNow("an error '%s' was not expected when opening a database mock connection", err)
+			}
 
-		repo := New(db, nil)
-		_, err = repo.FindByToken(context.Background(), token)
+			d := &dependency{
+				mockDB:     mockDB,
+				idProvider: &mocks.IDProvider{},
+			}
+			t.setup(d)
 
-		s.Equal(errors.New("database error"), err)
-	})
+			repo := New(db, nil)
+			auth, err := repo.FindByToken(t.args.ctx, t.args.token)
 
-	s.Run("it should return error when token not found", func() {
-		db, mockDB, err := sqlmock.New()
-		if err != nil {
-			s.FailNow("an error '%s' was not expected when opening a stub database connection", err)
-		}
-		defer db.Close()
-
-		token := "xxxxx.xxxxx.xxxxx"
-
-		mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id, user_id, token, expires_at FROM authentications WHERE token = $1`)).
-			WithArgs(token).
-			WillReturnError(sql.ErrNoRows)
-
-		repo := New(db, nil)
-		_, err = repo.FindByToken(context.Background(), token)
-
-		s.Equal(domain.ErrAuthNotExist, err)
-	})
-
-	s.Run("it should return error when fail to scan row", func() {
-		db, mockDB, err := sqlmock.New()
-		if err != nil {
-			s.FailNow("an error '%s' was not expected when opening a stub database connection", err)
-		}
-		defer db.Close()
-
-		token := "xxxxx.xxxxx.xxxxx"
-
-		mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id, user_id, token, expires_at FROM authentications WHERE token = $1`)).
-			WithArgs(token).
-			WillReturnError(errors.New("unexpected error"))
-
-		repo := New(db, nil)
-		_, err = repo.FindByToken(context.Background(), token)
-
-		s.Equal(errors.New("unexpected error"), err)
-	})
-
-	s.Run("it should return error nil when authentication found", func() {
-		db, mockDB, err := sqlmock.New()
-		if err != nil {
-			s.FailNow("an error '%s' was not expected when opening a stub database connection", err)
-		}
-		defer db.Close()
-
-		token := "xxxxx.xxxxx.xxxxx"
-
-		mockRow := sqlmock.NewRows([]string{"id", "user_id", "token", "expires_at"}).AddRow("xxxxx", "xxxxx", "xxxxx.xxxxx.xxxxx", time.Now().Add(time.Hour))
-		mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id, user_id, token, expires_at FROM authentications WHERE token = $1`)).
-			WithArgs(token).
-			WillReturnRows(mockRow)
-
-		repo := New(db, nil)
-		auth, err := repo.FindByToken(context.Background(), token)
-
-		s.NoError(err)
-		s.NotEmpty(auth)
-	})
+			s.Equal(t.expected.err, err)
+			s.Equal(t.expected.auth, auth)
+		})
+	}
 }
