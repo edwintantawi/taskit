@@ -184,7 +184,7 @@ func (s *AuthHTTPHandlerTestSuite) TestGet() {
 
 		rr := httptest.NewRecorder()
 		req := httptest.NewRequest("GET", "/authentications", nil)
-		req = req.WithContext(context.WithValue(req.Context(), entity.AuthUserIDKey("user_id"), userProfile.ID))
+		req = req.WithContext(context.WithValue(req.Context(), entity.AuthUserIDKey, userProfile.ID))
 
 		handler.Get(rr, req)
 
@@ -207,7 +207,7 @@ func (s *AuthHTTPHandlerTestSuite) TestGet() {
 
 		rr := httptest.NewRecorder()
 		req := httptest.NewRequest("GET", "/authentications", nil)
-		req = req.WithContext(context.WithValue(req.Context(), entity.AuthUserIDKey("user_id"), userProfile.ID))
+		req = req.WithContext(context.WithValue(req.Context(), entity.AuthUserIDKey, userProfile.ID))
 
 		usecase := &mocks.AuthUsecase{}
 		usecase.On("GetProfile", req.Context(), &domain.GetProfileAuthIn{UserID: userProfile.ID}).Return(userProfile, nil)

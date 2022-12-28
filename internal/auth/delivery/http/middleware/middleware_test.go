@@ -89,7 +89,7 @@ func (s *HTTPAuthMiddlewareTestSuite) TestAuthentication() {
 
 		mainHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
-			userID := r.Context().Value(entity.AuthUserIDKey("user_id")).(entity.UserID)
+			userID := r.Context().Value(entity.AuthUserIDKey).(entity.UserID)
 			w.Write([]byte(userID))
 		})
 
