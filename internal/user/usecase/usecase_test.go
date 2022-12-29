@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -10,6 +9,7 @@ import (
 	"github.com/edwintantawi/taskit/internal/domain"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/internal/domain/mocks"
+	"github.com/edwintantawi/taskit/test"
 )
 
 type UserUsecaseTestSuite struct {
@@ -20,84 +20,123 @@ func TestUserUsecaseSuite(t *testing.T) {
 	suite.Run(t, new(UserUsecaseTestSuite))
 }
 
+type dependency struct {
+	userRepository *mocks.UserRepository
+	hashProvider   *mocks.HashProvider
+}
+
 func (s *UserUsecaseTestSuite) TestCreate() {
 	s.Run("it should return error when user validation fail", func() {
 		ctx := context.Background()
 		payload := &domain.CreateUserIn{}
+
 		usecase := New(nil, nil)
-		r, err := usecase.Create(ctx, payload)
+		output, err := usecase.Create(ctx, payload)
 
 		s.Error(err)
-		s.Empty(r)
+		s.Empty(output)
 	})
 
-	s.Run("it should return error when verify available email error", func() {
-		ctx := context.Background()
-		payload := &domain.CreateUserIn{Name: "Gopher", Email: "gopher@go.dev", Password: "secret_password"}
+	type args struct {
+		ctx     context.Context
+		payload *domain.CreateUserIn
+	}
+	type expected struct {
+		output domain.CreateUserOut
+		err    error
+	}
+	tests := []struct {
+		name     string
+		args     args
+		expected expected
+		setup    func(d *dependency)
+	}{
+		{
+			name: "it should return error when user repository VerifyAvailableEmail return unexpected error",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.CreateUserIn{Name: "Gopher", Email: "gopher@go.dev", Password: "secret_password"},
+			},
+			expected: expected{
+				output: domain.CreateUserOut{},
+				err:    test.ErrUnexpected,
+			},
+			setup: func(d *dependency) {
+				d.userRepository.On("VerifyAvailableEmail", context.Background(), "gopher@go.dev").Return(test.ErrUnexpected)
+			},
+		},
+		{
+			name: "it should return error when hash provider Hash return unexpected error",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.CreateUserIn{Name: "Gopher", Email: "gopher@go.dev", Password: "secret_password"},
+			},
+			expected: expected{
+				output: domain.CreateUserOut{},
+				err:    test.ErrUnexpected,
+			},
+			setup: func(d *dependency) {
+				d.userRepository.On("VerifyAvailableEmail", context.Background(), "gopher@go.dev").Return(nil)
+				d.hashProvider.On("Hash", "secret_password").Return(nil, test.ErrUnexpected)
+			},
+		},
+		{
+			name: "it should return error when user repository Store return unexpected error",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.CreateUserIn{Name: "Gopher", Email: "gopher@go.dev", Password: "secret_password"},
+			},
+			expected: expected{
+				output: domain.CreateUserOut{},
+				err:    test.ErrUnexpected,
+			},
+			setup: func(d *dependency) {
+				d.userRepository.On("VerifyAvailableEmail", context.Background(), "gopher@go.dev").
+					Return(nil)
 
-		mockRepo := &mocks.UserRepository{}
-		mockRepo.On("VerifyAvailableEmail", ctx, payload.Email).Return(domain.ErrEmailNotAvailable)
+				d.hashProvider.On("Hash", "secret_password").
+					Return([]byte("secret_hashed_password"), nil)
 
-		usecase := New(mockRepo, nil)
-		r, err := usecase.Create(ctx, payload)
+				d.userRepository.On("Store", context.Background(), &entity.User{Name: "Gopher", Email: "gopher@go.dev", Password: "secret_hashed_password"}).
+					Return(entity.UserID(""), test.ErrUnexpected)
+			},
+		},
+		{
+			name: "it should return error nil and output when success",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.CreateUserIn{Name: "Gopher", Email: "gopher@go.dev", Password: "secret_password"},
+			},
+			expected: expected{
+				output: domain.CreateUserOut{ID: "user-xxxxx", Email: "gopher@go.dev"},
+				err:    nil,
+			},
+			setup: func(d *dependency) {
+				d.userRepository.On("VerifyAvailableEmail", context.Background(), "gopher@go.dev").
+					Return(nil)
 
-		s.Equal(domain.ErrEmailNotAvailable, err)
-		s.Empty(r)
-	})
+				d.hashProvider.On("Hash", "secret_password").
+					Return([]byte("secret_hashed_password"), nil)
 
-	s.Run("it should return error when hashing password is error", func() {
-		ctx := context.Background()
-		payload := &domain.CreateUserIn{Name: "Gopher", Email: "gopher@go.dev", Password: "secret_password"}
+				d.userRepository.On("Store", context.Background(), &entity.User{Name: "Gopher", Email: "gopher@go.dev", Password: "secret_hashed_password"}).
+					Return(entity.UserID("user-xxxxx"), nil)
+			},
+		},
+	}
 
-		mockRepo := &mocks.UserRepository{}
-		mockRepo.On("VerifyAvailableEmail", ctx, payload.Email).Return(nil)
+	for _, t := range tests {
+		s.Run(t.name, func() {
+			d := &dependency{
+				userRepository: &mocks.UserRepository{},
+				hashProvider:   &mocks.HashProvider{},
+			}
+			t.setup(d)
 
-		mockHash := &mocks.HashProvider{}
-		mockHash.On("Hash", payload.Password).Return(nil, errors.New("password hash fail"))
+			usecase := New(d.userRepository, d.hashProvider)
+			output, err := usecase.Create(t.args.ctx, t.args.payload)
 
-		usecase := New(mockRepo, mockHash)
-		r, err := usecase.Create(ctx, payload)
-
-		s.Equal(errors.New("password hash fail"), err)
-		s.Empty(r)
-	})
-
-	s.Run("it should return error when repository create return an error", func() {
-		ctx := context.Background()
-		payload := &domain.CreateUserIn{Name: "Gopher", Email: "gopher@go.dev", Password: "secret_password"}
-
-		mockRepo := &mocks.UserRepository{}
-		mockRepo.On("VerifyAvailableEmail", ctx, payload.Email).Return(nil)
-		mockRepo.On("Store", ctx, &entity.User{Name: payload.Name, Email: payload.Email, Password: "secure_hash_password"}).
-			Return(entity.UserID(""), errors.New("repository error"))
-
-		mockHash := &mocks.HashProvider{}
-		mockHash.On("Hash", payload.Password).Return([]byte("secure_hash_password"), nil)
-
-		usecase := New(mockRepo, mockHash)
-		r, err := usecase.Create(ctx, payload)
-
-		s.Equal(errors.New("repository error"), err)
-		s.Empty(r)
-		mockRepo.AssertCalled(s.T(), "Store", ctx, &entity.User{Name: payload.Name, Email: payload.Email, Password: "secure_hash_password"})
-	})
-
-	s.Run("it should return correct result when all operations successfully", func() {
-		ctx := context.Background()
-		payload := &domain.CreateUserIn{Name: "Gopher", Email: "gopher@go.dev", Password: "secret_password"}
-
-		mockRepo := &mocks.UserRepository{}
-		mockRepo.On("VerifyAvailableEmail", ctx, payload.Email).Return(nil)
-		mockRepo.On("Store", ctx, &entity.User{Name: payload.Name, Email: payload.Email, Password: "secure_hash_password"}).
-			Return(entity.UserID("xxxxx"), nil)
-
-		mockHash := &mocks.HashProvider{}
-		mockHash.On("Hash", payload.Password).Return([]byte("secure_hash_password"), nil)
-
-		usecase := New(mockRepo, mockHash)
-		r, err := usecase.Create(ctx, payload)
-
-		s.NoError(err)
-		s.Equal(domain.CreateUserOut{ID: "xxxxx", Email: payload.Email}, r)
-	})
+			s.Equal(t.expected.err, err)
+			s.Equal(t.expected.output, output)
+		})
+	}
 }
