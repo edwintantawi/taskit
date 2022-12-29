@@ -41,6 +41,9 @@ func (s *HTTPErrorTranslatorTestSuite) TestErrorTranslator() {
 		{domain.ErrAuthNotFound, 404, "Authentication not found"},
 		// Auth usecase
 		{domain.ErrPasswordIncorrect, 400, "Password is incorrect"},
+		{domain.ErrEmailNotExist, 400, "Email is not exist"},
+		// Task entity
+		{entity.ErrContentEmpty, 400, "Content is required field"},
 		// Other
 		{errors.New("other error"), 500, "Something went wrong"},
 	}

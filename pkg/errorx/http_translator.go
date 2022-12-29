@@ -37,9 +37,14 @@ func HTTPErrorTranslator(err error) (code int, msg string) {
 	// Auth repository
 	case domain.ErrAuthNotFound:
 		return http.StatusNotFound, "Authentication not found"
+	case domain.ErrEmailNotExist:
+		return http.StatusBadRequest, "Email is not exist"
 	// Auth usecase
 	case domain.ErrPasswordIncorrect:
 		return http.StatusBadRequest, "Password is incorrect"
+	// Task entity
+	case entity.ErrContentEmpty:
+		return http.StatusBadRequest, "Content is required field"
 	// Other
 	default:
 		return http.StatusInternalServerError, "Something went wrong"

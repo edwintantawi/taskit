@@ -7,6 +7,7 @@ import (
 
 // Auth usecase errors.
 var (
+	ErrEmailNotExist     = errors.New("auth.usecase.email_not_exist")
 	ErrPasswordIncorrect = errors.New("auth.usecase.password_incorrect")
 )
 
