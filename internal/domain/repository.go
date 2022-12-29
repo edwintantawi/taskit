@@ -10,7 +10,6 @@ import (
 // User repository errors.
 var (
 	ErrEmailNotAvailable = errors.New("user.repository.email_not_available")
-	ErrUserNotExist      = errors.New("user.repository.user_not_exist")
 	ErrUserNotFound      = errors.New("user.repository.user_not_found")
 )
 
