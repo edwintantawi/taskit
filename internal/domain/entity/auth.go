@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// Auth entity errors.
 var (
 	ErrAuthTokenEmpty   = errors.New("auth.entity.token.empty")
 	ErrAuthTokenExpired = errors.New("auth.entity.token.expired")
@@ -14,6 +15,7 @@ var (
 type AuthID string
 type authUserIDKey string
 
+// AuthUserIDKey is the key for the user_id value in the context.
 const AuthUserIDKey = authUserIDKey("user_id")
 
 // Auth represents an authentication in the system.

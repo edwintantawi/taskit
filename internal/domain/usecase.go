@@ -5,6 +5,7 @@ import (
 	"errors"
 )
 
+// Auth usecase errors.
 var (
 	ErrPasswordIncorrect = errors.New("auth.usecase.password_incorrect")
 )

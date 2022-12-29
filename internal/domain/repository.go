@@ -7,12 +7,16 @@ import (
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 )
 
+// User repository errors.
 var (
 	ErrEmailNotAvailable = errors.New("user.repository.email_not_available")
-	ErrUserEmailNotExist = errors.New("user.repository.user_email_not_exist")
-	ErrUserIDNotExist    = errors.New("user.repository.user_id_not_exist")
+	ErrUserNotExist      = errors.New("user.repository.user_not_exist")
+	ErrUserNotFound      = errors.New("user.repository.user_not_found")
+)
 
-	ErrAuthNotExist = errors.New("auth.repository.auth_not_exist")
+// Auth repository errors.
+var (
+	ErrAuthNotFound = errors.New("auth.repository.auth_not_found")
 )
 
 // UserRepository represent user repository contract.

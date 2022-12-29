@@ -12,9 +12,10 @@ const (
 	MinPasswordLength = 6
 )
 
-var (
-	emailRegex = regexp.MustCompile(emailRegexStr)
+var emailRegex = regexp.MustCompile(emailRegexStr)
 
+// User entity errors.
+var (
 	ErrEmailEmpty       = errors.New("user.entity.email_empty")
 	ErrEmailInvalid     = errors.New("user.entity.email_invalid")
 	ErrPasswordEmpty    = errors.New("user.entity.password_empty")

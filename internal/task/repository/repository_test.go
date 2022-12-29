@@ -2,16 +2,15 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/internal/domain/mocks"
+	"github.com/edwintantawi/taskit/test"
 )
 
 type TaskRepositoryTestSuite struct {
@@ -22,60 +21,80 @@ func TestTaskRepositorySuite(t *testing.T) {
 	suite.Run(t, new(TaskRepositoryTestSuite))
 }
 
-func (s *TaskRepositoryTestSuite) TestCreate() {
-	s.Run("it should return error when database fail", func() {
-		db, mockDB, err := sqlmock.New()
-		if err != nil {
-			s.FailNow("an error '%s' was not expected when opening a stub database connection", err)
-		}
+type dependency struct {
+	mockDB     sqlmock.Sqlmock
+	idProvider *mocks.IDProvider
+}
 
-		task := entity.Task{
-			ID:          "xxxxx",
-			UserID:      "yyyyyy",
-			Content:     "task content",
-			Description: "task description",
-			DueDate:     &time.Time{},
-		}
+func (s *TaskRepositoryTestSuite) TestStore() {
+	type args struct {
+		ctx  context.Context
+		task *entity.Task
+	}
+	type expected struct {
+		taskID entity.TaskID
+		err    error
+	}
+	tests := []struct {
+		name     string
+		args     args
+		expected expected
+		setup    func(d *dependency)
+	}{
+		{
+			name: "it should return error when database fail to store",
+			args: args{
+				ctx:  context.Background(),
+				task: &entity.Task{UserID: "user-xxxxx", Content: "task_content", Description: "task_description", DueDate: &test.TimeAfterNow},
+			},
+			expected: expected{
+				taskID: "",
+				err:    test.ErrDatabase,
+			},
+			setup: func(d *dependency) {
+				d.idProvider.On("Generate").Return("task-xxxxx")
+				d.mockDB.ExpectExec(regexp.QuoteMeta(`INSERT INTO tasks (id, user_id, content, description, due_date)`)).
+					WithArgs("task-xxxxx", "user-xxxxx", "task_content", "task_description", &test.TimeAfterNow).
+					WillReturnError(test.ErrDatabase)
+			},
+		},
+		{
+			name: "it should return error nil and task id when successfully store",
+			args: args{
+				ctx:  context.Background(),
+				task: &entity.Task{UserID: "user-xxxxx", Content: "task_content", Description: "task_description", DueDate: &test.TimeAfterNow},
+			},
+			expected: expected{
+				taskID: "task-xxxxx",
+				err:    nil,
+			},
+			setup: func(d *dependency) {
+				d.idProvider.On("Generate").Return("task-xxxxx")
+				d.mockDB.ExpectExec(regexp.QuoteMeta(`INSERT INTO tasks (id, user_id, content, description, due_date)`)).
+					WithArgs("task-xxxxx", "user-xxxxx", "task_content", "task_description", &test.TimeAfterNow).
+					WillReturnResult(sqlmock.NewResult(1, 1))
+			},
+		},
+	}
 
-		mockDB.ExpectExec(regexp.QuoteMeta(`INSERT INTO tasks (id, user_id, content, description, due_date)`)).
-			WithArgs(task.ID, task.UserID, task.Content, task.Description, task.DueDate).
-			WillReturnError(errors.New("database error"))
+	for _, t := range tests {
+		s.Run(t.name, func() {
+			db, mockDB, err := sqlmock.New()
+			if err != nil {
+				s.FailNow("an error '%s' was not expected when opening a database mock connection", err)
+			}
 
-		mockIDProvider := &mocks.IDProvider{}
-		mockIDProvider.On("Generate").Return(string(task.ID))
+			d := &dependency{
+				mockDB:     mockDB,
+				idProvider: &mocks.IDProvider{},
+			}
+			t.setup(d)
 
-		repo := New(db, mockIDProvider)
-		id, err := repo.Store(context.Background(), &task)
+			repository := New(db, d.idProvider)
+			taskID, err := repository.Store(t.args.ctx, t.args.task)
 
-		s.Equal(errors.New("database error"), err)
-		s.Empty(id)
-	})
-
-	s.Run("it should return task id when store task successfully", func() {
-		db, mockDB, err := sqlmock.New()
-		if err != nil {
-			s.FailNow("an error '%s' was not expected when opening a stub database connection", err)
-		}
-
-		task := entity.Task{
-			ID:          "xxxxx",
-			UserID:      "yyyyyy",
-			Content:     "task content",
-			Description: "task description",
-			DueDate:     &time.Time{},
-		}
-
-		mockDB.ExpectExec(regexp.QuoteMeta(`INSERT INTO tasks (id, user_id, content, description, due_date)`)).
-			WithArgs(task.ID, task.UserID, task.Content, task.Description, task.DueDate).
-			WillReturnResult(sqlmock.NewResult(1, 1))
-
-		mockIDProvider := &mocks.IDProvider{}
-		mockIDProvider.On("Generate").Return(string(task.ID))
-
-		repo := New(db, mockIDProvider)
-		id, err := repo.Store(context.Background(), &task)
-
-		s.NoError(err)
-		s.Equal(task.ID, id)
-	})
+			s.Equal(t.expected.err, err)
+			s.Equal(t.expected.taskID, taskID)
+		})
+	}
 }

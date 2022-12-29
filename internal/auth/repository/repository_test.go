@@ -51,7 +51,7 @@ func (s *AuthRepositoryTestSuite) TestStore() {
 			},
 		},
 		{
-			name:     "it should return nil when successfully store",
+			name:     "it should return error nil when successfully store",
 			args:     args{ctx: context.Background(), auth: &entity.Auth{UserID: "user-xxxxx", Token: "yyyyy.yyyyy.yyyyy", ExpiresAt: test.TimeAfterNow}},
 			expected: nil,
 			setup: func(d *dependency) {
@@ -76,8 +76,8 @@ func (s *AuthRepositoryTestSuite) TestStore() {
 			}
 			t.setup(deps)
 
-			repo := New(db, deps.idProvider)
-			err = repo.Store(t.args.ctx, t.args.auth)
+			repository := New(db, deps.idProvider)
+			err = repository.Store(t.args.ctx, t.args.auth)
 
 			s.Equal(t.expected, err)
 		})
@@ -116,9 +116,9 @@ func (s *AuthRepositoryTestSuite) TestDelete() {
 			},
 		},
 		{
-			name:     "it should return error ErrAuthNotExist when token not found",
+			name:     "it should return error ErrAuthNotFound when token not found",
 			args:     args{ctx: context.Background(), auth: &entity.Auth{Token: "yyyyy.yyyyy.yyyyy"}},
-			expected: domain.ErrAuthNotExist,
+			expected: domain.ErrAuthNotFound,
 			setup: func(d *dependency) {
 				d.mockDB.ExpectExec(regexp.QuoteMeta(`DELETE FROM authentications WHERE token = $1`)).
 					WithArgs("yyyyy.yyyyy.yyyyy").
@@ -126,7 +126,7 @@ func (s *AuthRepositoryTestSuite) TestDelete() {
 			},
 		},
 		{
-			name:     "it should return nil when successfully delete",
+			name:     "it should return error nil when successfully delete",
 			args:     args{ctx: context.Background(), auth: &entity.Auth{Token: "yyyyy.yyyyy.yyyyy"}},
 			expected: nil,
 			setup: func(d *dependency) {
@@ -145,13 +145,12 @@ func (s *AuthRepositoryTestSuite) TestDelete() {
 			}
 
 			d := &dependency{
-				mockDB:     mockDB,
-				idProvider: &mocks.IDProvider{},
+				mockDB: mockDB,
 			}
 			t.setup(d)
 
-			repo := New(db, nil)
-			err = repo.Delete(t.args.ctx, t.args.auth)
+			repository := New(db, nil)
+			err = repository.Delete(t.args.ctx, t.args.auth)
 
 			s.Equal(t.expected, err)
 		})
@@ -187,11 +186,11 @@ func (s *AuthRepositoryTestSuite) TestFindByToken() {
 			},
 		},
 		{
-			name: "it should return error when row not found",
+			name: "it should return error ErrAuthNotFound when row not found",
 			args: args{ctx: context.Background(), token: "yyyyy.yyyyy.yyyyy"},
 			expected: expected{
 				auth: entity.Auth{},
-				err:  domain.ErrAuthNotExist,
+				err:  domain.ErrAuthNotFound,
 			},
 			setup: func(d *dependency) {
 				d.mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id, user_id, token, expires_at FROM authentications WHERE token = $1`)).
@@ -243,13 +242,12 @@ func (s *AuthRepositoryTestSuite) TestFindByToken() {
 			}
 
 			d := &dependency{
-				mockDB:     mockDB,
-				idProvider: &mocks.IDProvider{},
+				mockDB: mockDB,
 			}
 			t.setup(d)
 
-			repo := New(db, nil)
-			auth, err := repo.FindByToken(t.args.ctx, t.args.token)
+			repository := New(db, nil)
+			auth, err := repository.FindByToken(t.args.ctx, t.args.token)
 
 			s.Equal(t.expected.err, err)
 			s.Equal(t.expected.auth, auth)
