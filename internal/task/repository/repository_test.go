@@ -100,10 +100,10 @@ func (s *TaskRepositoryTestSuite) TestStore() {
 	}
 }
 
-func (s *TaskRepositoryTestSuite) FindAllByUserID() {
+func (s *TaskRepositoryTestSuite) TestFindAllByUserID() {
 	type args struct {
-		ctx  context.Context
-		task *entity.Task
+		ctx    context.Context
+		userID entity.UserID
 	}
 	type expected struct {
 		tasks         []entity.Task
@@ -119,15 +119,15 @@ func (s *TaskRepositoryTestSuite) FindAllByUserID() {
 		{
 			name: "it should return error when database fail to query",
 			args: args{
-				ctx:  context.Background(),
-				task: &entity.Task{UserID: "user-xxxxx"},
+				ctx:    context.Background(),
+				userID: "user-xxxxx",
 			},
 			expected: expected{
 				tasks: nil,
 				err:   test.ErrDatabase,
 			},
 			setup: func(d *dependency) {
-				d.mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id, content, description, due_date, created_at, updated_at FROM tasks WHERE user_id = $1`)).
+				d.mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id, content, description, is_completed, due_date, created_at, updated_at FROM tasks WHERE user_id = $1`)).
 					WithArgs("user-xxxxx").
 					WillReturnError(test.ErrDatabase)
 			},
@@ -135,8 +135,8 @@ func (s *TaskRepositoryTestSuite) FindAllByUserID() {
 		{
 			name: "it should return error when database rows fail to scan",
 			args: args{
-				ctx:  context.Background(),
-				task: &entity.Task{UserID: "user-xxxxx"},
+				ctx:    context.Background(),
+				userID: "user-xxxxx",
 			},
 			expected: expected{
 				tasks:         nil,
@@ -144,10 +144,10 @@ func (s *TaskRepositoryTestSuite) FindAllByUserID() {
 				err:           errors.New("anything"),
 			},
 			setup: func(d *dependency) {
-				mockRow := sqlmock.NewRows([]string{"id", "content", "description", "due_date", "created_at", "updated_at"}).
-					AddRow(nil, "task_xxxxx_content", "task_yyyyy_description", nil, test.TimeBeforeNow, test.TimeBeforeNow)
+				mockRow := sqlmock.NewRows([]string{"id", "content", "description", "is_completed", "due_date", "created_at", "updated_at"}).
+					AddRow(nil, "task_xxxxx_content", "task_yyyyy_description", false, nil, test.TimeBeforeNow, test.TimeBeforeNow)
 
-				d.mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id, content, description, due_date, created_at, updated_at FROM tasks WHERE user_id = $1`)).
+				d.mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id, content, description, is_completed, due_date, created_at, updated_at FROM tasks WHERE user_id = $1`)).
 					WithArgs("user-xxxxx").
 					WillReturnRows(mockRow)
 			},
@@ -155,20 +155,20 @@ func (s *TaskRepositoryTestSuite) FindAllByUserID() {
 		{
 			name: "it should return error when database rows error",
 			args: args{
-				ctx:  context.Background(),
-				task: &entity.Task{UserID: "user-xxxxx"},
+				ctx:    context.Background(),
+				userID: "user-xxxxx",
 			},
 			expected: expected{
 				tasks: nil,
 				err:   test.ErrRows,
 			},
 			setup: func(d *dependency) {
-				mockRow := sqlmock.NewRows([]string{"id", "content", "description", "due_date", "created_at", "updated_at"}).
-					AddRow("task-xxxxx", "task_xxxxx_content", "task_yyyyy_description", nil, test.TimeBeforeNow, test.TimeBeforeNow).
-					AddRow("task-yyyyy", "task_yyyyy_content", "task_yyyyy_description", test.TimeAfterNow, test.TimeBeforeNow, test.TimeBeforeNow).
+				mockRow := sqlmock.NewRows([]string{"id", "content", "description", "is_completed", "due_date", "created_at", "updated_at"}).
+					AddRow("task-xxxxx", "task_xxxxx_content", "task_yyyyy_description", false, nil, test.TimeBeforeNow, test.TimeBeforeNow).
+					AddRow("task-yyyyy", "task_yyyyy_content", "task_yyyyy_description", true, test.TimeAfterNow, test.TimeBeforeNow, test.TimeBeforeNow).
 					RowError(1, test.ErrRows)
 
-				d.mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id, content, description, due_date, created_at, updated_at FROM tasks WHERE user_id = $1`)).
+				d.mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id, content, description, is_completed, due_date, created_at, updated_at FROM tasks WHERE user_id = $1`)).
 					WithArgs("user-xxxxx").
 					WillReturnRows(mockRow)
 			},
@@ -176,16 +176,16 @@ func (s *TaskRepositoryTestSuite) FindAllByUserID() {
 		{
 			name: "it should return error nil and empty slice task when successfully query with no tasks",
 			args: args{
-				ctx:  context.Background(),
-				task: &entity.Task{UserID: "user-xxxxx"},
+				ctx:    context.Background(),
+				userID: "user-xxxxx",
 			},
 			expected: expected{
 				tasks: []entity.Task{},
 				err:   nil,
 			},
 			setup: func(d *dependency) {
-				mockRow := sqlmock.NewRows([]string{"id", "content", "description", "due_date", "created_at", "updated_at"})
-				d.mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id, content, description, due_date, created_at, updated_at FROM tasks WHERE user_id = $1`)).
+				mockRow := sqlmock.NewRows([]string{"id", "content", "description", "is_completed", "due_date", "created_at", "updated_at"})
+				d.mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id, content, description, is_completed, due_date, created_at, updated_at FROM tasks WHERE user_id = $1`)).
 					WithArgs("user-xxxxx").
 					WillReturnRows(mockRow)
 			},
@@ -193,22 +193,22 @@ func (s *TaskRepositoryTestSuite) FindAllByUserID() {
 		{
 			name: "it should return error nil and all task when successfully query",
 			args: args{
-				ctx:  context.Background(),
-				task: &entity.Task{UserID: "user-xxxxx"},
+				ctx:    context.Background(),
+				userID: "user-xxxxx",
 			},
 			expected: expected{
 				tasks: []entity.Task{
-					{ID: "task-xxxxx", Content: "task_xxxxx_content", Description: "task_yyyyy_description", DueDate: nil, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
-					{ID: "task-yyyyy", Content: "task_yyyyy_content", Description: "task_yyyyy_description", DueDate: &test.TimeAfterNow, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+					{ID: "task-xxxxx", Content: "task_xxxxx_content", Description: "task_yyyyy_description", IsCompleted: false, DueDate: nil, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+					{ID: "task-yyyyy", Content: "task_yyyyy_content", Description: "task_yyyyy_description", IsCompleted: true, DueDate: &test.TimeAfterNow, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
 				},
 				err: nil,
 			},
 			setup: func(d *dependency) {
-				mockRow := sqlmock.NewRows([]string{"id", "content", "description", "due_date", "created_at", "updated_at"}).
-					AddRow("task-xxxxx", "task_xxxxx_content", "task_yyyyy_description", nil, test.TimeBeforeNow, test.TimeBeforeNow).
-					AddRow("task-yyyyy", "task_yyyyy_content", "task_yyyyy_description", test.TimeAfterNow, test.TimeBeforeNow, test.TimeBeforeNow)
+				mockRow := sqlmock.NewRows([]string{"id", "content", "description", "is_completed", "due_date", "created_at", "updated_at"}).
+					AddRow("task-xxxxx", "task_xxxxx_content", "task_yyyyy_description", false, nil, test.TimeBeforeNow, test.TimeBeforeNow).
+					AddRow("task-yyyyy", "task_yyyyy_content", "task_yyyyy_description", true, test.TimeAfterNow, test.TimeBeforeNow, test.TimeBeforeNow)
 
-				d.mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id, content, description, due_date, created_at, updated_at FROM tasks WHERE user_id = $1`)).
+				d.mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id, content, description, is_completed, due_date, created_at, updated_at FROM tasks WHERE user_id = $1`)).
 					WithArgs("user-xxxxx").
 					WillReturnRows(mockRow)
 			},
@@ -228,7 +228,7 @@ func (s *TaskRepositoryTestSuite) FindAllByUserID() {
 			t.setup(d)
 
 			repository := New(db, d.idProvider)
-			tasks, err := repository.FindAllByUserID(t.args.ctx, t.args.task)
+			tasks, err := repository.FindAllByUserID(t.args.ctx, t.args.userID)
 
 			if t.expected.allowAnyError {
 				s.Error(err)

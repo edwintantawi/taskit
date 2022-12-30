@@ -30,9 +30,9 @@ func (r *repository) Store(ctx context.Context, t *entity.Task) (entity.TaskID, 
 }
 
 // FindAllByUserID get all tasks owned by a user by user id.
-func (r *repository) FindAllByUserID(ctx context.Context, t *entity.Task) ([]entity.Task, error) {
-	q := `SELECT id, content, description, due_date, created_at, updated_at FROM tasks WHERE user_id = $1`
-	rows, err := r.db.QueryContext(ctx, q, t.UserID)
+func (r *repository) FindAllByUserID(ctx context.Context, userID entity.UserID) ([]entity.Task, error) {
+	q := `SELECT id, content, description, is_completed, due_date, created_at, updated_at FROM tasks WHERE user_id = $1`
+	rows, err := r.db.QueryContext(ctx, q, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (r *repository) FindAllByUserID(ctx context.Context, t *entity.Task) ([]ent
 	tasks := make([]entity.Task, 0)
 	for rows.Next() {
 		var task entity.Task
-		err := rows.Scan(&task.ID, &task.Content, &task.Description, &task.DueDate, &task.CreatedAt, &task.UpdatedAt)
+		err := rows.Scan(&task.ID, &task.Content, &task.Description, &task.IsCompleted, &task.DueDate, &task.CreatedAt, &task.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
