@@ -1,3 +1,5 @@
+[![wakatime](https://wakatime.com/badge/github/edwintantawi/taskit.svg)](https://wakatime.com/badge/github/edwintantawi/taskit)
+
 # TaskIt
 
 📑 Task / Todo management
