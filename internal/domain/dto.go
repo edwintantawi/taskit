@@ -79,11 +79,11 @@ type GetAllTaskIn struct {
 
 // GetAllTaskOut represents the output of task retrieval.
 type GetAllTaskOut struct {
-	ID          entity.TaskID
-	Content     string
-	Description string
-	IsCompleted bool
-	DueDate     entity.TaskDueDate
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID          entity.TaskID      `json:"id"`
+	Content     string             `json:"content"`
+	Description string             `json:"description"`
+	IsCompleted bool               `json:"is_completed"`
+	DueDate     entity.TaskDueDate `json:"due_date"`
+	CreatedAt   time.Time          `json:"created_at"`
+	UpdatedAt   time.Time          `json:"updated_at"`
 }
