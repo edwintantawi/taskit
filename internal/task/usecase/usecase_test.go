@@ -97,3 +97,73 @@ func (s *TaskUsecaseTestSuite) TestCreate() {
 		})
 	}
 }
+
+func (s *TaskUsecaseTestSuite) TestGetAll() {
+	type args struct {
+		ctx     context.Context
+		payload *domain.GetAllTaskIn
+	}
+	type expected struct {
+		output []domain.GetAllTaskOut
+		err    error
+	}
+	tests := []struct {
+		name     string
+		args     args
+		expected expected
+		setup    func(d *dependency)
+	}{
+		{
+			name: "it should return error when task respository return unexpected error",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.GetAllTaskIn{UserID: "user-xxxxx"},
+			},
+			expected: expected{
+				output: nil,
+				err:    test.ErrUnexpected,
+			},
+			setup: func(d *dependency) {
+				d.taskRepository.On("FindAllByUserID", context.Background(), entity.UserID("user-xxxxx")).
+					Return(nil, test.ErrUnexpected)
+			},
+		},
+		{
+			name: "it should return error nil and tasks when success",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.GetAllTaskIn{UserID: "user-xxxxx"},
+			},
+			expected: expected{
+				output: []domain.GetAllTaskOut{
+					{ID: "task-xxxxx", Content: "task_xxxxx_content", Description: "task_xxxxx_description", IsCompleted: false, DueDate: nil, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+					{ID: "task-yyyyy", Content: "task_yyyyy_content", Description: "task_yyyyy_description", IsCompleted: true, DueDate: &test.TimeAfterNow, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+				},
+			},
+			setup: func(d *dependency) {
+				tasks := []entity.Task{
+					{ID: "task-xxxxx", Content: "task_xxxxx_content", Description: "task_xxxxx_description", IsCompleted: false, DueDate: nil, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+					{ID: "task-yyyyy", Content: "task_yyyyy_content", Description: "task_yyyyy_description", IsCompleted: true, DueDate: &test.TimeAfterNow, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+				}
+
+				d.taskRepository.On("FindAllByUserID", context.Background(), entity.UserID("user-xxxxx")).
+					Return(tasks, nil)
+			},
+		},
+	}
+
+	for _, t := range tests {
+		s.Run(t.name, func() {
+			d := &dependency{
+				taskRepository: &mocks.TaskRepository{},
+			}
+			t.setup(d)
+
+			usecase := New(d.taskRepository)
+			output, err := usecase.GetAll(t.args.ctx, t.args.payload)
+
+			s.Equal(t.expected.err, err)
+			s.Equal(t.expected.output, output)
+		})
+	}
+}

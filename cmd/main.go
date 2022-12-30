@@ -71,6 +71,7 @@ func main() {
 		r.Delete("/api/authentications", authHTTPHandler.Delete)
 
 		r.Post("/api/tasks", taskHTTPHandler.Post)
+		r.Get("/api/tasks", taskHTTPHandler.Get)
 	})
 
 	log.Printf("Server running at %s", cfg.ServerAddr)
