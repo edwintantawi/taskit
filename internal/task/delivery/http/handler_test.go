@@ -3,7 +3,6 @@ package http
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,7 +11,9 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/internal/domain/mocks"
+	"github.com/edwintantawi/taskit/pkg/errorx"
 	"github.com/edwintantawi/taskit/pkg/response"
 	"github.com/edwintantawi/taskit/test"
 )
@@ -25,72 +26,117 @@ func TestTaskHTTPHandlerSuite(t *testing.T) {
 	suite.Run(t, new(TaskHTTPHandlerTestSuite))
 }
 
+type dependency struct {
+	req         *http.Request
+	taskUsecase *mocks.TaskUsecase
+}
+
 func (s *TaskHTTPHandlerTestSuite) TestPost() {
-	s.Run("it should return error response when request body is invalid", func() {
-		handler := New(nil)
+	type args struct {
+		requestBody []byte
+	}
+	type expected struct {
+		contentType string
+		statusCode  int
+		message     string
+		error       string
+		payload     map[string]any
+	}
+	tests := []struct {
+		name     string
+		isError  bool
+		args     args
+		expected expected
+		setup    func(d *dependency)
+	}{
+		{
+			name:    "it should response with error when request body is invalid or not provided",
+			isError: true,
+			args: args{
+				requestBody: []byte(`{`),
+			},
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusBadRequest,
+				message:     http.StatusText(http.StatusBadRequest),
+				error:       "Invalid request body",
+			},
+			setup: func(d *dependency) {},
+		},
+		{
+			name:    "it should response with error when taskUsecase Create returns unexpected error",
+			isError: true,
+			args: args{
+				requestBody: []byte(`{}`),
+			},
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusInternalServerError,
+				message:     http.StatusText(http.StatusInternalServerError),
+				error:       errorx.InternalServerErrorMessage,
+			},
+			setup: func(d *dependency) {
+				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
+				d.taskUsecase.On("Create", mock.Anything, &domain.CreateTaskIn{UserID: "user-xxxxx"}).
+					Return(domain.CreateTaskOut{}, test.ErrUnexpected)
+			},
+		},
+		{
+			name:    "it should response with success when success",
+			isError: false,
+			args: args{
+				requestBody: []byte(`{}`),
+			},
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusCreated,
+				message:     "Successfully created new task",
+				payload: map[string]any{
+					"id": "task-xxxxx",
+				},
+			},
+			setup: func(d *dependency) {
+				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
+				d.taskUsecase.On("Create", mock.Anything, &domain.CreateTaskIn{UserID: "user-xxxxx"}).
+					Return(domain.CreateTaskOut{ID: "task-xxxxx"}, nil)
+			},
+		},
+	}
 
-		reqBody := bytes.NewReader(nil)
+	for _, t := range tests {
+		s.Run(t.name, func() {
+			reqBody := bytes.NewReader(t.args.requestBody)
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/", reqBody)
 
-		rr := httptest.NewRecorder()
-		req := httptest.NewRequest("POST", "/tasks", reqBody)
+			deps := &dependency{
+				taskUsecase: &mocks.TaskUsecase{},
+				req:         req,
+			}
+			t.setup(deps)
 
-		handler.Post(rr, req)
+			handler := New(deps.taskUsecase)
+			handler.Post(rr, deps.req)
 
-		var resBody response.E
-		json.NewDecoder(rr.Body).Decode(&resBody)
+			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
+			s.Equal(t.expected.statusCode, rr.Code)
 
-		s.Equal("application/json", rr.Header().Get("Content-Type"))
-		s.Equal(400, rr.Code)
-		s.Equal(400, resBody.StatusCode)
-		s.Equal(http.StatusText(400), resBody.Message)
-		s.Equal("Invalid request body", resBody.Error)
-	})
+			if t.isError {
+				var resBody response.E
+				json.NewDecoder(rr.Body).Decode(&resBody)
 
-	s.Run("it should return error response when fail to create new task", func() {
-		mockTaskUsecase := &mocks.TaskUsecase{}
-		mockTaskUsecase.On("Create", mock.Anything, mock.Anything).Return(domain.CreateTaskOut{}, errors.New("some error"))
+				s.Equal(t.expected.statusCode, resBody.StatusCode)
+				s.Equal(t.expected.message, resBody.Message)
+				s.Equal(t.expected.error, resBody.Error)
+			} else {
+				var resBody response.S
+				json.NewDecoder(rr.Body).Decode(&resBody)
+				payloadMap := resBody.Payload.(map[string]any)
 
-		handler := New(mockTaskUsecase)
-
-		reqBody := bytes.NewReader([]byte(`{}`))
-		rr := httptest.NewRecorder()
-		req := httptest.NewRequest("POST", "/tasks", reqBody)
-		req = test.InjectAuthContext(req, "xxxxx")
-
-		handler.Post(rr, req)
-
-		var resBody response.E
-		json.NewDecoder(rr.Body).Decode(&resBody)
-
-		s.Equal("application/json", rr.Header().Get("Content-Type"))
-		s.Equal(500, rr.Code)
-		s.Equal(500, resBody.StatusCode)
-		s.Equal(http.StatusText(500), resBody.Message)
-		s.NotEmpty(resBody.Error)
-	})
-
-	s.Run("it should return success response when successfully create new task", func() {
-		result := domain.CreateTaskOut{ID: "xxxxx"}
-		mockTaskUsecase := &mocks.TaskUsecase{}
-		mockTaskUsecase.On("Create", mock.Anything, mock.Anything).Return(result, nil)
-
-		handler := New(mockTaskUsecase)
-
-		reqBody := bytes.NewReader([]byte(`{}`))
-		rr := httptest.NewRecorder()
-		req := httptest.NewRequest("POST", "/tasks", reqBody)
-		req = test.InjectAuthContext(req, "xxxxx")
-
-		handler.Post(rr, req)
-
-		var resBody response.S
-		json.NewDecoder(rr.Body).Decode(&resBody)
-		resPayload := resBody.Payload.(map[string]any)
-
-		s.Equal("application/json", rr.Header().Get("Content-Type"))
-		s.Equal(201, rr.Code)
-		s.Equal(201, resBody.StatusCode)
-		s.Equal("Successfully created new task", resBody.Message)
-		s.NotEmpty(string(result.ID), resPayload["id"])
-	})
+				s.Equal(t.expected.statusCode, resBody.StatusCode)
+				s.Equal(t.expected.message, resBody.Message)
+				s.Equal(t.expected.payload, payloadMap)
+			}
+		})
+	}
 }

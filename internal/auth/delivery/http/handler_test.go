@@ -2,9 +2,7 @@ package http
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,7 +13,9 @@ import (
 	"github.com/edwintantawi/taskit/internal/domain"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/internal/domain/mocks"
+	"github.com/edwintantawi/taskit/pkg/errorx"
 	"github.com/edwintantawi/taskit/pkg/response"
+	"github.com/edwintantawi/taskit/test"
 )
 
 type AuthHTTPHandlerTestSuite struct {
@@ -26,280 +26,414 @@ func TestAuthHTTPHandlerSuite(t *testing.T) {
 	suite.Run(t, new(AuthHTTPHandlerTestSuite))
 }
 
+type dependency struct {
+	req         *http.Request
+	authUsecase *mocks.AuthUsecase
+}
+
 func (s *AuthHTTPHandlerTestSuite) TestPost() {
-	s.Run("it should return error response when request body is invalid", func() {
-		handler := New(nil)
+	type args struct {
+		requestBody []byte
+	}
+	type expected struct {
+		contentType string
+		statusCode  int
+		message     string
+		error       string
+		payload     map[string]any
+	}
+	tests := []struct {
+		name     string
+		isError  bool
+		args     args
+		expected expected
+		setup    func(d *dependency)
+	}{
+		{
+			name:    "it should response with error when request body is invalid or not provided",
+			isError: true,
+			args: args{
+				requestBody: []byte(`{`),
+			},
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusBadRequest,
+				message:     http.StatusText(http.StatusBadRequest),
+				error:       "Invalid request body",
+			},
+			setup: func(d *dependency) {},
+		},
+		{
+			name:    "it should response with error when auth usecase Login return unexpected error",
+			isError: true,
+			args: args{
+				requestBody: []byte(`{}`),
+			},
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusInternalServerError,
+				message:     http.StatusText(http.StatusInternalServerError),
+				error:       errorx.InternalServerErrorMessage,
+			},
+			setup: func(d *dependency) {
+				d.authUsecase.On("Login", mock.Anything, &domain.LoginAuthIn{}).
+					Return(domain.LoginAuthOut{}, test.ErrUnexpected)
+			},
+		},
+		{
+			name: "it should response with success when success",
+			args: args{
+				requestBody: []byte(`{}`),
+			},
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusOK,
+				message:     "Successfully logged in user",
+				payload: map[string]any{
+					"access_token":  "xxxxx.xxxxx.xxxxx",
+					"refresh_token": "yyyyy.yyyyy.yyyyy",
+				},
+			},
+			setup: func(d *dependency) {
+				d.authUsecase.On("Login", mock.Anything, &domain.LoginAuthIn{}).
+					Return(domain.LoginAuthOut{AccessToken: "xxxxx.xxxxx.xxxxx", RefreshToken: "yyyyy.yyyyy.yyyyy"}, nil)
+			},
+		},
+	}
 
-		reqBody := bytes.NewReader(nil)
+	for _, t := range tests {
+		s.Run(t.name, func() {
+			reqBody := bytes.NewReader(t.args.requestBody)
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/", reqBody)
 
-		rr := httptest.NewRecorder()
-		req := httptest.NewRequest("POST", "/authentications", reqBody)
+			deps := &dependency{
+				authUsecase: &mocks.AuthUsecase{},
+			}
+			t.setup(deps)
 
-		handler.Post(rr, req)
+			handler := New(deps.authUsecase)
+			handler.Post(rr, req)
 
-		var resBody response.E
-		json.NewDecoder(rr.Body).Decode(&resBody)
+			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
+			s.Equal(t.expected.statusCode, rr.Code)
 
-		s.Equal("application/json", rr.Header().Get("Content-Type"))
-		s.Equal(400, rr.Code)
-		s.Equal(400, resBody.StatusCode)
-		s.Equal(http.StatusText(400), resBody.Message)
-		s.Equal("Invalid request body", resBody.Error)
-	})
+			if t.isError {
+				var resBody response.E
+				json.NewDecoder(rr.Body).Decode(&resBody)
 
-	s.Run("it should return error response when fail to login with existing user", func() {
-		usecase := &mocks.AuthUsecase{}
-		usecase.On("Login", mock.Anything, mock.Anything).Return(domain.LoginAuthOut{}, errors.New("some error"))
+				s.Equal(t.expected.statusCode, resBody.StatusCode)
+				s.Equal(t.expected.message, resBody.Message)
+				s.Equal(t.expected.error, resBody.Error)
+			} else {
+				var resBody response.S
+				json.NewDecoder(rr.Body).Decode(&resBody)
+				payloadMap := resBody.Payload.(map[string]any)
 
-		handler := New(usecase)
-
-		reqBody := bytes.NewReader([]byte(`{}`))
-
-		rr := httptest.NewRecorder()
-		req := httptest.NewRequest("POST", "/authentications", reqBody)
-
-		handler.Post(rr, req)
-
-		var resBody response.E
-		json.NewDecoder(rr.Body).Decode(&resBody)
-
-		s.Equal("application/json", rr.Header().Get("Content-Type"))
-		s.Equal(500, rr.Code)
-		s.Equal(500, resBody.StatusCode)
-		s.Equal(http.StatusText(500), resBody.Message)
-		s.Equal("Something went wrong", resBody.Error)
-	})
-
-	s.Run("it should return success response when successfully login with existing user", func() {
-		usecaseResult := domain.LoginAuthOut{
-			AccessToken:  "access_token",
-			RefreshToken: "refresh_token",
-		}
-
-		usecase := &mocks.AuthUsecase{}
-		usecase.On("Login", mock.Anything, mock.Anything).Return(usecaseResult, nil)
-
-		handler := New(usecase)
-
-		reqBody := bytes.NewReader([]byte(`{}`))
-
-		rr := httptest.NewRecorder()
-		req := httptest.NewRequest("POST", "/authentications", reqBody)
-
-		handler.Post(rr, req)
-
-		var resBody response.S
-		json.NewDecoder(rr.Body).Decode(&resBody)
-		resPayload := resBody.Payload.(map[string]any)
-
-		s.Equal("application/json", rr.Header().Get("Content-Type"))
-		s.Equal(200, rr.Code)
-		s.Equal(200, resBody.StatusCode)
-		s.Equal("Successfully logged in user", resBody.Message)
-		s.Equal(string(usecaseResult.AccessToken), resPayload["access_token"])
-		s.Equal(usecaseResult.RefreshToken, resPayload["refresh_token"])
-	})
+				s.Equal(t.expected.statusCode, resBody.StatusCode)
+				s.Equal(t.expected.message, resBody.Message)
+				s.Equal(t.expected.payload, payloadMap)
+			}
+		})
+	}
 }
 
 func (s *AuthHTTPHandlerTestSuite) TestDelete() {
-	s.Run("it should return error response when request body is invalid", func() {
-		handler := New(nil)
+	type args struct {
+		requestBody []byte
+	}
+	type expected struct {
+		contentType string
+		statusCode  int
+		message     string
+		error       string
+		payload     map[string]any
+	}
+	tests := []struct {
+		name     string
+		isError  bool
+		args     args
+		expected expected
+		setup    func(d *dependency)
+	}{
+		{
+			name:    "it should response with error when request body is invalid or not provided",
+			isError: true,
+			args: args{
+				requestBody: []byte(`{`),
+			},
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusBadRequest,
+				message:     http.StatusText(http.StatusBadRequest),
+				error:       "Invalid request body",
+			},
+			setup: func(d *dependency) {},
+		},
+		{
+			name:    "it should response with error when auth usecase Logout return unexpected error",
+			isError: true,
+			args: args{
+				requestBody: []byte(`{}`),
+			},
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusInternalServerError,
+				message:     http.StatusText(http.StatusInternalServerError),
+				error:       errorx.InternalServerErrorMessage,
+			},
+			setup: func(d *dependency) {
+				d.authUsecase.On("Logout", mock.Anything, &domain.LogoutAuthIn{}).
+					Return(test.ErrUnexpected)
+			},
+		},
+		{
+			name:    "it should response with success when success",
+			isError: false,
+			args: args{
+				requestBody: []byte(`{}`),
+			},
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusOK,
+				message:     "Successfully logout user",
+				payload:     nil,
+			},
+			setup: func(d *dependency) {
+				d.authUsecase.On("Logout", mock.Anything, &domain.LogoutAuthIn{}).
+					Return(nil)
+			},
+		},
+	}
 
-		reqBody := bytes.NewReader(nil)
+	for _, t := range tests {
+		s.Run(t.name, func() {
+			reqBody := bytes.NewReader(t.args.requestBody)
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest("DELETE", "/", reqBody)
 
-		rr := httptest.NewRecorder()
-		req := httptest.NewRequest("DELETE", "/authentications", reqBody)
+			deps := &dependency{
+				authUsecase: &mocks.AuthUsecase{},
+			}
+			t.setup(deps)
 
-		handler.Delete(rr, req)
+			handler := New(deps.authUsecase)
+			handler.Delete(rr, req)
 
-		var resBody response.E
-		json.NewDecoder(rr.Body).Decode(&resBody)
+			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
+			s.Equal(t.expected.statusCode, rr.Code)
 
-		s.Equal("application/json", rr.Header().Get("Content-Type"))
-		s.Equal(400, rr.Code)
-		s.Equal(400, resBody.StatusCode)
-		s.Equal(http.StatusText(400), resBody.Message)
-		s.Equal("Invalid request body", resBody.Error)
-	})
+			if t.isError {
+				var resBody response.E
+				json.NewDecoder(rr.Body).Decode(&resBody)
 
-	s.Run("it should return error response when fail to logout", func() {
-		usecase := &mocks.AuthUsecase{}
-		usecase.On("Logout", mock.Anything, mock.Anything).Return(errors.New("unexpected error"))
+				s.Equal(t.expected.statusCode, resBody.StatusCode)
+				s.Equal(t.expected.message, resBody.Message)
+				s.Equal(t.expected.error, resBody.Error)
+			} else {
+				var resBody response.S
+				json.NewDecoder(rr.Body).Decode(&resBody)
 
-		handler := New(usecase)
-
-		reqBody := bytes.NewReader([]byte(`{}`))
-
-		rr := httptest.NewRecorder()
-		req := httptest.NewRequest("DELETE", "/authenticaitons", reqBody)
-
-		handler.Delete(rr, req)
-
-		var resBody response.E
-		json.NewDecoder(rr.Body).Decode(&resBody)
-
-		s.Equal("application/json", rr.Header().Get("Content-Type"))
-		s.Equal(500, rr.Code)
-		s.Equal(500, resBody.StatusCode)
-		s.Equal(http.StatusText(500), resBody.Message)
-		s.NotEmpty(resBody.Error)
-	})
-
-	s.Run("it should return error response when success to logout", func() {
-		usecase := &mocks.AuthUsecase{}
-		usecase.On("Logout", mock.Anything, mock.Anything).Return(nil)
-
-		handler := New(usecase)
-
-		reqBody := bytes.NewReader([]byte(`{}`))
-
-		rr := httptest.NewRecorder()
-		req := httptest.NewRequest("DELETE", "/authenticaitons", reqBody)
-
-		handler.Delete(rr, req)
-
-		var resBody response.S
-		json.NewDecoder(rr.Body).Decode(&resBody)
-
-		s.Equal("application/json", rr.Header().Get("Content-Type"))
-		s.Equal(200, rr.Code)
-		s.Equal(200, resBody.StatusCode)
-		s.Equal("Successfully logout user", resBody.Message)
-		s.Nil(resBody.Payload)
-	})
+				s.Equal(t.expected.statusCode, resBody.StatusCode)
+				s.Equal(t.expected.message, resBody.Message)
+				s.Nil(resBody.Payload)
+			}
+		})
+	}
 }
 
 func (s *AuthHTTPHandlerTestSuite) TestGet() {
-	s.Run("it should return error response when fail find the profile", func() {
-		userProfile := domain.GetProfileAuthOut{
-			ID:    "xxxxx",
-			Name:  "Gopher",
-			Email: "gopher@go.dev",
-		}
+	type expected struct {
+		contentType string
+		statusCode  int
+		message     string
+		error       string
+		payload     map[string]any
+	}
+	tests := []struct {
+		name     string
+		isError  bool
+		expected expected
+		setup    func(d *dependency)
+	}{
+		{
+			name:    "it should response with error when auth usecase GetProfile return unexpected error",
+			isError: true,
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusInternalServerError,
+				message:     http.StatusText(http.StatusInternalServerError),
+				error:       errorx.InternalServerErrorMessage,
+			},
+			setup: func(d *dependency) {
+				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
 
-		usecase := &mocks.AuthUsecase{}
-		usecase.On("GetProfile", mock.Anything, mock.Anything).Return(domain.GetProfileAuthOut{}, errors.New("unexpected error"))
+				d.authUsecase.On("GetProfile", mock.Anything, &domain.GetProfileAuthIn{UserID: entity.UserID("user-xxxxx")}).
+					Return(domain.GetProfileAuthOut{}, test.ErrUnexpected)
+			},
+		},
+		{
+			name:    "it should response with success when success",
+			isError: false,
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusOK,
+				message:     http.StatusText(http.StatusOK),
+				payload: map[string]any{
+					"id":    "user-xxxxx",
+					"name":  "Gopher",
+					"email": "gopher@go.dev",
+				},
+			},
+			setup: func(d *dependency) {
+				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
 
-		handler := New(usecase)
+				d.authUsecase.On("GetProfile", mock.Anything, &domain.GetProfileAuthIn{UserID: entity.UserID("user-xxxxx")}).
+					Return(domain.GetProfileAuthOut{ID: "user-xxxxx", Name: "Gopher", Email: "gopher@go.dev"}, nil)
+			},
+		},
+	}
 
-		rr := httptest.NewRecorder()
-		req := httptest.NewRequest("GET", "/authentications", nil)
-		req = req.WithContext(context.WithValue(req.Context(), entity.AuthUserIDKey, userProfile.ID))
+	for _, t := range tests {
+		s.Run(t.name, func() {
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", "/", nil)
 
-		handler.Get(rr, req)
+			deps := &dependency{
+				authUsecase: &mocks.AuthUsecase{},
+				req:         req,
+			}
+			t.setup(deps)
 
-		var resBody response.E
-		json.NewDecoder(rr.Body).Decode(&resBody)
+			handler := New(deps.authUsecase)
+			handler.Get(rr, deps.req)
 
-		s.Equal("application/json", rr.Header().Get("Content-Type"))
-		s.Equal(500, rr.Code)
-		s.Equal(500, resBody.StatusCode)
-		s.Equal(http.StatusText(500), resBody.Message)
-		s.NotEmpty(resBody.Error)
-	})
+			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
+			s.Equal(t.expected.statusCode, rr.Code)
 
-	s.Run("it should return user profile response when success find the profile", func() {
-		userProfile := domain.GetProfileAuthOut{
-			ID:    "xxxxx",
-			Name:  "Gopher",
-			Email: "gopher@go.dev",
-		}
+			if t.isError {
+				var resBody response.E
+				json.NewDecoder(rr.Body).Decode(&resBody)
 
-		rr := httptest.NewRecorder()
-		req := httptest.NewRequest("GET", "/authentications", nil)
-		req = req.WithContext(context.WithValue(req.Context(), entity.AuthUserIDKey, userProfile.ID))
+				s.Equal(t.expected.statusCode, resBody.StatusCode)
+				s.Equal(t.expected.message, resBody.Message)
+				s.Equal(t.expected.error, resBody.Error)
+			} else {
+				var resBody response.S
+				json.NewDecoder(rr.Body).Decode(&resBody)
+				payloadMap := resBody.Payload.(map[string]any)
 
-		usecase := &mocks.AuthUsecase{}
-		usecase.On("GetProfile", req.Context(), &domain.GetProfileAuthIn{UserID: userProfile.ID}).Return(userProfile, nil)
-
-		handler := New(usecase)
-
-		handler.Get(rr, req)
-
-		var resBody response.S
-		json.NewDecoder(rr.Body).Decode(&resBody)
-		resPayload := resBody.Payload.(map[string]any)
-
-		s.Equal("application/json", rr.Header().Get("Content-Type"))
-		s.Equal(200, rr.Code)
-		s.Equal(200, resBody.StatusCode)
-		s.Equal(http.StatusText(200), resBody.Message)
-		s.Equal(string(userProfile.ID), resPayload["id"])
-		s.Equal(userProfile.Name, resPayload["name"])
-		s.Equal(userProfile.Email, resPayload["email"])
-	})
+				s.Equal(t.expected.statusCode, resBody.StatusCode)
+				s.Equal(t.expected.message, resBody.Message)
+				s.Equal(t.expected.payload, payloadMap)
+			}
+		})
+	}
 }
 
 func (s *AuthHTTPHandlerTestSuite) TestPut() {
-	s.Run("it should return error response when request body is invalid", func() {
-		handler := New(nil)
+	type args struct {
+		requestBody []byte
+	}
+	type expected struct {
+		contentType string
+		statusCode  int
+		message     string
+		error       string
+		payload     map[string]any
+	}
+	tests := []struct {
+		name     string
+		isError  bool
+		args     args
+		expected expected
+		setup    func(d *dependency)
+	}{
+		{
+			name:    "it should response with error when request body is invalid or not provided",
+			isError: true,
+			args: args{
+				requestBody: []byte(`{`),
+			},
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusBadRequest,
+				message:     http.StatusText(http.StatusBadRequest),
+				error:       "Invalid request body",
+			},
+			setup: func(d *dependency) {},
+		},
+		{
+			name:    "it should response with error when auth usecase Refresh return unexpected error",
+			isError: true,
+			args: args{
+				requestBody: []byte(`{}`),
+			},
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusInternalServerError,
+				message:     http.StatusText(http.StatusInternalServerError),
+				error:       errorx.InternalServerErrorMessage,
+			},
+			setup: func(d *dependency) {
+				d.authUsecase.On("Refresh", mock.Anything, &domain.RefreshAuthIn{}).
+					Return(domain.RefreshAuthOut{}, test.ErrUnexpected)
+			},
+		},
+		{
+			name:    "it should response with success when success",
+			isError: false,
+			args: args{
+				requestBody: []byte(`{}`),
+			},
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusOK,
+				message:     "Successfully refreshed authentication token",
+				payload: map[string]any{
+					"access_token":  "xxxxx.xxxxx.xxxxx",
+					"refresh_token": "yyyyy.yyyyy.yyyyy",
+				},
+			},
+			setup: func(d *dependency) {
+				d.authUsecase.On("Refresh", mock.Anything, &domain.RefreshAuthIn{}).
+					Return(domain.RefreshAuthOut{AccessToken: "xxxxx.xxxxx.xxxxx", RefreshToken: "yyyyy.yyyyy.yyyyy"}, nil)
+			},
+		},
+	}
 
-		reqBody := bytes.NewReader(nil)
+	for _, t := range tests {
+		s.Run(t.name, func() {
+			reqBody := bytes.NewReader(t.args.requestBody)
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest("PUT", "/", reqBody)
 
-		rr := httptest.NewRecorder()
-		req := httptest.NewRequest("PUT", "/authentications", reqBody)
+			deps := &dependency{
+				authUsecase: &mocks.AuthUsecase{},
+			}
+			t.setup(deps)
 
-		handler.Put(rr, req)
+			handler := New(deps.authUsecase)
+			handler.Put(rr, req)
 
-		var resBody response.E
-		json.NewDecoder(rr.Body).Decode(&resBody)
+			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
+			s.Equal(t.expected.statusCode, rr.Code)
 
-		s.Equal("application/json", rr.Header().Get("Content-Type"))
-		s.Equal(400, rr.Code)
-		s.Equal(400, resBody.StatusCode)
-		s.Equal(http.StatusText(400), resBody.Message)
-		s.Equal("Invalid request body", resBody.Error)
-	})
+			if t.isError {
+				var resBody response.E
+				json.NewDecoder(rr.Body).Decode(&resBody)
 
-	s.Run("it should return error response when fail to refresh authentication token", func() {
-		usecase := &mocks.AuthUsecase{}
-		usecase.On("Refresh", mock.Anything, mock.Anything).Return(domain.RefreshAuthOut{}, errors.New("unexpected error"))
+				s.Equal(t.expected.statusCode, resBody.StatusCode)
+				s.Equal(t.expected.message, resBody.Message)
+				s.Equal(t.expected.error, resBody.Error)
+			} else {
+				var resBody response.S
+				json.NewDecoder(rr.Body).Decode(&resBody)
 
-		handler := New(usecase)
-
-		reqBody := bytes.NewReader([]byte(`{}`))
-
-		rr := httptest.NewRecorder()
-		req := httptest.NewRequest("PUT", "/authentications", reqBody)
-
-		handler.Put(rr, req)
-
-		var resBody response.E
-		json.NewDecoder(rr.Body).Decode(&resBody)
-
-		s.Equal("application/json", rr.Header().Get("Content-Type"))
-		s.Equal(500, rr.Code)
-		s.Equal(500, resBody.StatusCode)
-		s.Equal(http.StatusText(500), resBody.Message)
-		s.NotEmpty(resBody.Error)
-	})
-
-	s.Run("it should return authentication token response when success to refresh authentication token", func() {
-		result := domain.RefreshAuthOut{
-			AccessToken:  "xxxxx.xxxxx.xxxxx",
-			RefreshToken: "yyyyy.yyyyy.yyyyy",
-		}
-		usecase := &mocks.AuthUsecase{}
-		usecase.On("Refresh", mock.Anything, mock.Anything).Return(result, nil)
-
-		handler := New(usecase)
-
-		reqBody := bytes.NewReader([]byte(`{}`))
-
-		rr := httptest.NewRecorder()
-		req := httptest.NewRequest("PUT", "/authentications", reqBody)
-
-		handler.Put(rr, req)
-
-		var resBody response.S
-		json.NewDecoder(rr.Body).Decode(&resBody)
-		resPayload := resBody.Payload.(map[string]any)
-
-		s.Equal("application/json", rr.Header().Get("Content-Type"))
-		s.Equal(200, rr.Code)
-		s.Equal(200, resBody.StatusCode)
-		s.Equal("Successfully refreshed authentication token", resBody.Message)
-		s.Equal(result.AccessToken, resPayload["access_token"])
-		s.Equal(result.RefreshToken, resPayload["refresh_token"])
-	})
+				s.Equal(t.expected.statusCode, resBody.StatusCode)
+				s.Equal(t.expected.message, resBody.Message)
+				s.Equal(t.expected.payload, resBody.Payload)
+			}
+		})
+	}
 }
