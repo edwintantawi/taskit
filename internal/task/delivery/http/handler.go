@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
+
 	"github.com/edwintantawi/taskit/internal/domain"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/pkg/errorx"
@@ -19,7 +21,7 @@ func New(taskUsecase domain.TaskUsecase) *HTTPHandler {
 	return &HTTPHandler{taskUsecase: taskUsecase}
 }
 
-// POST /tasks to create new task
+// POST /tasks to create new task.
 func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
@@ -44,7 +46,7 @@ func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 	encoder.Encode(response.Success(http.StatusCreated, "Successfully created new task", output))
 }
 
-// GET /tasks to get all tasks
+// GET /tasks to get all tasks.
 func (h *HTTPHandler) Get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
@@ -62,4 +64,24 @@ func (h *HTTPHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	encoder.Encode(response.Success(http.StatusOK, http.StatusText(http.StatusOK), output))
+}
+
+// DELETE /tasks/{task_id} to remove task.
+func (h *HTTPHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	encoder := json.NewEncoder(w)
+
+	var payload domain.RemoveTaskIn
+	payload.UserID = entity.GetAuthContext(r.Context())
+	payload.TaskID = entity.TaskID(chi.URLParam(r, "task_id"))
+
+	if err := h.taskUsecase.Remove(r.Context(), &payload); err != nil {
+		code, msg := errorx.HTTPErrorTranslator(err)
+		w.WriteHeader(code)
+		encoder.Encode(response.Error(code, msg))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	encoder.Encode(response.Success(http.StatusOK, "Successfully deleted task", nil))
 }

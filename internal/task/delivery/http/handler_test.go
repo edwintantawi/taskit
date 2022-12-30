@@ -235,3 +235,88 @@ func (s *TaskHTTPHandlerTestSuite) TestGet() {
 		})
 	}
 }
+
+func (s *TaskHTTPHandlerTestSuite) TestDelete() {
+	type expected struct {
+		contentType string
+		statusCode  int
+		message     string
+		error       string
+		payload     any
+	}
+	tests := []struct {
+		name     string
+		isError  bool
+		expected expected
+		setup    func(d *dependency)
+	}{
+		{
+			name:    "it should response with error when task usecase Remove return unexpected error",
+			isError: true,
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusInternalServerError,
+				message:     http.StatusText(http.StatusInternalServerError),
+				error:       errorx.InternalServerErrorMessage,
+			},
+			setup: func(d *dependency) {
+				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
+
+				d.taskUsecase.On("Remove", mock.Anything, &domain.RemoveTaskIn{TaskID: "", UserID: "user-xxxxx"}).
+					Return(test.ErrUnexpected)
+			},
+		},
+		{
+			name:    "it should response with success when success",
+			isError: false,
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusOK,
+				message:     "Successfully deleted task",
+				payload:     nil,
+			},
+			setup: func(d *dependency) {
+				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
+
+				d.taskUsecase.On("Remove", mock.Anything, &domain.RemoveTaskIn{TaskID: "", UserID: "user-xxxxx"}).
+					Return(nil)
+			},
+		},
+	}
+
+	for _, t := range tests {
+		s.Run(t.name, func() {
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest("DELETE", "/", nil)
+
+			deps := &dependency{
+				req:         req,
+				taskUsecase: &mocks.TaskUsecase{},
+			}
+			t.setup(deps)
+
+			handler := New(deps.taskUsecase)
+			handler.Delete(rr, deps.req)
+
+			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
+			s.Equal(t.expected.statusCode, rr.Code)
+
+			if t.isError {
+				var resBody response.E
+				json.NewDecoder(rr.Body).Decode(&resBody)
+
+				s.Equal(t.expected.statusCode, resBody.StatusCode)
+				s.Equal(t.expected.message, resBody.Message)
+				s.Equal(t.expected.error, resBody.Error)
+			} else {
+				var resBody response.S
+				json.NewDecoder(rr.Body).Decode(&resBody)
+
+				s.Equal(t.expected.statusCode, resBody.StatusCode)
+				s.Equal(t.expected.message, resBody.Message)
+
+				s.Equal(t.expected.payload, nil)
+			}
+		})
+	}
+}
