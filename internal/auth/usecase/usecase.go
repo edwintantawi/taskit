@@ -65,7 +65,7 @@ func (u *usecase) Logout(ctx context.Context, payload *domain.LogoutAuthIn) erro
 	if err := u.authRepository.VerifyAvailableByToken(ctx, auth.Token); err != nil {
 		return err
 	}
-	if err := u.authRepository.Delete(ctx, auth); err != nil {
+	if err := u.authRepository.DeleteByToken(ctx, auth.Token); err != nil {
 		return err
 	}
 
@@ -100,7 +100,7 @@ func (u *usecase) Refresh(ctx context.Context, payload *domain.RefreshAuthIn) (d
 		return domain.RefreshAuthOut{}, err
 	}
 
-	if err := u.authRepository.Delete(ctx, &auth); err != nil {
+	if err := u.authRepository.DeleteByToken(ctx, auth.Token); err != nil {
 		return domain.RefreshAuthOut{}, err
 	}
 

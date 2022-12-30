@@ -40,8 +40,14 @@ func (s *AuthRepositoryTestSuite) TestStore() {
 		setup    func(d *dependency)
 	}{
 		{
-			name:     "it should return error when database fail to store",
-			args:     args{ctx: context.Background(), auth: &entity.Auth{UserID: "user-xxxxx", Token: "yyyyy.yyyyy.yyyyy", ExpiresAt: test.TimeAfterNow}},
+			name: "it should return error when database fail to store",
+			args: args{
+				ctx: context.Background(),
+				auth: &entity.Auth{
+					UserID:    "user-xxxxx",
+					Token:     "yyyyy.yyyyy.yyyyy",
+					ExpiresAt: test.TimeAfterNow,
+				}},
 			expected: test.ErrDatabase,
 			setup: func(d *dependency) {
 				d.idProvider.On("Generate").Return(string("auth-xxxxx"))
@@ -51,8 +57,11 @@ func (s *AuthRepositoryTestSuite) TestStore() {
 			},
 		},
 		{
-			name:     "it should return error nil when successfully store",
-			args:     args{ctx: context.Background(), auth: &entity.Auth{UserID: "user-xxxxx", Token: "yyyyy.yyyyy.yyyyy", ExpiresAt: test.TimeAfterNow}},
+			name: "it should return error nil when successfully store",
+			args: args{
+				ctx:  context.Background(),
+				auth: &entity.Auth{UserID: "user-xxxxx", Token: "yyyyy.yyyyy.yyyyy", ExpiresAt: test.TimeAfterNow},
+			},
 			expected: nil,
 			setup: func(d *dependency) {
 				d.idProvider.On("Generate").Return(string("auth-xxxxx"))
@@ -183,8 +192,8 @@ func (s *AuthRepositoryTestSuite) TestVerifyAvailableByID() {
 
 func (s *AuthRepositoryTestSuite) TestDelete() {
 	type args struct {
-		ctx  context.Context
-		auth *entity.Auth
+		ctx   context.Context
+		token string
 	}
 	tests := []struct {
 		name     string
@@ -193,8 +202,11 @@ func (s *AuthRepositoryTestSuite) TestDelete() {
 		setup    func(d *dependency)
 	}{
 		{
-			name:     "it should return error when database fail to delete",
-			args:     args{ctx: context.Background(), auth: &entity.Auth{Token: "yyyyy.yyyyy.yyyyy"}},
+			name: "it should return error when database fail to delete",
+			args: args{
+				ctx:   context.Background(),
+				token: "yyyyy.yyyyy.yyyyy",
+			},
 			expected: test.ErrDatabase,
 			setup: func(d *dependency) {
 				d.mockDB.ExpectExec(regexp.QuoteMeta(`DELETE FROM authentications WHERE token = $1`)).
@@ -203,9 +215,11 @@ func (s *AuthRepositoryTestSuite) TestDelete() {
 			},
 		},
 		{
-			name:     "it should return error nil when successfully delete",
-			args:     args{ctx: context.Background(), auth: &entity.Auth{Token: "yyyyy.yyyyy.yyyyy"}},
-			expected: nil,
+			name: "it should return error nil when successfully delete",
+			args: args{
+				ctx:   context.Background(),
+				token: "yyyyy.yyyyy.yyyyy",
+			}, expected: nil,
 			setup: func(d *dependency) {
 				d.mockDB.ExpectExec(regexp.QuoteMeta(`DELETE FROM authentications WHERE token = $1`)).
 					WithArgs("yyyyy.yyyyy.yyyyy").
@@ -227,7 +241,7 @@ func (s *AuthRepositoryTestSuite) TestDelete() {
 			t.setup(d)
 
 			repository := New(db, nil)
-			err = repository.Delete(t.args.ctx, t.args.auth)
+			err = repository.DeleteByToken(t.args.ctx, t.args.token)
 
 			s.Equal(t.expected, err)
 		})
@@ -251,7 +265,10 @@ func (s *AuthRepositoryTestSuite) TestFindByToken() {
 	}{
 		{
 			name: "it should return error when database fail to find",
-			args: args{ctx: context.Background(), token: "yyyyy.yyyyy.yyyyy"},
+			args: args{
+				ctx:   context.Background(),
+				token: "yyyyy.yyyyy.yyyyy",
+			},
 			expected: expected{
 				auth: entity.Auth{},
 				err:  test.ErrDatabase,
@@ -264,7 +281,10 @@ func (s *AuthRepositoryTestSuite) TestFindByToken() {
 		},
 		{
 			name: "it should return error ErrAuthNotFound when row not found",
-			args: args{ctx: context.Background(), token: "yyyyy.yyyyy.yyyyy"},
+			args: args{
+				ctx:   context.Background(),
+				token: "yyyyy.yyyyy.yyyyy",
+			},
 			expected: expected{
 				auth: entity.Auth{},
 				err:  domain.ErrAuthNotFound,
@@ -277,7 +297,10 @@ func (s *AuthRepositoryTestSuite) TestFindByToken() {
 		},
 		{
 			name: "it should return error when fail to scan row",
-			args: args{ctx: context.Background(), token: "yyyyy.yyyyy.yyyyy"},
+			args: args{
+				ctx:   context.Background(),
+				token: "yyyyy.yyyyy.yyyyy",
+			},
 			expected: expected{
 				auth: entity.Auth{},
 				err:  test.ErrRowScan,
@@ -290,7 +313,10 @@ func (s *AuthRepositoryTestSuite) TestFindByToken() {
 		},
 		{
 			name: "it should return error nil and authentication when found",
-			args: args{ctx: context.Background(), token: "yyyyy.yyyyy.yyyyy"},
+			args: args{
+				ctx:   context.Background(),
+				token: "yyyyy.yyyyy.yyyyy",
+			},
 			expected: expected{
 				auth: entity.Auth{
 					ID:        "auth-xxxxx",

@@ -265,7 +265,7 @@ func (s *AuthUsecaseTestSuite) TestLogout() {
 				d.authRepository.On("VerifyAvailableByToken", context.Background(), "yyyyy.yyyyy.yyyyy").
 					Return(nil)
 
-				d.authRepository.On("Delete", context.Background(), &entity.Auth{Token: "yyyyy.yyyyy.yyyyy"}).
+				d.authRepository.On("DeleteByToken", context.Background(), "yyyyy.yyyyy.yyyyy").
 					Return(test.ErrUnexpected)
 			},
 		},
@@ -282,7 +282,7 @@ func (s *AuthUsecaseTestSuite) TestLogout() {
 				d.authRepository.On("VerifyAvailableByToken", context.Background(), "yyyyy.yyyyy.yyyyy").
 					Return(nil)
 
-				d.authRepository.On("Delete", context.Background(), &entity.Auth{Token: "yyyyy.yyyyy.yyyyy"}).
+				d.authRepository.On("DeleteByToken", context.Background(), "yyyyy.yyyyy.yyyyy").
 					Return(nil)
 			},
 		},
@@ -474,7 +474,7 @@ func (s *AuthUsecaseTestSuite) TestRefresh() {
 				d.jwtProvider.On("GenerateRefreshToken", entity.UserID("user-xxxxx")).
 					Return("zzzzz.zzzzz.zzzzz", test.TimeAfterNow, nil)
 
-				d.authRepository.On("Delete", context.Background(), &entity.Auth{Token: "yyyyy.yyyyy.yyyyy", UserID: "user-xxxxx", ExpiresAt: test.TimeAfterNow}).
+				d.authRepository.On("DeleteByToken", context.Background(), "yyyyy.yyyyy.yyyyy").
 					Return(test.ErrUnexpected)
 			},
 		},
@@ -498,7 +498,7 @@ func (s *AuthUsecaseTestSuite) TestRefresh() {
 				d.jwtProvider.On("GenerateRefreshToken", entity.UserID("user-xxxxx")).
 					Return("zzzzz.zzzzz.zzzzz", test.TimeAfterNow, nil)
 
-				d.authRepository.On("Delete", context.Background(), &entity.Auth{Token: "yyyyy.yyyyy.yyyyy", UserID: "user-xxxxx", ExpiresAt: test.TimeAfterNow}).
+				d.authRepository.On("DeleteByToken", context.Background(), "yyyyy.yyyyy.yyyyy").
 					Return(nil)
 
 				d.authRepository.On("Store", context.Background(), &entity.Auth{UserID: "user-xxxxx", Token: "zzzzz.zzzzz.zzzzz", ExpiresAt: test.TimeAfterNow}).
@@ -528,7 +528,7 @@ func (s *AuthUsecaseTestSuite) TestRefresh() {
 				d.jwtProvider.On("GenerateRefreshToken", entity.UserID("user-xxxxx")).
 					Return("zzzzz.zzzzz.zzzzz", test.TimeAfterNow, nil)
 
-				d.authRepository.On("Delete", context.Background(), &entity.Auth{Token: "yyyyy.yyyyy.yyyyy", UserID: "user-xxxxx", ExpiresAt: test.TimeAfterNow}).
+				d.authRepository.On("DeleteByToken", context.Background(), "yyyyy.yyyyy.yyyyy").
 					Return(nil)
 
 				d.authRepository.On("Store", context.Background(), &entity.Auth{UserID: "user-xxxxx", Token: "zzzzz.zzzzz.zzzzz", ExpiresAt: test.TimeAfterNow}).
