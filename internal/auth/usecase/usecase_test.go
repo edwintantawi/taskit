@@ -239,7 +239,7 @@ func (s *AuthUsecaseTestSuite) TestLogout() {
 		setup    func(d *dependency)
 	}{
 		{
-			name: "it should return error when auth repository return unexpected error",
+			name: "it should return error when auth VerifyAvailableByToken return error",
 			args: args{
 				ctx:     context.Background(),
 				payload: &domain.LogoutAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"},
@@ -248,6 +248,23 @@ func (s *AuthUsecaseTestSuite) TestLogout() {
 				err: test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
+				d.authRepository.On("VerifyAvailableByToken", context.Background(), "yyyyy.yyyyy.yyyyy").
+					Return(test.ErrUnexpected)
+			},
+		},
+		{
+			name: "it should return error when auth Delete repository return unexpected error",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.LogoutAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"},
+			},
+			expected: expected{
+				err: test.ErrUnexpected,
+			},
+			setup: func(d *dependency) {
+				d.authRepository.On("VerifyAvailableByToken", context.Background(), "yyyyy.yyyyy.yyyyy").
+					Return(nil)
+
 				d.authRepository.On("Delete", context.Background(), &entity.Auth{Token: "yyyyy.yyyyy.yyyyy"}).
 					Return(test.ErrUnexpected)
 			},
@@ -262,6 +279,9 @@ func (s *AuthUsecaseTestSuite) TestLogout() {
 				err: nil,
 			},
 			setup: func(d *dependency) {
+				d.authRepository.On("VerifyAvailableByToken", context.Background(), "yyyyy.yyyyy.yyyyy").
+					Return(nil)
+
 				d.authRepository.On("Delete", context.Background(), &entity.Auth{Token: "yyyyy.yyyyy.yyyyy"}).
 					Return(nil)
 			},
