@@ -41,6 +41,7 @@ type AuthRepository interface {
 // TaskRepository represent task repository contract.
 type TaskRepository interface {
 	Store(ctx context.Context, t *entity.Task) (entity.TaskID, error)
+	FindByID(ctx context.Context, taskID entity.TaskID) (entity.Task, error)
 	FindAllByUserID(ctx context.Context, userID entity.UserID) ([]entity.Task, error)
 	VerifyAvailableByID(ctx context.Context, taskID entity.TaskID) error
 	DeleteByID(ctx context.Context, taskID entity.TaskID) error

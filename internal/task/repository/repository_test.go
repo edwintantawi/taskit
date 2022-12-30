@@ -102,6 +102,118 @@ func (s *TaskRepositoryTestSuite) TestStore() {
 	}
 }
 
+func (s *TaskRepositoryTestSuite) TestFindByID() {
+	type args struct {
+		ctx    context.Context
+		taskID entity.TaskID
+	}
+	type expected struct {
+		task entity.Task
+		err  error
+	}
+	tests := []struct {
+		name     string
+		args     args
+		expected expected
+		setup    func(d *dependency)
+	}{
+		{
+			name: "it should return error when database fail to query",
+			args: args{
+				ctx:    context.Background(),
+				taskID: "task-xxxxx",
+			},
+			expected: expected{
+				task: entity.Task{},
+				err:  test.ErrDatabase,
+			},
+			setup: func(d *dependency) {
+				d.mockDB.ExpectQuery(regexp.QuoteMeta("SELECT id, user_id, content, description, is_completed, due_date, created_at, updated_at FROM tasks WHERE id = $1")).
+					WithArgs("task-xxxxx").
+					WillReturnError(test.ErrDatabase)
+			},
+		},
+		{
+			name: "it should return error ErrTaskNotFound when task not found",
+			args: args{
+				ctx:    context.Background(),
+				taskID: "task-xxxxx",
+			},
+			expected: expected{
+				task: entity.Task{},
+				err:  domain.ErrTaskNotFound,
+			},
+			setup: func(d *dependency) {
+				d.mockDB.ExpectQuery(regexp.QuoteMeta("SELECT id, user_id, content, description, is_completed, due_date, created_at, updated_at FROM tasks WHERE id = $1")).
+					WithArgs("task-xxxxx").
+					WillReturnError(sql.ErrNoRows)
+			},
+		},
+		{
+			name: "it should return error when database scan fail",
+			args: args{
+				ctx:    context.Background(),
+				taskID: "task-xxxxx",
+			},
+			expected: expected{
+				task: entity.Task{},
+				err:  test.ErrRowScan,
+			},
+			setup: func(d *dependency) {
+				d.mockDB.ExpectQuery(regexp.QuoteMeta("SELECT id, user_id, content, description, is_completed, due_date, created_at, updated_at FROM tasks WHERE id = $1")).
+					WithArgs("task-xxxxx").
+					WillReturnError(test.ErrRowScan)
+			},
+		},
+		{
+			name: "it should return error nil and task when success",
+			args: args{
+				ctx:    context.Background(),
+				taskID: "task-xxxxx",
+			},
+			expected: expected{
+				task: entity.Task{
+					ID:          "task-xxxxx",
+					UserID:      "user-xxxxx",
+					Content:     "task_content",
+					Description: "task_description",
+					IsCompleted: true,
+					DueDate:     &test.TimeAfterNow,
+					CreatedAt:   test.TimeBeforeNow,
+					UpdatedAt:   test.TimeBeforeNow,
+				},
+				err: nil,
+			},
+			setup: func(d *dependency) {
+				mockRow := sqlmock.NewRows([]string{"id", "user_id", "content", "description", "is_completed", "due_date", "created_at", "updated_at"}).
+					AddRow("task-xxxxx", "user-xxxxx", "task_content", "task_description", true, test.TimeAfterNow, test.TimeBeforeNow, test.TimeBeforeNow)
+
+				d.mockDB.ExpectQuery(regexp.QuoteMeta("SELECT id, user_id, content, description, is_completed, due_date, created_at, updated_at FROM tasks WHERE id = $1")).
+					WithArgs("task-xxxxx").
+					WillReturnRows(mockRow)
+			},
+		},
+	}
+
+	for _, t := range tests {
+		db, mockDB, err := sqlmock.New()
+		if err != nil {
+			s.FailNow("an error '%s' was not expected when opening a database mock connection", err)
+		}
+
+		deps := &dependency{
+			mockDB: mockDB,
+		}
+		t.setup(deps)
+
+		repository := New(db, nil)
+		task, err := repository.FindByID(t.args.ctx, t.args.taskID)
+
+		s.Equal(t.expected.err, err)
+		s.Equal(t.expected.task, task)
+	}
+}
+
 func (s *TaskRepositoryTestSuite) TestFindAllByUserID() {
 	type args struct {
 		ctx    context.Context

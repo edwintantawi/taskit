@@ -52,6 +52,27 @@ func (_m *TaskRepository) FindAllByUserID(ctx context.Context, userID entity.Use
 	return r0, r1
 }
 
+// FindByID provides a mock function with given fields: ctx, taskID
+func (_m *TaskRepository) FindByID(ctx context.Context, taskID entity.TaskID) (entity.Task, error) {
+	ret := _m.Called(ctx, taskID)
+
+	var r0 entity.Task
+	if rf, ok := ret.Get(0).(func(context.Context, entity.TaskID) entity.Task); ok {
+		r0 = rf(ctx, taskID)
+	} else {
+		r0 = ret.Get(0).(entity.Task)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, entity.TaskID) error); ok {
+		r1 = rf(ctx, taskID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Store provides a mock function with given fields: ctx, t
 func (_m *TaskRepository) Store(ctx context.Context, t *entity.Task) (entity.TaskID, error) {
 	ret := _m.Called(ctx, t)

@@ -30,6 +30,20 @@ func (r *repository) Store(ctx context.Context, t *entity.Task) (entity.TaskID, 
 	return entity.TaskID(id), nil
 }
 
+// FindByID get task by id.
+func (r *repository) FindByID(ctx context.Context, taskID entity.TaskID) (entity.Task, error) {
+	var task entity.Task
+	q := `SELECT id, user_id, content, description, is_completed, due_date, created_at, updated_at FROM tasks WHERE id = $1`
+	row := r.db.QueryRowContext(ctx, q, taskID)
+	err := row.Scan(&task.ID, &task.UserID, &task.Content, &task.Description, &task.IsCompleted, &task.DueDate, &task.CreatedAt, &task.UpdatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return entity.Task{}, domain.ErrTaskNotFound
+	} else if err != nil {
+		return entity.Task{}, err
+	}
+	return task, nil
+}
+
 // FindAllByUserID get all tasks owned by a user by user id.
 func (r *repository) FindAllByUserID(ctx context.Context, userID entity.UserID) ([]entity.Task, error) {
 	q := `SELECT id, content, description, is_completed, due_date, created_at, updated_at FROM tasks WHERE user_id = $1`
