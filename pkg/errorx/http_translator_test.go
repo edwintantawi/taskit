@@ -44,6 +44,10 @@ func (s *HTTPErrorTranslatorTestSuite) TestErrorTranslator() {
 		{domain.ErrEmailNotExist, 400, "Email is not exist"},
 		// Task entity
 		{entity.ErrContentEmpty, 400, "Content is required field"},
+		// Task repository
+		{domain.ErrTaskNotFound, 404, "Task not found"},
+		// Task usecase
+		{domain.ErrTaskAuthorization, 403, "Not have access to this task"},
 		// Other
 		{errors.New("other error"), 500, "Something went wrong"},
 	}

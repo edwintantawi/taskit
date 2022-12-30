@@ -72,6 +72,7 @@ func main() {
 
 		r.Post("/api/tasks", taskHTTPHandler.Post)
 		r.Get("/api/tasks", taskHTTPHandler.Get)
+		r.Delete("/api/tasks/{task_id}", taskHTTPHandler.Delete)
 	})
 
 	log.Printf("Server running at %s", cfg.ServerAddr)
