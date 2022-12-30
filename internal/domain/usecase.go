@@ -11,6 +11,11 @@ var (
 	ErrPasswordIncorrect = errors.New("auth.usecase.password_incorrect")
 )
 
+// Task usecase errors.
+var (
+	ErrTaskAuthorization = errors.New("task.usecase.task_forbidden")
+)
+
 // UserUsecase represent user usecase contract.
 type UserUsecase interface {
 	Create(ctx context.Context, payload *CreateUserIn) (CreateUserOut, error)
@@ -28,4 +33,5 @@ type AuthUsecase interface {
 type TaskUsecase interface {
 	Create(ctx context.Context, payload *CreateTaskIn) (CreateTaskOut, error)
 	GetAll(ctx context.Context, payload *GetAllTaskIn) ([]GetAllTaskOut, error)
+	Remove(ctx context.Context, payload *RemoveTaskIn) error
 }
