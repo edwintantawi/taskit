@@ -31,7 +31,7 @@ func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := h.authUsecase.Login(r.Context(), &payload)
+	output, err := h.authUsecase.Login(r.Context(), &payload)
 	if err != nil {
 		code, msg := errorx.HTTPErrorTranslator(err)
 		w.WriteHeader(code)
@@ -40,7 +40,7 @@ func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	encoder.Encode(response.Success(http.StatusOK, "Successfully logged in user", result))
+	encoder.Encode(response.Success(http.StatusOK, "Successfully logged in user", output))
 }
 
 // DELETE /authentications to logout from current authentication
@@ -75,7 +75,7 @@ func (h *HTTPHandler) Get(w http.ResponseWriter, r *http.Request) {
 	var payload domain.GetProfileAuthIn
 	payload.UserID = entity.GetAuthContext(r.Context())
 
-	user, err := h.authUsecase.GetProfile(r.Context(), &payload)
+	output, err := h.authUsecase.GetProfile(r.Context(), &payload)
 	if err != nil {
 		code, msg := errorx.HTTPErrorTranslator(err)
 		w.WriteHeader(code)
@@ -84,7 +84,7 @@ func (h *HTTPHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	encoder.Encode(response.Success(http.StatusOK, http.StatusText(http.StatusOK), user))
+	encoder.Encode(response.Success(http.StatusOK, http.StatusText(http.StatusOK), output))
 }
 
 // PUT /authentications to refresh authentication token
@@ -99,7 +99,7 @@ func (h *HTTPHandler) Put(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := h.authUsecase.Refresh(r.Context(), &payload)
+	output, err := h.authUsecase.Refresh(r.Context(), &payload)
 	if err != nil {
 		code, msg := errorx.HTTPErrorTranslator(err)
 		w.WriteHeader(code)
@@ -108,5 +108,5 @@ func (h *HTTPHandler) Put(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	encoder.Encode(response.Success(http.StatusOK, "Successfully refreshed authentication token", result))
+	encoder.Encode(response.Success(http.StatusOK, "Successfully refreshed authentication token", output))
 }
