@@ -30,18 +30,26 @@ func (r *repository) Store(ctx context.Context, a *entity.Auth) error {
 	return nil
 }
 
-// Delete remove an auth from database.
-func (r *repository) Delete(ctx context.Context, a *entity.Auth) error {
-	q := `DELETE FROM authentications WHERE token = $1`
-	result, err := r.db.ExecContext(ctx, q, a.Token)
-	if err != nil {
+// VerifyAvailableByToken check if a authentication is available by token.
+func (r *repository) VerifyAvailableByToken(ctx context.Context, token string) error {
+	var id entity.AuthID
+	q := `SELECT id FROM authentications WHERE token = $1`
+	row := r.db.QueryRowContext(ctx, q, token)
+	err := row.Scan(&id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return domain.ErrAuthNotFound
+	} else if err != nil {
 		return err
 	}
-	rows, err := result.RowsAffected()
+	return nil
+}
+
+// Delete remove an auth from database.
+func (r *repository) DeleteByToken(ctx context.Context, token string) error {
+	q := `DELETE FROM authentications WHERE token = $1`
+	_, err := r.db.ExecContext(ctx, q, token)
 	if err != nil {
 		return err
-	} else if rows == 0 {
-		return domain.ErrAuthNotFound
 	}
 	return nil
 }

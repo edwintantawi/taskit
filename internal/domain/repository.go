@@ -29,7 +29,8 @@ type UserRepository interface {
 // AuthRepository represent auth repository contract.
 type AuthRepository interface {
 	Store(ctx context.Context, a *entity.Auth) error
-	Delete(ctx context.Context, a *entity.Auth) error
+	VerifyAvailableByToken(ctx context.Context, token string) error
+	DeleteByToken(ctx context.Context, token string) error
 	FindByToken(ctx context.Context, token string) (entity.Auth, error)
 }
 
