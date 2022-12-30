@@ -71,3 +71,19 @@ type CreateTaskIn struct {
 type CreateTaskOut struct {
 	ID entity.TaskID `json:"id"`
 }
+
+// GetAllTaskIn represents the input of task retrieval.
+type GetAllTaskIn struct {
+	UserID entity.UserID `json:"-"`
+}
+
+// GetAllTaskOut represents the output of task retrieval.
+type GetAllTaskOut struct {
+	ID          entity.TaskID
+	Content     string
+	Description string
+	IsCompleted bool
+	DueDate     entity.TaskDueDate
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
