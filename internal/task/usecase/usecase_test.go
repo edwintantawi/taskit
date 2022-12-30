@@ -167,3 +167,106 @@ func (s *TaskUsecaseTestSuite) TestGetAll() {
 		})
 	}
 }
+
+func (s *TaskUsecaseTestSuite) TestRemove() {
+	type args struct {
+		ctx     context.Context
+		payload *domain.RemoveTaskIn
+	}
+	type expected struct {
+		err error
+	}
+	tests := []struct {
+		name     string
+		args     args
+		expected expected
+		setup    func(d *dependency)
+	}{
+		{
+			name: "it should return error when task repository FindByID return unexpected error",
+			args: args{
+				ctx: context.Background(),
+				payload: &domain.RemoveTaskIn{
+					TaskID: "task-xxxxx",
+					UserID: "user-xxxxx",
+				},
+			},
+			expected: expected{
+				err: test.ErrUnexpected,
+			},
+			setup: func(d *dependency) {
+				d.taskRepository.On("FindByID", context.Background(), entity.TaskID("task-xxxxx")).
+					Return(entity.Task{}, test.ErrUnexpected)
+			},
+		},
+		{
+			name: "it should return error when task repository FindByID return unexpected error",
+			args: args{
+				ctx: context.Background(),
+				payload: &domain.RemoveTaskIn{
+					TaskID: "task-xxxxx",
+					UserID: "user-xxxxx",
+				},
+			},
+			expected: expected{
+				err: domain.ErrTaskAuthorization,
+			},
+			setup: func(d *dependency) {
+				d.taskRepository.On("FindByID", context.Background(), entity.TaskID("task-xxxxx")).
+					Return(entity.Task{UserID: "user-yyyyy"}, nil)
+			},
+		},
+		{
+			name: "it should return error when task repository DeleteByID return unexpected error",
+			args: args{
+				ctx: context.Background(),
+				payload: &domain.RemoveTaskIn{
+					TaskID: "task-xxxxx",
+					UserID: "user-xxxxx",
+				},
+			},
+			expected: expected{
+				err: test.ErrUnexpected,
+			},
+			setup: func(d *dependency) {
+				d.taskRepository.On("FindByID", context.Background(), entity.TaskID("task-xxxxx")).
+					Return(entity.Task{UserID: "user-xxxxx"}, nil)
+
+				d.taskRepository.On("DeleteByID", context.Background(), entity.TaskID("task-xxxxx")).
+					Return(test.ErrUnexpected)
+			},
+		},
+		{
+			name: "it should return error nil when success delete task",
+			args: args{
+				ctx: context.Background(),
+				payload: &domain.RemoveTaskIn{
+					TaskID: "task-xxxxx",
+					UserID: "user-xxxxx",
+				},
+			},
+			expected: expected{
+				err: test.ErrUnexpected,
+			},
+			setup: func(d *dependency) {
+				d.taskRepository.On("FindByID", context.Background(), entity.TaskID("task-xxxxx")).
+					Return(entity.Task{UserID: "user-xxxxx"}, nil)
+
+				d.taskRepository.On("DeleteByID", context.Background(), entity.TaskID("task-xxxxx")).
+					Return(nil)
+			},
+		},
+	}
+
+	for _, t := range tests {
+		deps := &dependency{
+			taskRepository: &mocks.TaskRepository{},
+		}
+		t.setup(deps)
+
+		usecase := New(deps.taskRepository)
+		err := usecase.Remove(t.args.ctx, t.args.payload)
+
+		s.Error(t.expected.err, err)
+	}
+}

@@ -50,3 +50,17 @@ func (u *usecase) GetAll(ctx context.Context, payload *domain.GetAllTaskIn) ([]d
 	}
 	return output, nil
 }
+
+func (u *usecase) Remove(ctx context.Context, payload *domain.RemoveTaskIn) error {
+	task, err := u.taskRepository.FindByID(ctx, payload.TaskID)
+	if err != nil {
+		return err
+	}
+	if task.UserID != payload.UserID {
+		return domain.ErrTaskAuthorization
+	}
+	if err := u.taskRepository.DeleteByID(ctx, payload.TaskID); err != nil {
+		return err
+	}
+	return nil
+}
