@@ -203,26 +203,6 @@ func (s *AuthRepositoryTestSuite) TestDelete() {
 			},
 		},
 		{
-			name:     "it should return error when rowAffected is return an error",
-			args:     args{ctx: context.Background(), auth: &entity.Auth{Token: "yyyyy.yyyyy.yyyyy"}},
-			expected: test.ErrRowAffected,
-			setup: func(d *dependency) {
-				d.mockDB.ExpectExec(regexp.QuoteMeta(`DELETE FROM authentications WHERE token = $1`)).
-					WithArgs("yyyyy.yyyyy.yyyyy").
-					WillReturnResult(sqlmock.NewErrorResult(test.ErrRowAffected))
-			},
-		},
-		{
-			name:     "it should return error ErrAuthNotFound when token not found",
-			args:     args{ctx: context.Background(), auth: &entity.Auth{Token: "yyyyy.yyyyy.yyyyy"}},
-			expected: domain.ErrAuthNotFound,
-			setup: func(d *dependency) {
-				d.mockDB.ExpectExec(regexp.QuoteMeta(`DELETE FROM authentications WHERE token = $1`)).
-					WithArgs("yyyyy.yyyyy.yyyyy").
-					WillReturnResult(sqlmock.NewResult(0, 0))
-			},
-		},
-		{
 			name:     "it should return error nil when successfully delete",
 			args:     args{ctx: context.Background(), auth: &entity.Auth{Token: "yyyyy.yyyyy.yyyyy"}},
 			expected: nil,

@@ -47,15 +47,9 @@ func (r *repository) VerifyAvailableByToken(ctx context.Context, token string) e
 // Delete remove an auth from database.
 func (r *repository) Delete(ctx context.Context, a *entity.Auth) error {
 	q := `DELETE FROM authentications WHERE token = $1`
-	result, err := r.db.ExecContext(ctx, q, a.Token)
+	_, err := r.db.ExecContext(ctx, q, a.Token)
 	if err != nil {
 		return err
-	}
-	rows, err := result.RowsAffected()
-	if err != nil {
-		return err
-	} else if rows == 0 {
-		return domain.ErrAuthNotFound
 	}
 	return nil
 }
