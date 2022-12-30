@@ -33,10 +33,13 @@ func (s *AuthRepositoryTestSuite) TestStore() {
 		ctx  context.Context
 		auth *entity.Auth
 	}
+	type expected struct {
+		err error
+	}
 	tests := []struct {
 		name     string
 		args     args
-		expected error
+		expected expected
 		setup    func(d *dependency)
 	}{
 		{
@@ -48,7 +51,9 @@ func (s *AuthRepositoryTestSuite) TestStore() {
 					Token:     "yyyyy.yyyyy.yyyyy",
 					ExpiresAt: test.TimeAfterNow,
 				}},
-			expected: test.ErrDatabase,
+			expected: expected{
+				err: test.ErrDatabase,
+			},
 			setup: func(d *dependency) {
 				d.idProvider.On("Generate").Return(string("auth-xxxxx"))
 				d.mockDB.ExpectExec(regexp.QuoteMeta(`INSERT INTO authentications (id, user_id, token, expires_at) VALUES ($1, $2, $3, $4)`)).
@@ -62,7 +67,9 @@ func (s *AuthRepositoryTestSuite) TestStore() {
 				ctx:  context.Background(),
 				auth: &entity.Auth{UserID: "user-xxxxx", Token: "yyyyy.yyyyy.yyyyy", ExpiresAt: test.TimeAfterNow},
 			},
-			expected: nil,
+			expected: expected{
+				err: nil,
+			},
 			setup: func(d *dependency) {
 				d.idProvider.On("Generate").Return(string("auth-xxxxx"))
 				d.mockDB.ExpectExec(regexp.QuoteMeta(`INSERT INTO authentications (id, user_id, token, expires_at) VALUES ($1, $2, $3, $4)`)).
@@ -88,7 +95,7 @@ func (s *AuthRepositoryTestSuite) TestStore() {
 			repository := New(db, deps.idProvider)
 			err = repository.Store(t.args.ctx, t.args.auth)
 
-			s.Equal(t.expected, err)
+			s.Equal(t.expected.err, err)
 		})
 	}
 }
@@ -99,7 +106,7 @@ func (s *AuthRepositoryTestSuite) TestVerifyAvailableByID() {
 		token string
 	}
 	type expected struct {
-		error error
+		err error
 	}
 	tests := []struct {
 		name     string
@@ -114,7 +121,7 @@ func (s *AuthRepositoryTestSuite) TestVerifyAvailableByID() {
 				token: "yyyyy.yyyyy.yyyyy",
 			},
 			expected: expected{
-				error: test.ErrDatabase,
+				err: test.ErrDatabase,
 			},
 			setup: func(d *dependency) {
 				d.mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id FROM authentications WHERE token = $1`)).
@@ -129,7 +136,7 @@ func (s *AuthRepositoryTestSuite) TestVerifyAvailableByID() {
 				token: "yyyyy.yyyyy.yyyyy",
 			},
 			expected: expected{
-				error: domain.ErrAuthNotFound,
+				err: domain.ErrAuthNotFound,
 			},
 			setup: func(d *dependency) {
 				d.mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id FROM authentications WHERE token = $1`)).
@@ -144,7 +151,7 @@ func (s *AuthRepositoryTestSuite) TestVerifyAvailableByID() {
 				token: "yyyyy.yyyyy.yyyyy",
 			},
 			expected: expected{
-				error: test.ErrRowScan,
+				err: test.ErrRowScan,
 			},
 			setup: func(d *dependency) {
 				d.mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id FROM authentications WHERE token = $1`)).
@@ -159,7 +166,7 @@ func (s *AuthRepositoryTestSuite) TestVerifyAvailableByID() {
 				token: "yyyyy.yyyyy.yyyyy",
 			},
 			expected: expected{
-				error: nil,
+				err: nil,
 			},
 			setup: func(d *dependency) {
 				mockRow := sqlmock.NewRows([]string{"id"}).AddRow("auth-xxxxx")
@@ -185,7 +192,7 @@ func (s *AuthRepositoryTestSuite) TestVerifyAvailableByID() {
 			repository := New(db, nil)
 			err = repository.VerifyAvailableByToken(t.args.ctx, t.args.token)
 
-			s.Equal(t.expected.error, err)
+			s.Equal(t.expected.err, err)
 		})
 	}
 }
@@ -195,10 +202,13 @@ func (s *AuthRepositoryTestSuite) TestDelete() {
 		ctx   context.Context
 		token string
 	}
+	type expected struct {
+		err error
+	}
 	tests := []struct {
 		name     string
 		args     args
-		expected error
+		expected expected
 		setup    func(d *dependency)
 	}{
 		{
@@ -207,7 +217,9 @@ func (s *AuthRepositoryTestSuite) TestDelete() {
 				ctx:   context.Background(),
 				token: "yyyyy.yyyyy.yyyyy",
 			},
-			expected: test.ErrDatabase,
+			expected: expected{
+				err: test.ErrDatabase,
+			},
 			setup: func(d *dependency) {
 				d.mockDB.ExpectExec(regexp.QuoteMeta(`DELETE FROM authentications WHERE token = $1`)).
 					WithArgs("yyyyy.yyyyy.yyyyy").
@@ -219,7 +231,10 @@ func (s *AuthRepositoryTestSuite) TestDelete() {
 			args: args{
 				ctx:   context.Background(),
 				token: "yyyyy.yyyyy.yyyyy",
-			}, expected: nil,
+			},
+			expected: expected{
+				err: nil,
+			},
 			setup: func(d *dependency) {
 				d.mockDB.ExpectExec(regexp.QuoteMeta(`DELETE FROM authentications WHERE token = $1`)).
 					WithArgs("yyyyy.yyyyy.yyyyy").
@@ -243,7 +258,7 @@ func (s *AuthRepositoryTestSuite) TestDelete() {
 			repository := New(db, nil)
 			err = repository.DeleteByToken(t.args.ctx, t.args.token)
 
-			s.Equal(t.expected, err)
+			s.Equal(t.expected.err, err)
 		})
 	}
 }

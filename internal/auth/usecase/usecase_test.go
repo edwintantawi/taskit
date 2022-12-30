@@ -46,8 +46,10 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 		{
 			name: "it should return error ErrEmailNotExist when email not found",
 			args: args{
-				ctx:     context.Background(),
-				payload: &domain.LoginAuthIn{Email: "gopher@go.dev"},
+				ctx: context.Background(),
+				payload: &domain.LoginAuthIn{
+					Email: "gopher@go.dev",
+				},
 			},
 			expected: expected{
 				output: domain.LoginAuthOut{},
@@ -61,8 +63,10 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 		{
 			name: "it should return error when user repository FindByEmail return unexpected error",
 			args: args{
-				ctx:     context.Background(),
-				payload: &domain.LoginAuthIn{Email: "gopher@go.dev"},
+				ctx: context.Background(),
+				payload: &domain.LoginAuthIn{
+					Email: "gopher@go.dev",
+				},
 			},
 			expected: expected{
 				output: domain.LoginAuthOut{},
@@ -76,8 +80,11 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 		{
 			name: "it should return error ErrPasswordIncorrect when password is incorrect",
 			args: args{
-				ctx:     context.Background(),
-				payload: &domain.LoginAuthIn{Email: "gopher@go.dev", Password: "secret_password"},
+				ctx: context.Background(),
+				payload: &domain.LoginAuthIn{
+					Email:    "gopher@go.dev",
+					Password: "secret_password",
+				},
 			},
 			expected: expected{
 				output: domain.LoginAuthOut{},
@@ -94,8 +101,11 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 		{
 			name: "it should return error when generate access token failed",
 			args: args{
-				ctx:     context.Background(),
-				payload: &domain.LoginAuthIn{Email: "gopher@go.dev", Password: "secret_password"},
+				ctx: context.Background(),
+				payload: &domain.LoginAuthIn{
+					Email:    "gopher@go.dev",
+					Password: "secret_password",
+				},
 			},
 			expected: expected{
 				output: domain.LoginAuthOut{},
@@ -115,8 +125,11 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 		{
 			name: "it should return error when generate refresh token failed",
 			args: args{
-				ctx:     context.Background(),
-				payload: &domain.LoginAuthIn{Email: "gopher@go.dev", Password: "secret_password"},
+				ctx: context.Background(),
+				payload: &domain.LoginAuthIn{
+					Email:    "gopher@go.dev",
+					Password: "secret_password",
+				},
 			},
 			expected: expected{
 				output: domain.LoginAuthOut{},
@@ -139,8 +152,11 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 		{
 			name: "it should return error when auth respository Store return unexpected error",
 			args: args{
-				ctx:     context.Background(),
-				payload: &domain.LoginAuthIn{Email: "gopher@go.dev", Password: "secret_password"},
+				ctx: context.Background(),
+				payload: &domain.LoginAuthIn{
+					Email:    "gopher@go.dev",
+					Password: "secret_password",
+				},
 			},
 			expected: expected{
 				output: domain.LoginAuthOut{},
@@ -166,8 +182,11 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 		{
 			name: "it should return error nil and output when success",
 			args: args{
-				ctx:     context.Background(),
-				payload: &domain.LoginAuthIn{Email: "gopher@go.dev", Password: "secret_password"},
+				ctx: context.Background(),
+				payload: &domain.LoginAuthIn{
+					Email:    "gopher@go.dev",
+					Password: "secret_password",
+				},
 			},
 			expected: expected{
 				output: domain.LoginAuthOut{
@@ -241,8 +260,10 @@ func (s *AuthUsecaseTestSuite) TestLogout() {
 		{
 			name: "it should return error when auth VerifyAvailableByToken return error",
 			args: args{
-				ctx:     context.Background(),
-				payload: &domain.LogoutAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"},
+				ctx: context.Background(),
+				payload: &domain.LogoutAuthIn{
+					RefreshToken: "yyyyy.yyyyy.yyyyy",
+				},
 			},
 			expected: expected{
 				err: test.ErrUnexpected,
@@ -255,8 +276,10 @@ func (s *AuthUsecaseTestSuite) TestLogout() {
 		{
 			name: "it should return error when auth Delete repository return unexpected error",
 			args: args{
-				ctx:     context.Background(),
-				payload: &domain.LogoutAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"},
+				ctx: context.Background(),
+				payload: &domain.LogoutAuthIn{
+					RefreshToken: "yyyyy.yyyyy.yyyyy",
+				},
 			},
 			expected: expected{
 				err: test.ErrUnexpected,
@@ -272,8 +295,10 @@ func (s *AuthUsecaseTestSuite) TestLogout() {
 		{
 			name: "it should return error nil when successfully delete authentication",
 			args: args{
-				ctx:     context.Background(),
-				payload: &domain.LogoutAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"},
+				ctx: context.Background(),
+				payload: &domain.LogoutAuthIn{
+					RefreshToken: "yyyyy.yyyyy.yyyyy",
+				},
 			},
 			expected: expected{
 				err: nil,
@@ -321,8 +346,10 @@ func (s *AuthUsecaseTestSuite) TestGetProfile() {
 		{
 			name: "it should return error when user repository FindByID return unexpected error",
 			args: args{
-				ctx:     context.Background(),
-				payload: &domain.GetProfileAuthIn{UserID: "user-xxxxx"},
+				ctx: context.Background(),
+				payload: &domain.GetProfileAuthIn{
+					UserID: "user-xxxxx",
+				},
 			},
 			expected: expected{
 				output: domain.GetProfileAuthOut{},
@@ -336,8 +363,10 @@ func (s *AuthUsecaseTestSuite) TestGetProfile() {
 		{
 			name: "it should return error nil and output when success",
 			args: args{
-				ctx:     context.Background(),
-				payload: &domain.GetProfileAuthIn{UserID: "user-xxxxx"},
+				ctx: context.Background(),
+				payload: &domain.GetProfileAuthIn{
+					UserID: "user-xxxxx",
+				},
 			},
 			expected: expected{
 				output: domain.GetProfileAuthOut{
@@ -388,8 +417,10 @@ func (s *AuthUsecaseTestSuite) TestRefresh() {
 		{
 			name: "it should return error when auth repository FindByToken return unexpected error",
 			args: args{
-				ctx:     context.Background(),
-				payload: &domain.RefreshAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"},
+				ctx: context.Background(),
+				payload: &domain.RefreshAuthIn{
+					RefreshToken: "yyyyy.yyyyy.yyyyy",
+				},
 			},
 			expected: expected{
 				output: domain.RefreshAuthOut{},
@@ -403,8 +434,10 @@ func (s *AuthUsecaseTestSuite) TestRefresh() {
 		{
 			name: "it should return error ErrAuthTokenExpired when token is expired",
 			args: args{
-				ctx:     context.Background(),
-				payload: &domain.RefreshAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"},
+				ctx: context.Background(),
+				payload: &domain.RefreshAuthIn{
+					RefreshToken: "yyyyy.yyyyy.yyyyy",
+				},
 			},
 			expected: expected{
 				output: domain.RefreshAuthOut{},
@@ -418,8 +451,10 @@ func (s *AuthUsecaseTestSuite) TestRefresh() {
 		{
 			name: "it should return error when generate new access token failed",
 			args: args{
-				ctx:     context.Background(),
-				payload: &domain.RefreshAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"},
+				ctx: context.Background(),
+				payload: &domain.RefreshAuthIn{
+					RefreshToken: "yyyyy.yyyyy.yyyyy",
+				},
 			},
 			expected: expected{
 				output: domain.RefreshAuthOut{},
@@ -436,8 +471,10 @@ func (s *AuthUsecaseTestSuite) TestRefresh() {
 		{
 			name: "it should return error when generate new refresh token failed",
 			args: args{
-				ctx:     context.Background(),
-				payload: &domain.RefreshAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"},
+				ctx: context.Background(),
+				payload: &domain.RefreshAuthIn{
+					RefreshToken: "yyyyy.yyyyy.yyyyy",
+				},
 			},
 			expected: expected{
 				output: domain.RefreshAuthOut{},
@@ -457,8 +494,10 @@ func (s *AuthUsecaseTestSuite) TestRefresh() {
 		{
 			name: "it should return error when auth respository Delete return unexpected error",
 			args: args{
-				ctx:     context.Background(),
-				payload: &domain.RefreshAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"},
+				ctx: context.Background(),
+				payload: &domain.RefreshAuthIn{
+					RefreshToken: "yyyyy.yyyyy.yyyyy",
+				},
 			},
 			expected: expected{
 				output: domain.RefreshAuthOut{},
@@ -481,8 +520,10 @@ func (s *AuthUsecaseTestSuite) TestRefresh() {
 		{
 			name: "it should return error when auth respository Store return unexpected error",
 			args: args{
-				ctx:     context.Background(),
-				payload: &domain.RefreshAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"},
+				ctx: context.Background(),
+				payload: &domain.RefreshAuthIn{
+					RefreshToken: "yyyyy.yyyyy.yyyyy",
+				},
 			},
 			expected: expected{
 				output: domain.RefreshAuthOut{},
@@ -508,8 +549,10 @@ func (s *AuthUsecaseTestSuite) TestRefresh() {
 		{
 			name: "it should return error nil and output when success",
 			args: args{
-				ctx:     context.Background(),
-				payload: &domain.RefreshAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"},
+				ctx: context.Background(),
+				payload: &domain.RefreshAuthIn{
+					RefreshToken: "yyyyy.yyyyy.yyyyy",
+				},
 			},
 			expected: expected{
 				output: domain.RefreshAuthOut{
