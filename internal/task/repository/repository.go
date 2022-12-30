@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/edwintantawi/taskit/internal/domain"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
@@ -52,4 +53,28 @@ func (r *repository) FindAllByUserID(ctx context.Context, userID entity.UserID) 
 	}
 
 	return tasks, nil
+}
+
+// VerifyAvailableByID check if a task is available by id.
+func (r *repository) VerifyAvailableByID(ctx context.Context, taskID entity.TaskID) error {
+	var id string
+	q := `SELECT id FROM tasks WHERE id = $1`
+	row := r.db.QueryRowContext(ctx, q, taskID)
+	err := row.Scan(&id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return domain.ErrTaskNotFound
+	} else if err != nil {
+		return err
+	}
+	return nil
+}
+
+// DeleteByID delete a task by id.
+func (r *repository) DeleteByID(ctx context.Context, taskID entity.TaskID) error {
+	q := `DELETE FROM tasks WHERE id = $1`
+	_, err := r.db.ExecContext(ctx, q, taskID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
