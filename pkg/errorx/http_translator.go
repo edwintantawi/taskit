@@ -9,6 +9,11 @@ import (
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 )
 
+// HTTPError message
+var (
+	InternalServerErrorMessage = "Something went wrong"
+)
+
 // HTTPErrorTranslator translates error to http status code and human readable error message.
 func HTTPErrorTranslator(err error) (code int, msg string) {
 	log.Println("[ERROR]", err)
@@ -47,6 +52,6 @@ func HTTPErrorTranslator(err error) (code int, msg string) {
 		return http.StatusBadRequest, "Content is required field"
 	// Other
 	default:
-		return http.StatusInternalServerError, "Something went wrong"
+		return http.StatusInternalServerError, InternalServerErrorMessage
 	}
 }
