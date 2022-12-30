@@ -84,6 +84,103 @@ func (s *AuthRepositoryTestSuite) TestStore() {
 	}
 }
 
+func (s *AuthRepositoryTestSuite) TestVerifyAvailableByID() {
+	type args struct {
+		ctx   context.Context
+		token string
+	}
+	type expected struct {
+		error error
+	}
+	tests := []struct {
+		name     string
+		args     args
+		expected expected
+		setup    func(d *dependency)
+	}{
+		{
+			name: "it should return error when database fail to query",
+			args: args{
+				ctx:   context.Background(),
+				token: "yyyyy.yyyyy.yyyyy",
+			},
+			expected: expected{
+				error: test.ErrDatabase,
+			},
+			setup: func(d *dependency) {
+				d.mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id FROM authentications WHERE token = $1`)).
+					WithArgs("yyyyy.yyyyy.yyyyy").
+					WillReturnError(test.ErrDatabase)
+			},
+		},
+		{
+			name: "it should return error when authentication not found",
+			args: args{
+				ctx:   context.Background(),
+				token: "yyyyy.yyyyy.yyyyy",
+			},
+			expected: expected{
+				error: domain.ErrAuthNotFound,
+			},
+			setup: func(d *dependency) {
+				d.mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id FROM authentications WHERE token = $1`)).
+					WithArgs("yyyyy.yyyyy.yyyyy").
+					WillReturnError(sql.ErrNoRows)
+			},
+		},
+		{
+			name: "it should return error when database fail to scan",
+			args: args{
+				ctx:   context.Background(),
+				token: "yyyyy.yyyyy.yyyyy",
+			},
+			expected: expected{
+				error: test.ErrRowScan,
+			},
+			setup: func(d *dependency) {
+				d.mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id FROM authentications WHERE token = $1`)).
+					WithArgs("yyyyy.yyyyy.yyyyy").
+					WillReturnError(test.ErrRowScan)
+			},
+		},
+		{
+			name: "it should return error nil when authentication found",
+			args: args{
+				ctx:   context.Background(),
+				token: "yyyyy.yyyyy.yyyyy",
+			},
+			expected: expected{
+				error: nil,
+			},
+			setup: func(d *dependency) {
+				mockRow := sqlmock.NewRows([]string{"id"}).AddRow("auth-xxxxx")
+				d.mockDB.ExpectQuery(regexp.QuoteMeta(`SELECT id FROM authentications WHERE token = $1`)).
+					WithArgs("yyyyy.yyyyy.yyyyy").
+					WillReturnRows(mockRow)
+			},
+		},
+	}
+
+	for _, t := range tests {
+		s.Run(t.name, func() {
+			db, mockDB, err := sqlmock.New()
+			if err != nil {
+				s.FailNow("an error '%s' was not expected when opening a database mock connection", err)
+			}
+
+			deps := &dependency{
+				mockDB: mockDB,
+			}
+			t.setup(deps)
+
+			repository := New(db, nil)
+			err = repository.VerifyAvailableByToken(t.args.ctx, t.args.token)
+
+			s.Equal(t.expected.error, err)
+		})
+	}
+}
+
 func (s *AuthRepositoryTestSuite) TestDelete() {
 	type args struct {
 		ctx  context.Context

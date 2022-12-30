@@ -64,6 +64,20 @@ func (_m *AuthRepository) Store(ctx context.Context, a *entity.Auth) error {
 	return r0
 }
 
+// VerifyAvailableByToken provides a mock function with given fields: ctx, token
+func (_m *AuthRepository) VerifyAvailableByToken(ctx context.Context, token string) error {
+	ret := _m.Called(ctx, token)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, token)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 type mockConstructorTestingTNewAuthRepository interface {
 	mock.TestingT
 	Cleanup(func())
