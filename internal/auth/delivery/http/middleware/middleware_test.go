@@ -23,8 +23,8 @@ func TestHTTPAuthMiddlewareSuite(t *testing.T) {
 }
 
 type dependency struct {
-	jwtProvider *mocks.JWTProvider
 	req         *http.Request
+	jwtProvider *mocks.JWTProvider
 }
 
 func (s *HTTPAuthMiddlewareTestSuite) TestAuthentication() {
@@ -32,11 +32,11 @@ func (s *HTTPAuthMiddlewareTestSuite) TestAuthentication() {
 		handler http.Handler
 	}
 	type expected struct {
-		body        string
+		contentType string
+		statusCode  int
 		message     string
 		error       string
-		statusCode  int
-		contentType string
+		body        string
 	}
 	tests := []struct {
 		name     string
@@ -54,8 +54,8 @@ func (s *HTTPAuthMiddlewareTestSuite) TestAuthentication() {
 				}),
 			},
 			expected: expected{
-				statusCode:  http.StatusUnauthorized,
 				contentType: "application/json",
+				statusCode:  http.StatusUnauthorized,
 				message:     http.StatusText(http.StatusUnauthorized),
 				error:       "Authentication bearer token are not provided",
 			},
@@ -72,8 +72,8 @@ func (s *HTTPAuthMiddlewareTestSuite) TestAuthentication() {
 				}),
 			},
 			expected: expected{
-				statusCode:  http.StatusUnauthorized,
 				contentType: "application/json",
+				statusCode:  http.StatusUnauthorized,
 				message:     http.StatusText(http.StatusUnauthorized),
 				error:       "The access token provided is invalid",
 			},
