@@ -43,3 +43,23 @@ func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	encoder.Encode(response.Success(http.StatusCreated, "Successfully created new task", output))
 }
+
+// GET /tasks to get all tasks
+func (h *HTTPHandler) Get(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	encoder := json.NewEncoder(w)
+
+	var payload domain.GetAllTaskIn
+	payload.UserID = entity.GetAuthContext(r.Context())
+
+	output, err := h.taskUsecase.GetAll(r.Context(), &payload)
+	if err != nil {
+		code, msg := errorx.HTTPErrorTranslator(err)
+		w.WriteHeader(code)
+		encoder.Encode(response.Error(code, msg))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	encoder.Encode(response.Success(http.StatusOK, http.StatusText(http.StatusOK), output))
+}

@@ -15,6 +15,29 @@ type TaskRepository struct {
 	mock.Mock
 }
 
+// FindAllByUserID provides a mock function with given fields: ctx, userID
+func (_m *TaskRepository) FindAllByUserID(ctx context.Context, userID entity.UserID) ([]entity.Task, error) {
+	ret := _m.Called(ctx, userID)
+
+	var r0 []entity.Task
+	if rf, ok := ret.Get(0).(func(context.Context, entity.UserID) []entity.Task); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]entity.Task)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, entity.UserID) error); ok {
+		r1 = rf(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Store provides a mock function with given fields: ctx, t
 func (_m *TaskRepository) Store(ctx context.Context, t *entity.Task) (entity.TaskID, error) {
 	ret := _m.Called(ctx, t)

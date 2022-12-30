@@ -14,6 +14,7 @@ var (
 	ErrRowAffected = errors.New("test.row_affected")
 	ErrDatabase    = errors.New("test.database")
 	ErrRowScan     = errors.New("test.rowscan")
+	ErrRows        = errors.New("test.rows")
 
 	TimeAfterNow  = time.Now().Add(time.Hour)
 	TimeBeforeNow = time.Now().Add(-time.Hour)

@@ -28,3 +28,25 @@ func (u *usecase) Create(ctx context.Context, payload *domain.CreateTaskIn) (dom
 	}
 	return domain.CreateTaskOut{ID: taskID}, nil
 }
+
+// GetAll get all tasks.
+func (u *usecase) GetAll(ctx context.Context, payload *domain.GetAllTaskIn) ([]domain.GetAllTaskOut, error) {
+	tasks, err := u.taskRepository.FindAllByUserID(ctx, payload.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	output := make([]domain.GetAllTaskOut, len(tasks))
+	for i, task := range tasks {
+		output[i] = domain.GetAllTaskOut{
+			ID:          task.ID,
+			Content:     task.Content,
+			Description: task.Description,
+			IsCompleted: task.IsCompleted,
+			DueDate:     task.DueDate,
+			CreatedAt:   task.CreatedAt,
+			UpdatedAt:   task.UpdatedAt,
+		}
+	}
+	return output, nil
+}

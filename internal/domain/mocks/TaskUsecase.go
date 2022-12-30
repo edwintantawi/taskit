@@ -35,6 +35,29 @@ func (_m *TaskUsecase) Create(ctx context.Context, payload *domain.CreateTaskIn)
 	return r0, r1
 }
 
+// GetAll provides a mock function with given fields: ctx, payload
+func (_m *TaskUsecase) GetAll(ctx context.Context, payload *domain.GetAllTaskIn) ([]domain.GetAllTaskOut, error) {
+	ret := _m.Called(ctx, payload)
+
+	var r0 []domain.GetAllTaskOut
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.GetAllTaskIn) []domain.GetAllTaskOut); ok {
+		r0 = rf(ctx, payload)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]domain.GetAllTaskOut)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *domain.GetAllTaskIn) error); ok {
+		r1 = rf(ctx, payload)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 type mockConstructorTestingTNewTaskUsecase interface {
 	mock.TestingT
 	Cleanup(func())
