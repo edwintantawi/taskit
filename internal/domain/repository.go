@@ -18,6 +18,11 @@ var (
 	ErrAuthNotFound = errors.New("auth.repository.auth_not_found")
 )
 
+// Task repository errors.
+var (
+	ErrTaskNotFound = errors.New("task.repository.task_not_found")
+)
+
 // UserRepository represent user repository contract.
 type UserRepository interface {
 	Store(ctx context.Context, u *entity.User) (entity.UserID, error)
@@ -37,4 +42,6 @@ type AuthRepository interface {
 type TaskRepository interface {
 	Store(ctx context.Context, t *entity.Task) (entity.TaskID, error)
 	FindAllByUserID(ctx context.Context, userID entity.UserID) ([]entity.Task, error)
+	VerifyAvailableByID(ctx context.Context, taskID entity.TaskID) error
+	DeleteByID(ctx context.Context, taskID entity.TaskID) error
 }
