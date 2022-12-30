@@ -32,7 +32,7 @@ func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 	}
 	payload.UserID = entity.GetAuthContext(r.Context())
 
-	result, err := h.taskUsecase.Create(r.Context(), &payload)
+	output, err := h.taskUsecase.Create(r.Context(), &payload)
 	if err != nil {
 		code, msg := errorx.HTTPErrorTranslator(err)
 		w.WriteHeader(code)
@@ -41,5 +41,5 @@ func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	encoder.Encode(response.Success(http.StatusCreated, "Successfully created new task", result))
+	encoder.Encode(response.Success(http.StatusCreated, "Successfully created new task", output))
 }

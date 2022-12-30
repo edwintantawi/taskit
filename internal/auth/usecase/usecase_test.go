@@ -2,16 +2,15 @@ package usecase
 
 import (
 	"context"
-	"errors"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/edwintantawi/taskit/internal/domain"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/internal/domain/mocks"
+	"github.com/edwintantawi/taskit/test"
 )
 
 type AuthUsecaseTestSuite struct {
@@ -22,337 +21,515 @@ func TestAuthUsecaseSuite(t *testing.T) {
 	suite.Run(t, new(AuthUsecaseTestSuite))
 }
 
+type dependency struct {
+	authRepository *mocks.AuthRepository
+	userRepository *mocks.UserRepository
+	hashProvider   *mocks.HashProvider
+	jwtProvider    *mocks.JWTProvider
+}
+
 func (s *AuthUsecaseTestSuite) TestLogin() {
-	s.Run("it should return an error if the user does not exist", func() {
-		ctx := context.Background()
-		payload := &domain.LoginAuthIn{Email: "gopher@go.dev"}
+	type args struct {
+		ctx     context.Context
+		payload *domain.LoginAuthIn
+	}
+	type expected struct {
+		output domain.LoginAuthOut
+		err    error
+	}
+	tests := []struct {
+		name     string
+		args     args
+		expected expected
+		setup    func(d *dependency)
+	}{
+		{
+			name: "it should return error ErrEmailNotExist when email not found",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.LoginAuthIn{Email: "gopher@go.dev"},
+			},
+			expected: expected{
+				output: domain.LoginAuthOut{},
+				err:    domain.ErrEmailNotExist,
+			},
+			setup: func(d *dependency) {
+				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
+					Return(entity.User{}, domain.ErrUserNotFound)
+			},
+		},
+		{
+			name: "it should return error when user repository FindByEmail return unexpected error",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.LoginAuthIn{Email: "gopher@go.dev"},
+			},
+			expected: expected{
+				output: domain.LoginAuthOut{},
+				err:    test.ErrUnexpected,
+			},
+			setup: func(d *dependency) {
+				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
+					Return(entity.User{}, test.ErrUnexpected)
+			},
+		},
+		{
+			name: "it should return error ErrPasswordIncorrect when password is incorrect",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.LoginAuthIn{Email: "gopher@go.dev", Password: "secret_password"},
+			},
+			expected: expected{
+				output: domain.LoginAuthOut{},
+				err:    domain.ErrPasswordIncorrect,
+			},
+			setup: func(d *dependency) {
+				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
+					Return(entity.User{Password: "secret_hashed_password"}, nil)
 
-		mockUserRepo := &mocks.UserRepository{}
-		mockUserRepo.On("FindByEmail", ctx, payload.Email).Return(entity.User{}, domain.ErrUserEmailNotExist)
+				d.hashProvider.On("Compare", "secret_password", "secret_hashed_password").
+					Return(test.ErrUnexpected)
+			},
+		},
+		{
+			name: "it should return error when generate access token failed",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.LoginAuthIn{Email: "gopher@go.dev", Password: "secret_password"},
+			},
+			expected: expected{
+				output: domain.LoginAuthOut{},
+				err:    test.ErrUnexpected,
+			},
+			setup: func(d *dependency) {
+				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
+					Return(entity.User{ID: "user-xxxxx", Password: "secret_hashed_password"}, nil)
 
-		usecase := New(nil, mockUserRepo, nil, nil)
-		_, err := usecase.Login(ctx, payload)
+				d.hashProvider.On("Compare", "secret_password", "secret_hashed_password").
+					Return(nil)
 
-		s.Equal(domain.ErrUserEmailNotExist, err)
-	})
+				d.jwtProvider.On("GenerateAccessToken", entity.UserID("user-xxxxx")).
+					Return("", time.Time{}, test.ErrUnexpected)
+			},
+		},
+		{
+			name: "it should return error when generate refresh token failed",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.LoginAuthIn{Email: "gopher@go.dev", Password: "secret_password"},
+			},
+			expected: expected{
+				output: domain.LoginAuthOut{},
+				err:    test.ErrUnexpected,
+			},
+			setup: func(d *dependency) {
+				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
+					Return(entity.User{ID: "user-xxxxx", Password: "secret_hashed_password"}, nil)
 
-	s.Run("it should return an error if the password is incorrect", func() {
-		ctx := context.Background()
-		payload := &domain.LoginAuthIn{Email: "gopher@go.dev", Password: "secret_password"}
+				d.hashProvider.On("Compare", "secret_password", "secret_hashed_password").
+					Return(nil)
 
-		mockUserRepo := &mocks.UserRepository{}
-		mockUserRepo.On("FindByEmail", ctx, payload.Email).Return(entity.User{Password: "secret_password"}, nil)
+				d.jwtProvider.On("GenerateAccessToken", entity.UserID("user-xxxxx")).
+					Return("xxxxx.xxxxx.xxxxx", test.TimeAfterNow, nil)
 
-		mockHashProvider := &mocks.HashProvider{}
-		mockHashProvider.On("Compare", payload.Password, mock.Anything).Return(domain.ErrPasswordIncorrect)
+				d.jwtProvider.On("GenerateRefreshToken", entity.UserID("user-xxxxx")).
+					Return("", time.Time{}, test.ErrUnexpected)
+			},
+		},
+		{
+			name: "it should return error when auth respository Store return unexpected error",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.LoginAuthIn{Email: "gopher@go.dev", Password: "secret_password"},
+			},
+			expected: expected{
+				output: domain.LoginAuthOut{},
+				err:    test.ErrUnexpected,
+			},
+			setup: func(d *dependency) {
+				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
+					Return(entity.User{ID: "user-xxxxx", Password: "secret_hashed_password"}, nil)
 
-		usecase := New(nil, mockUserRepo, mockHashProvider, nil)
-		_, err := usecase.Login(ctx, payload)
+				d.hashProvider.On("Compare", "secret_password", "secret_hashed_password").
+					Return(nil)
 
-		s.Equal(domain.ErrPasswordIncorrect, err)
-	})
+				d.jwtProvider.On("GenerateAccessToken", entity.UserID("user-xxxxx")).
+					Return("xxxxx.xxxxx.xxxxx", test.TimeAfterNow, nil)
 
-	s.Run("it should return an error if the access token cannot be generated", func() {
-		ctx := context.Background()
-		payload := &domain.LoginAuthIn{Email: "gopher@go.dev", Password: "secret_password"}
-		auth := &entity.Auth{UserID: "xxxxx"}
+				d.jwtProvider.On("GenerateRefreshToken", entity.UserID("user-xxxxx")).
+					Return("yyyyy.yyyyy.yyyyy", test.TimeAfterNow, nil)
 
-		mockUserRepo := &mocks.UserRepository{}
-		mockUserRepo.On("FindByEmail", ctx, payload.Email).Return(entity.User{ID: "xxxxx"}, nil)
+				d.authRepository.On("Store", context.Background(), &entity.Auth{UserID: "user-xxxxx", Token: "yyyyy.yyyyy.yyyyy", ExpiresAt: test.TimeAfterNow}).
+					Return(test.ErrUnexpected)
+			},
+		},
+		{
+			name: "it should return error nil and output when success",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.LoginAuthIn{Email: "gopher@go.dev", Password: "secret_password"},
+			},
+			expected: expected{
+				output: domain.LoginAuthOut{
+					AccessToken:  "xxxxx.xxxxx.xxxxx",
+					RefreshToken: "yyyyy.yyyyy.yyyyy",
+				},
+				err: nil,
+			},
+			setup: func(d *dependency) {
+				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
+					Return(entity.User{ID: "user-xxxxx", Password: "secret_hashed_password"}, nil)
 
-		mockHashProvider := &mocks.HashProvider{}
-		mockHashProvider.On("Compare", payload.Password, mock.Anything).Return(nil)
+				d.hashProvider.On("Compare", "secret_password", "secret_hashed_password").
+					Return(nil)
 
-		mockJWTProvider := &mocks.JWTProvider{}
-		mockJWTProvider.On("GenerateAccessToken", auth.UserID).Return("", time.Time{}, errors.New("failed to generate token"))
+				d.jwtProvider.On("GenerateAccessToken", entity.UserID("user-xxxxx")).
+					Return("xxxxx.xxxxx.xxxxx", test.TimeAfterNow, nil)
 
-		usecase := New(nil, mockUserRepo, mockHashProvider, mockJWTProvider)
-		_, err := usecase.Login(ctx, payload)
+				d.jwtProvider.On("GenerateRefreshToken", entity.UserID("user-xxxxx")).
+					Return("yyyyy.yyyyy.yyyyy", test.TimeAfterNow, nil)
 
-		s.Equal(errors.New("failed to generate token"), err)
-	})
+				d.authRepository.On("Store", context.Background(), &entity.Auth{UserID: "user-xxxxx", Token: "yyyyy.yyyyy.yyyyy", ExpiresAt: test.TimeAfterNow}).
+					Return(nil)
+			},
+		},
+	}
 
-	s.Run("it should return an error if the refresh token cannot be generated", func() {
-		ctx := context.Background()
-		payload := &domain.LoginAuthIn{Email: "gopher@go.dev", Password: "secret_password"}
-		auth := &entity.Auth{UserID: "xxxxx"}
+	for _, t := range tests {
+		s.Run(t.name, func() {
+			d := &dependency{
+				userRepository: &mocks.UserRepository{},
+				authRepository: &mocks.AuthRepository{},
+				hashProvider:   &mocks.HashProvider{},
+				jwtProvider:    &mocks.JWTProvider{},
+			}
+			t.setup(d)
 
-		mockUserRepo := &mocks.UserRepository{}
-		mockUserRepo.On("FindByEmail", ctx, payload.Email).Return(entity.User{ID: "xxxxx"}, nil)
+			usecase := New(d.authRepository, d.userRepository, d.hashProvider, d.jwtProvider)
+			output, err := usecase.Login(t.args.ctx, t.args.payload)
 
-		mockHashProvider := &mocks.HashProvider{}
-		mockHashProvider.On("Compare", payload.Password, mock.Anything).Return(nil)
-
-		mockJWTProvider := &mocks.JWTProvider{}
-		mockJWTProvider.On("GenerateAccessToken", auth.UserID).Return("", time.Time{}, nil)
-		mockJWTProvider.On("GenerateRefreshToken", auth.UserID).Return("", time.Time{}, errors.New("failed to generate token"))
-
-		usecase := New(nil, mockUserRepo, mockHashProvider, mockJWTProvider)
-		_, err := usecase.Login(ctx, payload)
-
-		s.Equal(errors.New("failed to generate token"), err)
-	})
-
-	s.Run("it should return an error if the auth cannot be saved", func() {
-		ctx := context.Background()
-		payload := &domain.LoginAuthIn{Email: "gopher@go.dev", Password: "secret_password"}
-		auth := &entity.Auth{UserID: "xxxxx"}
-
-		mockUserRepo := &mocks.UserRepository{}
-		mockUserRepo.On("FindByEmail", ctx, payload.Email).Return(entity.User{ID: "xxxxx"}, nil)
-
-		mockHashProvider := &mocks.HashProvider{}
-		mockHashProvider.On("Compare", payload.Password, mock.Anything).Return(nil)
-
-		mockJWTProvider := &mocks.JWTProvider{}
-		mockJWTProvider.On("GenerateAccessToken", auth.UserID).Return("", time.Time{}, nil)
-		mockJWTProvider.On("GenerateRefreshToken", auth.UserID).Return("", time.Time{}, nil)
-
-		mockAuthRepo := &mocks.AuthRepository{}
-		mockAuthRepo.On("Store", mock.Anything, mock.Anything).Return(errors.New("failed to save auth"))
-
-		usecase := New(mockAuthRepo, mockUserRepo, mockHashProvider, mockJWTProvider)
-		_, err := usecase.Login(ctx, payload)
-		s.Run("it should return an error if the user does not exist", func() {
-			ctx := context.Background()
-			payload := &domain.LoginAuthIn{Email: "gopher@go.dev"}
-
-			mockUserRepo := &mocks.UserRepository{}
-			mockUserRepo.On("FindByEmail", ctx, payload.Email).Return(entity.User{}, domain.ErrUserEmailNotExist)
-
-			usecase := New(nil, mockUserRepo, nil, nil)
-			_, err := usecase.Login(ctx, payload)
-
-			s.Equal(domain.ErrUserEmailNotExist, err)
+			s.Equal(t.expected.err, err)
+			s.Equal(t.expected.output, output)
 		})
-		s.Equal(errors.New("failed to save auth"), err)
-	})
-
-	s.Run("it should return an auth if the login is successful", func() {
-		ctx := context.Background()
-		payload := &domain.LoginAuthIn{Email: "gopher@go.dev", Password: "secret_password"}
-		auth := &entity.Auth{UserID: "xxxxx", Token: "yyyyy.yyyyy.yyyyy", ExpiresAt: time.Now().Add(time.Hour * 24 * 7)}
-
-		mockUserRepo := &mocks.UserRepository{}
-		mockUserRepo.On("FindByEmail", ctx, payload.Email).Return(entity.User{ID: "xxxxx"}, nil)
-
-		mockHashProvider := &mocks.HashProvider{}
-		mockHashProvider.On("Compare", payload.Password, mock.Anything).Return(nil)
-
-		mockJWTProvider := &mocks.JWTProvider{}
-		mockJWTProvider.On("GenerateAccessToken", auth.UserID).Return("xxxxx.xxxxx.xxxxx", time.Time{}, nil)
-		mockJWTProvider.On("GenerateRefreshToken", auth.UserID).Return("yyyyy.yyyyy.yyyyy", auth.ExpiresAt, nil)
-
-		mockAuthRepo := &mocks.AuthRepository{}
-		mockAuthRepo.On("Store", ctx, auth).Return(nil)
-
-		usecase := New(mockAuthRepo, mockUserRepo, mockHashProvider, mockJWTProvider)
-		r, err := usecase.Login(ctx, payload)
-
-		s.NoError(err)
-		s.Equal("xxxxx.xxxxx.xxxxx", r.AccessToken)
-		s.Equal("yyyyy.yyyyy.yyyyy", r.RefreshToken)
-	})
+	}
 }
 
 func (s *AuthUsecaseTestSuite) TestLogout() {
-	s.Run("it should return error when auth validation fail", func() {
+	s.Run("it should return error when validation fail", func() {
 		ctx := context.Background()
 		payload := &domain.LogoutAuthIn{}
-
 		usecase := New(nil, nil, nil, nil)
+
 		err := usecase.Logout(ctx, payload)
 
-		s.Equal(entity.ErrAuthTokenEmpty, err)
+		s.Error(err)
 	})
 
-	s.Run("it should return error when fail to delete token", func() {
-		ctx := context.Background()
-		payload := &domain.LogoutAuthIn{RefreshToken: "xxxxx.xxxxx.xxxxx"}
+	type args struct {
+		ctx     context.Context
+		payload *domain.LogoutAuthIn
+	}
+	type expected struct {
+		err error
+	}
+	tests := []struct {
+		name     string
+		args     args
+		expected expected
+		setup    func(d *dependency)
+	}{
+		{
+			name: "it should return error when auth repository return unexpected error",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.LogoutAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"},
+			},
+			expected: expected{
+				err: test.ErrUnexpected,
+			},
+			setup: func(d *dependency) {
+				d.authRepository.On("Delete", context.Background(), &entity.Auth{Token: "yyyyy.yyyyy.yyyyy"}).
+					Return(test.ErrUnexpected)
+			},
+		},
+		{
+			name: "it should return error nil when successfully delete authentication",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.LogoutAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"},
+			},
+			expected: expected{
+				err: nil,
+			},
+			setup: func(d *dependency) {
+				d.authRepository.On("Delete", context.Background(), &entity.Auth{Token: "yyyyy.yyyyy.yyyyy"}).
+					Return(nil)
+			},
+		},
+	}
 
-		mockAuthRepo := &mocks.AuthRepository{}
-		mockAuthRepo.On("Delete", ctx, &entity.Auth{Token: payload.RefreshToken}).Return(domain.ErrAuthNotExist)
+	for _, t := range tests {
+		s.Run(t.name, func() {
+			d := &dependency{
+				authRepository: &mocks.AuthRepository{},
+			}
+			t.setup(d)
 
-		usecase := New(mockAuthRepo, nil, nil, nil)
-		err := usecase.Logout(ctx, payload)
+			usecase := New(d.authRepository, d.userRepository, d.hashProvider, d.jwtProvider)
+			err := usecase.Logout(t.args.ctx, t.args.payload)
 
-		s.Equal(domain.ErrAuthNotExist, err)
-	})
-
-	s.Run("it should return error nil when successfully delete authentication", func() {
-		ctx := context.Background()
-		payload := &domain.LogoutAuthIn{RefreshToken: "xxxxx.xxxxx.xxxxx"}
-
-		mockAuthRepo := &mocks.AuthRepository{}
-		mockAuthRepo.On("Delete", ctx, &entity.Auth{Token: payload.RefreshToken}).Return(nil)
-
-		usecase := New(mockAuthRepo, nil, nil, nil)
-		err := usecase.Logout(ctx, payload)
-
-		s.NoError(err)
-	})
+			s.Equal(t.expected.err, err)
+		})
+	}
 }
 
 func (s *AuthUsecaseTestSuite) TestGetProfile() {
-	s.Run("it should return error when fail to find user by id", func() {
-		ctx := context.Background()
-		payload := domain.GetProfileAuthIn{UserID: "xxxxx"}
+	type args struct {
+		ctx     context.Context
+		payload *domain.GetProfileAuthIn
+	}
+	type expected struct {
+		output domain.GetProfileAuthOut
+		err    error
+	}
+	tests := []struct {
+		name     string
+		args     args
+		expected expected
+		setup    func(d *dependency)
+	}{
+		{
+			name: "it should return error when user repository FindByID return unexpected error",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.GetProfileAuthIn{UserID: "user-xxxxx"},
+			},
+			expected: expected{
+				output: domain.GetProfileAuthOut{},
+				err:    test.ErrUnexpected,
+			},
+			setup: func(d *dependency) {
+				d.userRepository.On("FindByID", context.Background(), entity.UserID("user-xxxxx")).
+					Return(entity.User{}, test.ErrUnexpected)
+			},
+		},
+		{
+			name: "it should return error nil and output when success",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.GetProfileAuthIn{UserID: "user-xxxxx"},
+			},
+			expected: expected{
+				output: domain.GetProfileAuthOut{
+					ID:    "user-xxxxx",
+					Name:  "Gopher",
+					Email: "gopher@go.dev",
+				},
+				err: nil,
+			},
+			setup: func(d *dependency) {
+				d.userRepository.On("FindByID", context.Background(), entity.UserID("user-xxxxx")).
+					Return(entity.User{ID: entity.UserID("user-xxxxx"), Name: "Gopher", Email: "gopher@go.dev"}, nil)
+			},
+		},
+	}
 
-		mockUserRepo := &mocks.UserRepository{}
-		mockUserRepo.On("FindByID", ctx, payload.UserID).Return(entity.User{}, errors.New("unexpected error"))
+	for _, t := range tests {
+		s.Run(t.name, func() {
+			d := &dependency{
+				userRepository: &mocks.UserRepository{},
+			}
+			t.setup(d)
 
-		usecase := New(nil, mockUserRepo, nil, nil)
-		r, err := usecase.GetProfile(ctx, &payload)
+			usecase := New(d.authRepository, d.userRepository, d.hashProvider, d.jwtProvider)
+			output, err := usecase.GetProfile(t.args.ctx, t.args.payload)
 
-		s.Equal(errors.New("unexpected error"), err)
-		s.Empty(r)
-	})
-
-	s.Run("it should return user when success to find user by id", func() {
-		ctx := context.Background()
-		payload := domain.GetProfileAuthIn{UserID: "xxxxx"}
-		user := entity.User{ID: payload.UserID, Name: "Gopher", Email: "gopher@go.dev"}
-
-		mockUserRepo := &mocks.UserRepository{}
-		mockUserRepo.On("FindByID", ctx, payload.UserID).Return(user, nil)
-
-		usecase := New(nil, mockUserRepo, nil, nil)
-		r, err := usecase.GetProfile(ctx, &payload)
-
-		s.NoError(err)
-		s.Equal(user.ID, r.ID)
-		s.Equal(user.Name, r.Name)
-		s.Equal(user.Email, r.Email)
-	})
+			s.Equal(t.expected.err, err)
+			s.Equal(t.expected.output, output)
+		})
+	}
 }
 
 func (s *AuthUsecaseTestSuite) TestRefresh() {
-	s.Run("it should return error when token not found", func() {
-		ctx := context.Background()
-		payload := &domain.RefreshAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"}
+	type args struct {
+		ctx     context.Context
+		payload *domain.RefreshAuthIn
+	}
+	type expected struct {
+		output domain.RefreshAuthOut
+		err    error
+	}
+	tests := []struct {
+		name     string
+		args     args
+		expected expected
+		setup    func(d *dependency)
+	}{
+		{
+			name: "it should return error when auth repository FindByToken return unexpected error",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.RefreshAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"},
+			},
+			expected: expected{
+				output: domain.RefreshAuthOut{},
+				err:    test.ErrUnexpected,
+			},
+			setup: func(d *dependency) {
+				d.authRepository.On("FindByToken", context.Background(), "yyyyy.yyyyy.yyyyy").
+					Return(entity.Auth{}, test.ErrUnexpected)
+			},
+		},
+		{
+			name: "it should return error ErrAuthTokenExpired when token is expired",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.RefreshAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"},
+			},
+			expected: expected{
+				output: domain.RefreshAuthOut{},
+				err:    entity.ErrAuthTokenExpired,
+			},
+			setup: func(d *dependency) {
+				d.authRepository.On("FindByToken", context.Background(), "yyyyy.yyyyy.yyyyy").
+					Return(entity.Auth{ExpiresAt: test.TimeBeforeNow}, nil)
+			},
+		},
+		{
+			name: "it should return error when generate new access token failed",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.RefreshAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"},
+			},
+			expected: expected{
+				output: domain.RefreshAuthOut{},
+				err:    test.ErrUnexpected,
+			},
+			setup: func(d *dependency) {
+				d.authRepository.On("FindByToken", context.Background(), "yyyyy.yyyyy.yyyyy").
+					Return(entity.Auth{UserID: "user-xxxxx", Token: "yyyyy.yyyyy.yyyyy", ExpiresAt: test.TimeAfterNow}, nil)
 
-		mockAuthRepo := &mocks.AuthRepository{}
-		mockAuthRepo.On("FindByToken", ctx, payload.RefreshToken).Return(entity.Auth{}, domain.ErrAuthNotExist)
+				d.jwtProvider.On("GenerateAccessToken", entity.UserID("user-xxxxx")).
+					Return("", time.Time{}, test.ErrUnexpected)
+			},
+		},
+		{
+			name: "it should return error when generate new refresh token failed",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.RefreshAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"},
+			},
+			expected: expected{
+				output: domain.RefreshAuthOut{},
+				err:    test.ErrUnexpected,
+			},
+			setup: func(d *dependency) {
+				d.authRepository.On("FindByToken", context.Background(), "yyyyy.yyyyy.yyyyy").
+					Return(entity.Auth{UserID: "user-xxxxx", Token: "yyyyy.yyyyy.yyyyy", ExpiresAt: test.TimeAfterNow}, nil)
 
-		usecase := New(mockAuthRepo, nil, nil, nil)
-		r, err := usecase.Refresh(ctx, payload)
+				d.jwtProvider.On("GenerateAccessToken", entity.UserID("user-xxxxx")).
+					Return("xxxxx.xxxxx.xxxxx", test.TimeAfterNow, nil)
 
-		s.Equal(domain.ErrAuthNotExist, err)
-		s.Empty(r)
-	})
+				d.jwtProvider.On("GenerateRefreshToken", entity.UserID("user-xxxxx")).
+					Return("", time.Time{}, test.ErrUnexpected)
+			},
+		},
+		{
+			name: "it should return error when auth respository Delete return unexpected error",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.RefreshAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"},
+			},
+			expected: expected{
+				output: domain.RefreshAuthOut{},
+				err:    test.ErrUnexpected,
+			},
+			setup: func(d *dependency) {
+				d.authRepository.On("FindByToken", context.Background(), "yyyyy.yyyyy.yyyyy").
+					Return(entity.Auth{UserID: "user-xxxxx", Token: "yyyyy.yyyyy.yyyyy", ExpiresAt: test.TimeAfterNow}, nil)
 
-	s.Run("it should return error when token is expired", func() {
-		ctx := context.Background()
-		payload := &domain.RefreshAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"}
-		auth := entity.Auth{Token: payload.RefreshToken, UserID: "xxxxx", ExpiresAt: time.Now().Add(-24 * time.Hour)}
+				d.jwtProvider.On("GenerateAccessToken", entity.UserID("user-xxxxx")).
+					Return("xxxxx.xxxxx.xxxxx", test.TimeAfterNow, nil)
 
-		mockAuthRepo := &mocks.AuthRepository{}
-		mockAuthRepo.On("FindByToken", ctx, payload.RefreshToken).Return(auth, nil)
+				d.jwtProvider.On("GenerateRefreshToken", entity.UserID("user-xxxxx")).
+					Return("zzzzz.zzzzz.zzzzz", test.TimeAfterNow, nil)
 
-		usecase := New(mockAuthRepo, nil, nil, nil)
-		r, err := usecase.Refresh(ctx, payload)
+				d.authRepository.On("Delete", context.Background(), &entity.Auth{Token: "yyyyy.yyyyy.yyyyy", UserID: "user-xxxxx", ExpiresAt: test.TimeAfterNow}).
+					Return(test.ErrUnexpected)
+			},
+		},
+		{
+			name: "it should return error when auth respository Store return unexpected error",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.RefreshAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"},
+			},
+			expected: expected{
+				output: domain.RefreshAuthOut{},
+				err:    test.ErrUnexpected,
+			},
+			setup: func(d *dependency) {
+				d.authRepository.On("FindByToken", context.Background(), "yyyyy.yyyyy.yyyyy").
+					Return(entity.Auth{UserID: "user-xxxxx", Token: "yyyyy.yyyyy.yyyyy", ExpiresAt: test.TimeAfterNow}, nil)
 
-		s.Equal(entity.ErrAuthTokenExpired, err)
-		s.Empty(r)
-	})
+				d.jwtProvider.On("GenerateAccessToken", entity.UserID("user-xxxxx")).
+					Return("xxxxx.xxxxx.xxxxx", test.TimeAfterNow, nil)
 
-	s.Run("it should return error when fail generate access token", func() {
-		ctx := context.Background()
-		payload := &domain.RefreshAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"}
-		auth := entity.Auth{Token: payload.RefreshToken, UserID: "xxxxx", ExpiresAt: time.Now().Add(24 * time.Hour)}
+				d.jwtProvider.On("GenerateRefreshToken", entity.UserID("user-xxxxx")).
+					Return("zzzzz.zzzzz.zzzzz", test.TimeAfterNow, nil)
 
-		mockAuthRepo := &mocks.AuthRepository{}
-		mockAuthRepo.On("FindByToken", ctx, payload.RefreshToken).Return(auth, nil)
+				d.authRepository.On("Delete", context.Background(), &entity.Auth{Token: "yyyyy.yyyyy.yyyyy", UserID: "user-xxxxx", ExpiresAt: test.TimeAfterNow}).
+					Return(nil)
 
-		mockJWTProvider := &mocks.JWTProvider{}
-		mockJWTProvider.On("GenerateAccessToken", auth.UserID).Return("", time.Time{}, errors.New("unexpected error"))
+				d.authRepository.On("Store", context.Background(), &entity.Auth{UserID: "user-xxxxx", Token: "zzzzz.zzzzz.zzzzz", ExpiresAt: test.TimeAfterNow}).
+					Return(test.ErrUnexpected)
+			},
+		},
+		{
+			name: "it should return error nil and output when success",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.RefreshAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"},
+			},
+			expected: expected{
+				output: domain.RefreshAuthOut{
+					AccessToken:  "xxxxx.xxxxx.xxxxx",
+					RefreshToken: "zzzzz.zzzzz.zzzzz",
+				},
+				err: nil,
+			},
+			setup: func(d *dependency) {
+				d.authRepository.On("FindByToken", context.Background(), "yyyyy.yyyyy.yyyyy").
+					Return(entity.Auth{UserID: "user-xxxxx", Token: "yyyyy.yyyyy.yyyyy", ExpiresAt: test.TimeAfterNow}, nil)
 
-		usecase := New(mockAuthRepo, nil, nil, mockJWTProvider)
-		r, err := usecase.Refresh(ctx, payload)
+				d.jwtProvider.On("GenerateAccessToken", entity.UserID("user-xxxxx")).
+					Return("xxxxx.xxxxx.xxxxx", test.TimeAfterNow, nil)
 
-		s.Error(err)
-		s.Empty(r)
-	})
+				d.jwtProvider.On("GenerateRefreshToken", entity.UserID("user-xxxxx")).
+					Return("zzzzz.zzzzz.zzzzz", test.TimeAfterNow, nil)
 
-	s.Run("it should return error when fail generate refresh token", func() {
-		ctx := context.Background()
-		payload := &domain.RefreshAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"}
-		auth := entity.Auth{Token: payload.RefreshToken, UserID: "xxxxx", ExpiresAt: time.Now().Add(24 * time.Hour)}
+				d.authRepository.On("Delete", context.Background(), &entity.Auth{Token: "yyyyy.yyyyy.yyyyy", UserID: "user-xxxxx", ExpiresAt: test.TimeAfterNow}).
+					Return(nil)
 
-		mockAuthRepo := &mocks.AuthRepository{}
-		mockAuthRepo.On("FindByToken", ctx, payload.RefreshToken).Return(auth, nil)
+				d.authRepository.On("Store", context.Background(), &entity.Auth{UserID: "user-xxxxx", Token: "zzzzz.zzzzz.zzzzz", ExpiresAt: test.TimeAfterNow}).
+					Return(nil)
+			},
+		},
+	}
 
-		mockJWTProvider := &mocks.JWTProvider{}
-		mockJWTProvider.On("GenerateAccessToken", auth.UserID).Return("access_token", auth.ExpiresAt, nil)
-		mockJWTProvider.On("GenerateRefreshToken", auth.UserID).Return("", time.Time{}, errors.New("unexpected error"))
+	for _, t := range tests {
+		s.Run(t.name, func() {
+			d := &dependency{
+				authRepository: &mocks.AuthRepository{},
+				jwtProvider:    &mocks.JWTProvider{},
+			}
+			t.setup(d)
 
-		usecase := New(mockAuthRepo, nil, nil, mockJWTProvider)
-		r, err := usecase.Refresh(ctx, payload)
+			usecase := New(d.authRepository, d.userRepository, d.hashProvider, d.jwtProvider)
+			output, err := usecase.Refresh(t.args.ctx, t.args.payload)
 
-		s.Error(err)
-		s.Empty(r)
-	})
-
-	s.Run("it should return error when fail to delete old auth token", func() {
-		ctx := context.Background()
-		payload := &domain.RefreshAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"}
-		auth := &entity.Auth{Token: payload.RefreshToken, UserID: "xxxxx", ExpiresAt: time.Now().Add(24 * time.Hour)}
-
-		mockAuthRepo := &mocks.AuthRepository{}
-		mockAuthRepo.On("FindByToken", ctx, payload.RefreshToken).Return(*auth, nil)
-		mockAuthRepo.On("Delete", ctx, auth).Return(errors.New("unexpected error"))
-
-		mockJWTProvider := &mocks.JWTProvider{}
-		mockJWTProvider.On("GenerateAccessToken", auth.UserID).Return("yyyyy.yyyyy.yyyyy", auth.ExpiresAt, nil)
-		mockJWTProvider.On("GenerateRefreshToken", auth.UserID).Return("refresh_token", auth.ExpiresAt, nil)
-
-		usecase := New(mockAuthRepo, nil, nil, mockJWTProvider)
-		r, err := usecase.Refresh(ctx, payload)
-
-		s.Error(err)
-		s.Empty(r)
-	})
-
-	s.Run("it should return error when failed to store new token", func() {
-		ctx := context.Background()
-		payload := &domain.RefreshAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"}
-		auth := &entity.Auth{Token: payload.RefreshToken, UserID: "xxxxx", ExpiresAt: time.Now().Add(24 * time.Hour)}
-
-		mockAuthRepo := &mocks.AuthRepository{}
-		mockAuthRepo.On("FindByToken", ctx, payload.RefreshToken).Return(*auth, nil)
-		mockAuthRepo.On("Delete", ctx, auth).Return(nil)
-		mockAuthRepo.On("Store", ctx, auth).Return(errors.New("unexpected error"))
-
-		mockJWTProvider := &mocks.JWTProvider{}
-		mockJWTProvider.On("GenerateAccessToken", auth.UserID).Return("xxxxx.xxxxx.xxxxx", auth.ExpiresAt, nil)
-		mockJWTProvider.On("GenerateRefreshToken", auth.UserID).Return("yyyyy.yyyyy.yyyyy", auth.ExpiresAt, nil)
-
-		usecase := New(mockAuthRepo, nil, nil, mockJWTProvider)
-		r, err := usecase.Refresh(ctx, payload)
-
-		s.Error(err)
-		s.Empty(r)
-	})
-
-	s.Run("it should return new authentication token successfully", func() {
-		ctx := context.Background()
-		payload := &domain.RefreshAuthIn{RefreshToken: "yyyyy.yyyyy.yyyyy"}
-		auth := &entity.Auth{Token: payload.RefreshToken, UserID: "xxxxx", ExpiresAt: time.Now().Add(24 * time.Hour)}
-
-		mockAuthRepo := &mocks.AuthRepository{}
-		mockAuthRepo.On("FindByToken", ctx, payload.RefreshToken).Return(*auth, nil)
-		mockAuthRepo.On("Delete", ctx, auth).Return(nil)
-		mockAuthRepo.On("Store", ctx, auth).Return(nil)
-
-		mockJWTProvider := &mocks.JWTProvider{}
-		mockJWTProvider.On("GenerateAccessToken", auth.UserID).Return("xxxxx.xxxxx.xxxxx", auth.ExpiresAt, nil)
-		mockJWTProvider.On("GenerateRefreshToken", auth.UserID).Return("yyyyy.yyyyy.yyyyy", auth.ExpiresAt, nil)
-
-		usecase := New(mockAuthRepo, nil, nil, mockJWTProvider)
-		r, err := usecase.Refresh(ctx, payload)
-
-		s.NoError(err)
-		s.Equal("xxxxx.xxxxx.xxxxx", r.AccessToken)
-		s.Equal("yyyyy.yyyyy.yyyyy", r.RefreshToken)
-	})
+			s.Equal(t.expected.err, err)
+			s.Equal(t.expected.output, output)
+		})
+	}
 }

@@ -11,8 +11,6 @@ import (
 	"github.com/edwintantawi/taskit/pkg/response"
 )
 
-const authUserIDKey = entity.AuthUserIDKey
-
 type middleware func(next http.Handler) http.Handler
 
 // New creates a new authentication middleware.
@@ -37,7 +35,7 @@ func New(jwtProvider domain.JWTProvider) middleware {
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), authUserIDKey, userId)
+			ctx := context.WithValue(r.Context(), entity.AuthUserIDKey, userId)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

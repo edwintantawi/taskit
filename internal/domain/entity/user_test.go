@@ -15,59 +15,23 @@ func TestUserEntitySuite(t *testing.T) {
 }
 
 func (s *UserEntityTestSuite) TestValidate() {
-	s.Run("it should return error when email is empty", func() {
-		u := User{}
-		err := u.Validate()
+	tests := []struct {
+		name     string
+		input    User
+		expected error
+	}{
+		{name: "it should return error when email is empty", input: User{}, expected: ErrEmailEmpty},
+		{name: "it should return error when email is invalid", input: User{Email: "invalid"}, expected: ErrEmailInvalid},
+		{name: "it should return error when password is empty", input: User{Email: "gopher@go.dev"}, expected: ErrPasswordEmpty},
+		{name: "it should return error when password is too short", input: User{Email: "gopher@go.dev", Password: "123"}, expected: ErrPasswordTooShort},
+		{name: "it should return error when name is empty", input: User{Email: "gopher@go.dev", Password: "123456"}, expected: ErrNameEmpty},
+		{name: "it should return nil when all fields are valid", input: User{Email: "gopher@go.dev", Password: "123456", Name: "Gopher"}, expected: nil},
+	}
 
-		s.Equal(ErrEmailEmpty, err)
-	})
-
-	s.Run("it should return error when email is invalid", func() {
-		u := User{
-			Email: "invalid",
-		}
-		err := u.Validate()
-
-		s.Equal(ErrEmailInvalid, err)
-	})
-
-	s.Run("it should return error when password is empty", func() {
-		u := User{
-			Email: "gopher@go.dev",
-		}
-		err := u.Validate()
-
-		s.Equal(ErrPasswordEmpty, err)
-	})
-
-	s.Run("it should return error when password is too short", func() {
-		u := User{
-			Email:    "gopher@go.dev",
-			Password: "123",
-		}
-		err := u.Validate()
-
-		s.Equal(ErrPasswordTooShort, err)
-	})
-
-	s.Run("it should return error when name is empty", func() {
-		u := User{
-			Email:    "gopher@go.dev",
-			Password: "123456",
-		}
-		err := u.Validate()
-
-		s.Equal(ErrNameEmpty, err)
-	})
-
-	s.Run("it should return nil when all fields are valid", func() {
-		u := User{
-			Email:    "gopher@go.dev",
-			Password: "123456",
-			Name:     "Gopher",
-		}
-		err := u.Validate()
-
-		s.Nil(err)
-	})
+	for _, test := range tests {
+		s.Run(test.name, func() {
+			err := test.input.Validate()
+			s.Equal(test.expected, err)
+		})
+	}
 }

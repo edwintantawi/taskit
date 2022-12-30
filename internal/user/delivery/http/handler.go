@@ -30,7 +30,7 @@ func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := h.userUsecase.Create(r.Context(), &payload)
+	output, err := h.userUsecase.Create(r.Context(), &payload)
 	if err != nil {
 		code, msg := errorx.HTTPErrorTranslator(err)
 		w.WriteHeader(code)
@@ -39,5 +39,5 @@ func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	encoder.Encode(response.Success(http.StatusCreated, "Successfully registered user", result))
+	encoder.Encode(response.Success(http.StatusCreated, "Successfully registered user", output))
 }

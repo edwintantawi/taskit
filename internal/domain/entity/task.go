@@ -2,7 +2,6 @@ package entity
 
 import (
 	"errors"
-	"strings"
 	"time"
 )
 
@@ -27,9 +26,6 @@ type Task struct {
 
 // Validate task fields.
 func (t *Task) Validate() error {
-	// remove all leading and trailing spaces
-	t.Content = strings.TrimSpace(t.Content)
-
 	switch {
 	case t.Content == "":
 		return ErrContentEmpty

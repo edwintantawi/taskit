@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 
 	"github.com/edwintantawi/taskit/internal/domain"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
@@ -27,7 +28,9 @@ func New(authRepository domain.AuthRepository, userRepository domain.UserReposit
 // Login authenticates a user.
 func (u *usecase) Login(ctx context.Context, payload *domain.LoginAuthIn) (domain.LoginAuthOut, error) {
 	user, err := u.userRepository.FindByEmail(ctx, payload.Email)
-	if err != nil {
+	if errors.Is(err, domain.ErrUserNotFound) {
+		return domain.LoginAuthOut{}, domain.ErrEmailNotExist
+	} else if err != nil {
 		return domain.LoginAuthOut{}, err
 	}
 

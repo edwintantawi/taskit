@@ -15,19 +15,19 @@ func TestTaskEntitySuite(t *testing.T) {
 }
 
 func (s *TaskEntityTestSuite) TestValidate() {
-	s.Run("it should return error when token is empty", func() {
-		t := Task{}
-		err := t.Validate()
+	tests := []struct {
+		name     string
+		input    Task
+		expected error
+	}{
+		{name: "it should return error when content is empty", input: Task{}, expected: ErrContentEmpty},
+		{name: "it should return nil when all fields are valid", input: Task{Content: "Task content"}, expected: nil},
+	}
 
-		s.Equal(ErrContentEmpty, err)
-	})
-
-	s.Run("it should return nil when all fields are valid", func() {
-		t := Task{
-			Content: "Task content",
-		}
-		err := t.Validate()
-
-		s.Nil(err)
-	})
+	for _, test := range tests {
+		s.Run(test.name, func() {
+			err := test.input.Validate()
+			s.Equal(test.expected, err)
+		})
+	}
 }
