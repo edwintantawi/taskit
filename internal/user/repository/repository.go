@@ -35,13 +35,12 @@ func (r *repository) VerifyAvailableEmail(ctx context.Context, email string) err
 	var id entity.UserID
 	q := `SELECT id FROM users WHERE email = $1`
 	err := r.db.QueryRowContext(ctx, q, email).Scan(&id)
-	if err == nil {
-		return domain.ErrEmailNotAvailable
-	}
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil
+	} else if err != nil {
+		return err
 	}
-	return err
+	return domain.ErrEmailNotAvailable
 }
 
 // FindByEmail find a user by email.
@@ -51,8 +50,7 @@ func (r *repository) FindByEmail(ctx context.Context, email string) (entity.User
 	err := r.db.QueryRowContext(ctx, q, email).Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.CreatedAt, &u.UpdatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return u, domain.ErrUserNotFound
-	}
-	if err != nil {
+	} else if err != nil {
 		return u, err
 	}
 	return u, nil
@@ -65,8 +63,7 @@ func (r *repository) FindByID(ctx context.Context, id entity.UserID) (entity.Use
 	err := r.db.QueryRowContext(ctx, q, id).Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.CreatedAt, &u.UpdatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return u, domain.ErrUserNotFound
-	}
-	if err != nil {
+	} else if err != nil {
 		return u, err
 	}
 	return u, nil
