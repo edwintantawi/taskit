@@ -53,6 +53,9 @@ func HTTPErrorTranslator(err error) (code int, msg string) {
 	// Task repository
 	case domain.ErrTaskNotFound:
 		return http.StatusNotFound, "Task not found"
+	// Task usecase
+	case domain.ErrTaskAuthorization:
+		return http.StatusForbidden, "Not have access to this task"
 	// Other
 	default:
 		return http.StatusInternalServerError, InternalServerErrorMessage
