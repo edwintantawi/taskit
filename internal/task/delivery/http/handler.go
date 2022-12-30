@@ -5,32 +5,34 @@ import (
 	"net/http"
 
 	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/pkg/errorx"
 	"github.com/edwintantawi/taskit/pkg/response"
 )
 
 type HTTPHandler struct {
-	userUsecase domain.UserUsecase
+	taskUsecase domain.TaskUsecase
 }
 
-// New creates a new user handler.
-func New(userUsecase domain.UserUsecase) *HTTPHandler {
-	return &HTTPHandler{userUsecase: userUsecase}
+// New creates a new HTTPHandler.
+func New(taskUsecase domain.TaskUsecase) *HTTPHandler {
+	return &HTTPHandler{taskUsecase: taskUsecase}
 }
 
-// POST /users to create new user.
+// POST /tasks to create new task
 func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 
-	var payload domain.CreateUserIn
+	var payload domain.CreateTaskIn
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		encoder.Encode(response.Error(http.StatusBadRequest, "Invalid request body"))
 		return
 	}
+	payload.UserID = entity.GetAuthContext(r.Context())
 
-	output, err := h.userUsecase.Create(r.Context(), &payload)
+	output, err := h.taskUsecase.Create(r.Context(), &payload)
 	if err != nil {
 		code, msg := errorx.HTTPErrorTranslator(err)
 		w.WriteHeader(code)
@@ -39,5 +41,5 @@ func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	encoder.Encode(response.Success(http.StatusCreated, "Successfully registered user", output))
+	encoder.Encode(response.Success(http.StatusCreated, "Successfully created new task", output))
 }

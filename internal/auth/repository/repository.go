@@ -42,7 +42,7 @@ func (r *repository) Delete(ctx context.Context, a *entity.Auth) error {
 		return err
 	}
 	if rows == 0 {
-		return domain.ErrAuthNotExist
+		return domain.ErrAuthNotFound
 	}
 	return nil
 }
@@ -54,7 +54,7 @@ func (r *repository) FindByToken(ctx context.Context, token string) (entity.Auth
 	row := r.db.QueryRowContext(ctx, q, token)
 	err := row.Scan(&a.ID, &a.UserID, &a.Token, &a.ExpiresAt)
 	if errors.Is(err, sql.ErrNoRows) {
-		return a, domain.ErrAuthNotExist
+		return a, domain.ErrAuthNotFound
 	}
 	if err != nil {
 		return a, err

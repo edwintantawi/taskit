@@ -1,6 +1,10 @@
 package domain
 
-import "github.com/edwintantawi/taskit/internal/domain/entity"
+import (
+	"time"
+
+	"github.com/edwintantawi/taskit/internal/domain/entity"
+)
 
 // CreateUserIn represents the input of user creation.
 type CreateUserIn struct {
@@ -32,12 +36,12 @@ type LogoutAuthIn struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-// GetProfileAuthIn represent profile input
+// GetProfileAuthIn represent get profile input.
 type GetProfileAuthIn struct {
 	UserID entity.UserID `json:"user_id"`
 }
 
-// GetProfileAuthOut represent profile output
+// GetProfileAuthOut represent get profile output.
 type GetProfileAuthOut struct {
 	ID    entity.UserID `json:"id"`
 	Name  string        `json:"name"`
@@ -53,4 +57,17 @@ type RefreshAuthIn struct {
 type RefreshAuthOut struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
+}
+
+// CreateTaskIn represents the input of task creation.
+type CreateTaskIn struct {
+	UserID      entity.UserID `json:"-"`
+	Content     string        `json:"content"`
+	Description string        `json:"description"`
+	DueDate     *time.Time    `json:"due_date"`
+}
+
+// CreateTaskOut represents the output of task creation.
+type CreateTaskOut struct {
+	ID entity.TaskID `json:"id"`
 }

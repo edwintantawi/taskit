@@ -5,7 +5,9 @@ import (
 	"errors"
 )
 
+// Auth usecase errors.
 var (
+	ErrEmailNotExist     = errors.New("auth.usecase.email_not_exist")
 	ErrPasswordIncorrect = errors.New("auth.usecase.password_incorrect")
 )
 
@@ -20,4 +22,9 @@ type AuthUsecase interface {
 	Logout(ctx context.Context, payload *LogoutAuthIn) error
 	GetProfile(ctx context.Context, payload *GetProfileAuthIn) (GetProfileAuthOut, error)
 	Refresh(ctx context.Context, payload *RefreshAuthIn) (RefreshAuthOut, error)
+}
+
+// TaskUsecase represent task usecase contract.
+type TaskUsecase interface {
+	Create(ctx context.Context, payload *CreateTaskIn) (CreateTaskOut, error)
 }

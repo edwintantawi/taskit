@@ -11,26 +11,27 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/internal/domain/mocks"
 	"github.com/edwintantawi/taskit/pkg/errorx"
 	"github.com/edwintantawi/taskit/pkg/response"
 	"github.com/edwintantawi/taskit/test"
 )
 
-type UserHTTPHandlerTestSuite struct {
+type TaskHTTPHandlerTestSuite struct {
 	suite.Suite
 }
 
-func TestUserHTTPHandlerSuite(t *testing.T) {
-	suite.Run(t, new(UserHTTPHandlerTestSuite))
+func TestTaskHTTPHandlerSuite(t *testing.T) {
+	suite.Run(t, new(TaskHTTPHandlerTestSuite))
 }
 
 type dependency struct {
 	req         *http.Request
-	userUsecase *mocks.UserUsecase
+	taskUsecase *mocks.TaskUsecase
 }
 
-func (s *UserHTTPHandlerTestSuite) TestPost() {
+func (s *TaskHTTPHandlerTestSuite) TestPost() {
 	type args struct {
 		requestBody []byte
 	}
@@ -63,7 +64,7 @@ func (s *UserHTTPHandlerTestSuite) TestPost() {
 			setup: func(d *dependency) {},
 		},
 		{
-			name:    "it should response with error when user usecase Create return unexpected error",
+			name:    "it should response with error when taskUsecase Create returns unexpected error",
 			isError: true,
 			args: args{
 				requestBody: []byte(`{}`),
@@ -75,8 +76,9 @@ func (s *UserHTTPHandlerTestSuite) TestPost() {
 				error:       errorx.InternalServerErrorMessage,
 			},
 			setup: func(d *dependency) {
-				d.userUsecase.On("Create", mock.Anything, &domain.CreateUserIn{}).
-					Return(domain.CreateUserOut{}, test.ErrUnexpected)
+				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
+				d.taskUsecase.On("Create", mock.Anything, &domain.CreateTaskIn{UserID: "user-xxxxx"}).
+					Return(domain.CreateTaskOut{}, test.ErrUnexpected)
 			},
 		},
 		{
@@ -88,15 +90,15 @@ func (s *UserHTTPHandlerTestSuite) TestPost() {
 			expected: expected{
 				contentType: "application/json",
 				statusCode:  http.StatusCreated,
-				message:     "Successfully registered user",
+				message:     "Successfully created new task",
 				payload: map[string]any{
-					"id":    "user-xxxxx",
-					"email": "gopher@go.dev",
+					"id": "task-xxxxx",
 				},
 			},
 			setup: func(d *dependency) {
-				d.userUsecase.On("Create", mock.Anything, &domain.CreateUserIn{}).
-					Return(domain.CreateUserOut{ID: "user-xxxxx", Email: "gopher@go.dev"}, nil)
+				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
+				d.taskUsecase.On("Create", mock.Anything, &domain.CreateTaskIn{UserID: "user-xxxxx"}).
+					Return(domain.CreateTaskOut{ID: "task-xxxxx"}, nil)
 			},
 		},
 	}
@@ -108,12 +110,12 @@ func (s *UserHTTPHandlerTestSuite) TestPost() {
 			req := httptest.NewRequest("POST", "/", reqBody)
 
 			deps := &dependency{
-				userUsecase: &mocks.UserUsecase{},
+				taskUsecase: &mocks.TaskUsecase{},
 				req:         req,
 			}
 			t.setup(deps)
 
-			handler := New(deps.userUsecase)
+			handler := New(deps.taskUsecase)
 			handler.Post(rr, deps.req)
 
 			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
