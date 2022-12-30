@@ -50,6 +50,9 @@ func HTTPErrorTranslator(err error) (code int, msg string) {
 	// Task entity
 	case entity.ErrContentEmpty:
 		return http.StatusBadRequest, "Content is required field"
+	// Task repository
+	case domain.ErrTaskNotFound:
+		return http.StatusNotFound, "Task not found"
 	// Other
 	default:
 		return http.StatusInternalServerError, InternalServerErrorMessage
