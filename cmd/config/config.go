@@ -11,7 +11,7 @@ import (
 )
 
 type Config struct {
-	ServerAddr      string
+	Port            string
 	PostgresDSN     string
 	AccessTokenKey  string
 	RefreshTokenKey string
@@ -19,17 +19,17 @@ type Config struct {
 	RefreshTokenExp int
 }
 
-func New(path string) (*Config, error) {
+func New() *Config {
 	var cfg Config
 
-	serverAddrEnv := os.Getenv("SERVER_ADDR")
+	portEnv := os.Getenv("PORT")
 	postgreDSNEnv := os.Getenv("POSTGRES_DSN")
 	accessTokenKeyEnv := os.Getenv("ACCESS_TOKEN_KEY")
 	refreshTokenKeyEnv := os.Getenv("REFRESH_TOKEN_KEY")
 	accessTokenExpEnv, _ := strconv.Atoi(os.Getenv("ACCESS_TOKEN_EXP"))
 	refreshTokenExpEnv, _ := strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXP"))
 
-	flag.StringVar(&cfg.ServerAddr, "server_addr", serverAddrEnv, "provide http server address")
+	flag.StringVar(&cfg.Port, "port", ":"+portEnv, "provide http server port address")
 	flag.StringVar(&cfg.PostgresDSN, "postgres_dsn", postgreDSNEnv, "provide postgres database dsn")
 	flag.StringVar(&cfg.AccessTokenKey, "access_token_key", accessTokenKeyEnv, "provide access token secret key for jwt")
 	flag.StringVar(&cfg.RefreshTokenKey, "refresh_token_key", refreshTokenKeyEnv, "provide refresh token secret key for jwt")
@@ -40,5 +40,5 @@ func New(path string) (*Config, error) {
 
 	strCfg, _ := json.MarshalIndent(&cfg, "", "  ")
 	log.Println("Configuration:", string(strCfg))
-	return &cfg, nil
+	return &cfg
 }

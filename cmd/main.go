@@ -24,10 +24,7 @@ import (
 )
 
 func main() {
-	cfg, err := config.New(".")
-	if err != nil {
-		log.Fatal(err)
-	}
+	cfg := config.New()
 
 	db := postgres.New(cfg.PostgresDSN)
 	defer db.Close()
@@ -77,8 +74,8 @@ func main() {
 		r.Put("/api/tasks/{task_id}", taskHTTPHandler.Put)
 	})
 
-	log.Printf("Server running at %s", cfg.ServerAddr)
-	svr := httpsvr.New(cfg.ServerAddr, r)
+	log.Printf("Server running at %s", cfg.Port)
+	svr := httpsvr.New(cfg.Port, r)
 	if err := svr.Run(); err != nil {
 		log.Fatal(err)
 	}
