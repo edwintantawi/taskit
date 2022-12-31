@@ -92,3 +92,13 @@ func (r *repository) DeleteByID(ctx context.Context, taskID entity.TaskID) error
 	}
 	return nil
 }
+
+// Update update task by id.
+func (r *repository) Update(ctx context.Context, t *entity.Task) (entity.TaskID, error) {
+	q := `UPDATE tasks SET content = $2, description = $3, is_completed = $4, due_date = $5, updated_at = $6 WHERE id = $1`
+	_, err := r.db.ExecContext(ctx, q, t.ID, t.Content, t.Description, t.IsCompleted, t.DueDate, t.UpdatedAt)
+	if err != nil {
+		return "", err
+	}
+	return t.ID, nil
+}
