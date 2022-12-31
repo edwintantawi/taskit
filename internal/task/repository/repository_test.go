@@ -6,7 +6,6 @@ import (
 	"errors"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/suite"
@@ -545,12 +544,12 @@ func (s *TaskRepositoryTestSuite) TestUpdate() {
 			},
 			setup: func(d *dependency) {
 				d.mockDB.ExpectExec(regexp.QuoteMeta("UPDATE tasks SET content = $2, description = $3, is_completed = $4, due_date = $5, updated_at = $6 WHERE id = $1")).
-					WithArgs("", "", "", false, nil, time.Time{}).
+					WithArgs("", "", "", false, nil, sqlmock.AnyArg()).
 					WillReturnError(test.ErrDatabase)
 			},
 		},
 		{
-			name: "it should return error nil when success update",
+			name: "it should return error nil and task id when success update",
 			args: args{
 				ctx: context.Background(),
 				task: &entity.Task{
@@ -570,7 +569,7 @@ func (s *TaskRepositoryTestSuite) TestUpdate() {
 			},
 			setup: func(d *dependency) {
 				d.mockDB.ExpectExec(regexp.QuoteMeta("UPDATE tasks SET content = $2, description = $3, is_completed = $4, due_date = $5, updated_at = $6 WHERE id = $1")).
-					WithArgs("task-xxxxx", "task_content", "task_description", true, test.TimeAfterNow, test.TimeBeforeNow).
+					WithArgs("task-xxxxx", "task_content", "task_description", true, test.TimeAfterNow, sqlmock.AnyArg()).
 					WillReturnResult(sqlmock.NewResult(1, 1))
 			},
 		},
