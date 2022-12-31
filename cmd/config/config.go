@@ -29,7 +29,7 @@ func New() *Config {
 	accessTokenExpEnv, _ := strconv.Atoi(os.Getenv("ACCESS_TOKEN_EXP"))
 	refreshTokenExpEnv, _ := strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXP"))
 
-	flag.StringVar(&cfg.Port, "port", ":"+portEnv, "provide http server port address")
+	flag.StringVar(&cfg.Port, "port", portEnv, "provide http server port address")
 	flag.StringVar(&cfg.PostgresDSN, "postgres_dsn", postgreDSNEnv, "provide postgres database dsn")
 	flag.StringVar(&cfg.AccessTokenKey, "access_token_key", accessTokenKeyEnv, "provide access token secret key for jwt")
 	flag.StringVar(&cfg.RefreshTokenKey, "refresh_token_key", refreshTokenKeyEnv, "provide refresh token secret key for jwt")

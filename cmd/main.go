@@ -75,7 +75,7 @@ func main() {
 	})
 
 	log.Printf("Server running at %s", cfg.Port)
-	svr := httpsvr.New(cfg.Port, r)
+	svr := httpsvr.New(":"+cfg.Port, r)
 	if err := svr.Run(); err != nil {
 		log.Fatal(err)
 	}
