@@ -72,6 +72,7 @@ func main() {
 
 		r.Post("/api/tasks", taskHTTPHandler.Post)
 		r.Get("/api/tasks", taskHTTPHandler.Get)
+		r.Get("/api/tasks/{task_id}", taskHTTPHandler.GetByID)
 		r.Delete("/api/tasks/{task_id}", taskHTTPHandler.Delete)
 	})
 
