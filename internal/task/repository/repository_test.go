@@ -516,3 +516,82 @@ func (s *TaskRepositoryTestSuite) TestDeleteByID() {
 		})
 	}
 }
+
+func (s *TaskRepositoryTestSuite) TestUpdate() {
+	type args struct {
+		ctx  context.Context
+		task *entity.Task
+	}
+	type expected struct {
+		taskID entity.TaskID
+		err    error
+	}
+	tests := []struct {
+		name     string
+		args     args
+		expected expected
+		setup    func(d *dependency)
+	}{
+		{
+			name: "it should return error when database fail",
+			args: args{
+				ctx:  context.Background(),
+				task: &entity.Task{},
+			},
+			expected: expected{
+				taskID: "",
+				err:    test.ErrDatabase,
+			},
+			setup: func(d *dependency) {
+				d.mockDB.ExpectExec(regexp.QuoteMeta("UPDATE tasks SET content = $2, description = $3, is_completed = $4, due_date = $5, updated_at = $6 WHERE id = $1")).
+					WithArgs("", "", "", false, nil, sqlmock.AnyArg()).
+					WillReturnError(test.ErrDatabase)
+			},
+		},
+		{
+			name: "it should return error nil and task id when success update",
+			args: args{
+				ctx: context.Background(),
+				task: &entity.Task{
+					ID:          "task-xxxxx",
+					UserID:      "user-xxxxx",
+					Content:     "task_content",
+					Description: "task_description",
+					IsCompleted: true,
+					DueDate:     &test.TimeAfterNow,
+					CreatedAt:   test.TimeBeforeNow,
+					UpdatedAt:   test.TimeBeforeNow,
+				},
+			},
+			expected: expected{
+				taskID: "task-xxxxx",
+				err:    nil,
+			},
+			setup: func(d *dependency) {
+				d.mockDB.ExpectExec(regexp.QuoteMeta("UPDATE tasks SET content = $2, description = $3, is_completed = $4, due_date = $5, updated_at = $6 WHERE id = $1")).
+					WithArgs("task-xxxxx", "task_content", "task_description", true, test.TimeAfterNow, sqlmock.AnyArg()).
+					WillReturnResult(sqlmock.NewResult(1, 1))
+			},
+		},
+	}
+
+	for _, t := range tests {
+		s.Run(t.name, func() {
+			db, mockDB, err := sqlmock.New()
+			if err != nil {
+				s.FailNow("an error '%s' was not expected when opening a database mock connection", err)
+			}
+
+			deps := &dependency{
+				mockDB: mockDB,
+			}
+			t.setup(deps)
+
+			repository := New(db, nil)
+			taskID, err := repository.Update(t.args.ctx, t.args.task)
+
+			s.Equal(t.expected.err, err)
+			s.Equal(t.expected.taskID, taskID)
+		})
+	}
+}

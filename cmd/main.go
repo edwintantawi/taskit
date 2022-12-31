@@ -74,6 +74,7 @@ func main() {
 		r.Get("/api/tasks", taskHTTPHandler.Get)
 		r.Get("/api/tasks/{task_id}", taskHTTPHandler.GetByID)
 		r.Delete("/api/tasks/{task_id}", taskHTTPHandler.Delete)
+		r.Put("/api/tasks/{task_id}", taskHTTPHandler.Put)
 	})
 
 	log.Printf("Server running at %s", cfg.ServerAddr)

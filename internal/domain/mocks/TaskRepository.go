@@ -94,6 +94,27 @@ func (_m *TaskRepository) Store(ctx context.Context, t *entity.Task) (entity.Tas
 	return r0, r1
 }
 
+// Update provides a mock function with given fields: ctx, t
+func (_m *TaskRepository) Update(ctx context.Context, t *entity.Task) (entity.TaskID, error) {
+	ret := _m.Called(ctx, t)
+
+	var r0 entity.TaskID
+	if rf, ok := ret.Get(0).(func(context.Context, *entity.Task) entity.TaskID); ok {
+		r0 = rf(ctx, t)
+	} else {
+		r0 = ret.Get(0).(entity.TaskID)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *entity.Task) error); ok {
+		r1 = rf(ctx, t)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // VerifyAvailableByID provides a mock function with given fields: ctx, taskID
 func (_m *TaskRepository) VerifyAvailableByID(ctx context.Context, taskID entity.TaskID) error {
 	ret := _m.Called(ctx, taskID)
