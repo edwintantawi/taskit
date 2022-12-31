@@ -93,6 +93,27 @@ func (_m *TaskUsecase) Remove(ctx context.Context, payload *domain.RemoveTaskIn)
 	return r0
 }
 
+// Update provides a mock function with given fields: ctx, payload
+func (_m *TaskUsecase) Update(ctx context.Context, payload *domain.UpdateTaskIn) (domain.UpdateTaskOut, error) {
+	ret := _m.Called(ctx, payload)
+
+	var r0 domain.UpdateTaskOut
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.UpdateTaskIn) domain.UpdateTaskOut); ok {
+		r0 = rf(ctx, payload)
+	} else {
+		r0 = ret.Get(0).(domain.UpdateTaskOut)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *domain.UpdateTaskIn) error); ok {
+		r1 = rf(ctx, payload)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 type mockConstructorTestingTNewTaskUsecase interface {
 	mock.TestingT
 	Cleanup(func())
