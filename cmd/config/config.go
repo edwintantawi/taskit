@@ -7,7 +7,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/joho/godotenv"
+	_ "github.com/joho/godotenv/autoload"
 )
 
 type Config struct {
@@ -21,9 +21,6 @@ type Config struct {
 
 func New(path string) (*Config, error) {
 	var cfg Config
-	if err := godotenv.Load(); err != nil {
-		return nil, err
-	}
 
 	serverAddrEnv := os.Getenv("SERVER_ADDR")
 	postgreDSNEnv := os.Getenv("POSTGRES_DSN")
