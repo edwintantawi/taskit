@@ -34,4 +34,5 @@ type TaskUsecase interface {
 	Create(ctx context.Context, payload *CreateTaskIn) (CreateTaskOut, error)
 	GetAll(ctx context.Context, payload *GetAllTaskIn) ([]GetAllTaskOut, error)
 	Remove(ctx context.Context, payload *RemoveTaskIn) error
+	GetByID(ctx context.Context, payload *GetTaskByIDIn) (GetTaskByIDOut, error)
 }
