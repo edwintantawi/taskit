@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -84,4 +85,52 @@ func (h *HTTPHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	encoder.Encode(response.Success(http.StatusOK, "Successfully deleted task", nil))
+}
+
+// GET /tasks/{task_id} to get task by task id.
+func (h *HTTPHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	encoder := json.NewEncoder(w)
+
+	var payload domain.GetTaskByIDIn
+	payload.UserID = entity.GetAuthContext(r.Context())
+	payload.TaskID = entity.TaskID(chi.URLParam(r, "task_id"))
+
+	output, err := h.taskUsecase.GetByID(r.Context(), &payload)
+	if err != nil {
+		code, msg := errorx.HTTPErrorTranslator(err)
+		w.WriteHeader(code)
+		encoder.Encode(response.Error(code, msg))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	encoder.Encode(response.Success(http.StatusOK, http.StatusText(http.StatusOK), output))
+}
+
+// PUT /tasks/{task_id} to update task by task id.
+func (h *HTTPHandler) Put(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	encoder := json.NewEncoder(w)
+
+	var payload domain.UpdateTaskIn
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		log.Panicln(err)
+		w.WriteHeader(http.StatusBadRequest)
+		encoder.Encode(response.Error(http.StatusBadRequest, "Invalid request body"))
+		return
+	}
+	payload.UserID = entity.GetAuthContext(r.Context())
+	payload.TaskID = entity.TaskID(chi.URLParam(r, "task_id"))
+
+	output, err := h.taskUsecase.Update(r.Context(), &payload)
+	if err != nil {
+		code, msg := errorx.HTTPErrorTranslator(err)
+		w.WriteHeader(code)
+		encoder.Encode(response.Error(code, msg))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	encoder.Encode(response.Success(http.StatusOK, "Successfully updated task", output))
 }

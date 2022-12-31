@@ -51,6 +51,7 @@ func (u *usecase) GetAll(ctx context.Context, payload *domain.GetAllTaskIn) ([]d
 	return output, nil
 }
 
+// Remove remove a task.
 func (u *usecase) Remove(ctx context.Context, payload *domain.RemoveTaskIn) error {
 	task, err := u.taskRepository.FindByID(ctx, payload.TaskID)
 	if err != nil {
@@ -63,4 +64,47 @@ func (u *usecase) Remove(ctx context.Context, payload *domain.RemoveTaskIn) erro
 		return err
 	}
 	return nil
+}
+
+// GetByID get task by id.
+func (u *usecase) GetByID(ctx context.Context, payload *domain.GetTaskByIDIn) (domain.GetTaskByIDOut, error) {
+	task, err := u.taskRepository.FindByID(ctx, payload.TaskID)
+	if err != nil {
+		return domain.GetTaskByIDOut{}, err
+	}
+	if task.UserID != payload.UserID {
+		return domain.GetTaskByIDOut{}, domain.ErrTaskAuthorization
+	}
+
+	output := domain.GetTaskByIDOut{
+		ID:          task.ID,
+		Content:     task.Content,
+		Description: task.Description,
+		IsCompleted: task.IsCompleted,
+		DueDate:     task.DueDate,
+		CreatedAt:   task.CreatedAt,
+		UpdatedAt:   task.UpdatedAt,
+	}
+	return output, nil
+}
+
+func (u *usecase) Update(ctx context.Context, payload *domain.UpdateTaskIn) (domain.UpdateTaskOut, error) {
+	task, err := u.taskRepository.FindByID(ctx, payload.TaskID)
+	if err != nil {
+		return domain.UpdateTaskOut{}, err
+	}
+	if task.UserID != payload.UserID {
+		return domain.UpdateTaskOut{}, domain.ErrTaskAuthorization
+	}
+
+	task.Content = payload.Content
+	task.Description = payload.Description
+	task.IsCompleted = payload.IsCompleted
+	task.DueDate = payload.DueDate
+
+	taskID, err := u.taskRepository.Update(ctx, &task)
+	if err != nil {
+		return domain.UpdateTaskOut{}, err
+	}
+	return domain.UpdateTaskOut{ID: taskID}, nil
 }

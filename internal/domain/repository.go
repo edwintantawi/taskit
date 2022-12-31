@@ -46,4 +46,5 @@ type TaskRepository interface {
 	FindAllByUserID(ctx context.Context, userID entity.UserID) ([]entity.Task, error)
 	VerifyAvailableByID(ctx context.Context, taskID entity.TaskID) error
 	DeleteByID(ctx context.Context, taskID entity.TaskID) error
+	Update(ctx context.Context, t *entity.Task) (entity.TaskID, error)
 }
