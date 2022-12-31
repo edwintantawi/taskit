@@ -246,7 +246,7 @@ func (s *TaskUsecaseTestSuite) TestRemove() {
 				},
 			},
 			expected: expected{
-				err: test.ErrUnexpected,
+				err: nil,
 			},
 			setup: func(d *dependency) {
 				d.taskRepository.On("FindByID", context.Background(), entity.TaskID("task-xxxxx")).
@@ -267,6 +267,6 @@ func (s *TaskUsecaseTestSuite) TestRemove() {
 		usecase := New(deps.taskRepository)
 		err := usecase.Remove(t.args.ctx, t.args.payload)
 
-		s.Error(t.expected.err, err)
+		s.Equal(t.expected.err, err)
 	}
 }
