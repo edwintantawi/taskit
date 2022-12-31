@@ -200,7 +200,7 @@ func (s *TaskUsecaseTestSuite) TestRemove() {
 			},
 		},
 		{
-			name: "it should return error when task repository FindByID return unexpected error",
+			name: "it should return error ErrTaskAuthorization when task not own by the user",
 			args: args{
 				ctx: context.Background(),
 				payload: &domain.RemoveTaskIn{
@@ -246,7 +246,7 @@ func (s *TaskUsecaseTestSuite) TestRemove() {
 				},
 			},
 			expected: expected{
-				err: test.ErrUnexpected,
+				err: nil,
 			},
 			setup: func(d *dependency) {
 				d.taskRepository.On("FindByID", context.Background(), entity.TaskID("task-xxxxx")).
@@ -267,6 +267,105 @@ func (s *TaskUsecaseTestSuite) TestRemove() {
 		usecase := New(deps.taskRepository)
 		err := usecase.Remove(t.args.ctx, t.args.payload)
 
-		s.Error(t.expected.err, err)
+		s.Equal(t.expected.err, err)
+	}
+}
+
+func (s *TaskUsecaseTestSuite) TestGetByID() {
+	type args struct {
+		ctx     context.Context
+		payload *domain.GetTaskByIDIn
+	}
+	type expected struct {
+		output domain.GetTaskByIDOut
+		err    error
+	}
+	tests := []struct {
+		name     string
+		args     args
+		expected expected
+		setup    func(d *dependency)
+	}{
+		{
+			name: "it should return error when task repository FindByID return unexpected error",
+			args: args{
+				ctx:     context.Background(),
+				payload: &domain.GetTaskByIDIn{},
+			},
+			expected: expected{
+				output: domain.GetTaskByIDOut{},
+				err:    test.ErrUnexpected,
+			},
+			setup: func(d *dependency) {
+				d.taskRepository.On("FindByID", context.Background(), entity.TaskID("")).
+					Return(entity.Task{}, test.ErrUnexpected)
+			},
+		},
+		{
+			name: "it should return error ErrTaskAuthorization when task not own by the user",
+			args: args{
+				ctx: context.Background(),
+				payload: &domain.GetTaskByIDIn{
+					TaskID: "task-xxxxx",
+					UserID: "user-xxxxx",
+				},
+			},
+			expected: expected{
+				output: domain.GetTaskByIDOut{},
+				err:    domain.ErrTaskAuthorization,
+			},
+			setup: func(d *dependency) {
+				d.taskRepository.On("FindByID", context.Background(), entity.TaskID("task-xxxxx")).
+					Return(entity.Task{UserID: "user-yyyyy"}, nil)
+			},
+		},
+		{
+			name: "it should return error nil when success get task",
+			args: args{
+				ctx: context.Background(),
+				payload: &domain.GetTaskByIDIn{
+					TaskID: "task-xxxxx",
+					UserID: "user-xxxxx",
+				},
+			},
+			expected: expected{
+				output: domain.GetTaskByIDOut{
+					ID:          "task-xxxxx",
+					Content:     "task_content",
+					Description: "task_description",
+					IsCompleted: true,
+					DueDate:     &test.TimeAfterNow,
+					CreatedAt:   test.TimeBeforeNow,
+					UpdatedAt:   test.TimeBeforeNow,
+				},
+				err: nil,
+			},
+			setup: func(d *dependency) {
+				d.taskRepository.On("FindByID", context.Background(), entity.TaskID("task-xxxxx")).
+					Return(entity.Task{
+						ID:          "task-xxxxx",
+						UserID:      "user-xxxxx",
+						Content:     "task_content",
+						Description: "task_description",
+						IsCompleted: true,
+						DueDate:     &test.TimeAfterNow,
+						CreatedAt:   test.TimeBeforeNow,
+						UpdatedAt:   test.TimeBeforeNow,
+					}, nil)
+			},
+		},
+	}
+
+	for _, t := range tests {
+		deps := &dependency{
+			taskRepository: &mocks.TaskRepository{},
+		}
+		t.setup(deps)
+
+		usecase := New(deps.taskRepository)
+		output, err := usecase.GetByID(t.args.ctx, t.args.payload)
+
+		s.Equal(t.expected.err, err)
+		s.Equal(t.expected.output, output)
 	}
 }

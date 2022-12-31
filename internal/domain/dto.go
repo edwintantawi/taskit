@@ -93,3 +93,20 @@ type RemoveTaskIn struct {
 	TaskID entity.TaskID `json:"-"`
 	UserID entity.UserID `json:"-"`
 }
+
+// GetTaskByIDIn represents the input of task retrieval.
+type GetTaskByIDIn struct {
+	TaskID entity.TaskID `json:"-"`
+	UserID entity.UserID `json:"-"`
+}
+
+// GetTaskByIDOut represents the output of task retrieval.
+type GetTaskByIDOut struct {
+	ID          entity.TaskID      `json:"id"`
+	Content     string             `json:"content"`
+	Description string             `json:"description"`
+	IsCompleted bool               `json:"is_completed"`
+	DueDate     entity.TaskDueDate `json:"due_date"`
+	CreatedAt   time.Time          `json:"created_at"`
+	UpdatedAt   time.Time          `json:"updated_at"`
+}
