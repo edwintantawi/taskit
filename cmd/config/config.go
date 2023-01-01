@@ -12,6 +12,7 @@ import (
 
 type Config struct {
 	Port            string
+	AllowOrigin     string
 	PostgresDSN     string
 	AccessTokenKey  string
 	RefreshTokenKey string
@@ -23,6 +24,7 @@ func New() *Config {
 	var cfg Config
 
 	portEnv := os.Getenv("PORT")
+	allowOriginEnv := os.Getenv("ALLOW_ORIGIN")
 	postgreDSNEnv := os.Getenv("POSTGRES_DSN")
 	accessTokenKeyEnv := os.Getenv("ACCESS_TOKEN_KEY")
 	refreshTokenKeyEnv := os.Getenv("REFRESH_TOKEN_KEY")
@@ -30,11 +32,12 @@ func New() *Config {
 	refreshTokenExpEnv, _ := strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXP"))
 
 	flag.StringVar(&cfg.Port, "port", portEnv, "provide http server port address")
-	flag.StringVar(&cfg.PostgresDSN, "postgres_dsn", postgreDSNEnv, "provide postgres database dsn")
-	flag.StringVar(&cfg.AccessTokenKey, "access_token_key", accessTokenKeyEnv, "provide access token secret key for jwt")
-	flag.StringVar(&cfg.RefreshTokenKey, "refresh_token_key", refreshTokenKeyEnv, "provide refresh token secret key for jwt")
-	flag.IntVar(&cfg.AccessTokenExp, "access_token_exp", accessTokenExpEnv, "provide access token expiration time in seconds")
-	flag.IntVar(&cfg.RefreshTokenExp, "refresh_token_exp", refreshTokenExpEnv, "provide refresh token expiration time in seconds")
+	flag.StringVar(&cfg.AllowOrigin, "allow-origin", allowOriginEnv, "provide allowed origin")
+	flag.StringVar(&cfg.PostgresDSN, "postgres-dsn", postgreDSNEnv, "provide postgres database dsn")
+	flag.StringVar(&cfg.AccessTokenKey, "access-token-key", accessTokenKeyEnv, "provide access token secret key for jwt")
+	flag.StringVar(&cfg.RefreshTokenKey, "refresh-token-key", refreshTokenKeyEnv, "provide refresh token secret key for jwt")
+	flag.IntVar(&cfg.AccessTokenExp, "access-token-exp", accessTokenExpEnv, "provide access token expiration time in seconds")
+	flag.IntVar(&cfg.RefreshTokenExp, "refresh-token-exp", refreshTokenExpEnv, "provide refresh token expiration time in seconds")
 
 	flag.Parse()
 
