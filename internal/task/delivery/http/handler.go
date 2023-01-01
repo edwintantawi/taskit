@@ -2,7 +2,6 @@ package http
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -115,7 +114,6 @@ func (h *HTTPHandler) Put(w http.ResponseWriter, r *http.Request) {
 
 	var payload domain.UpdateTaskIn
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-		log.Panicln(err)
 		w.WriteHeader(http.StatusBadRequest)
 		encoder.Encode(response.Error(http.StatusBadRequest, "Invalid request body"))
 		return
