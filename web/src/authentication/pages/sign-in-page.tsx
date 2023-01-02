@@ -13,7 +13,7 @@ export function SignInPage() {
     >
       <p className="text-end text-sm text-gray-500">
         Not have an account?{' '}
-        <Link to="/authentications/sign-in" className="text-black underline">
+        <Link to="/authentications/sign-up" className="text-black underline">
           Create account now
         </Link>
       </p>
