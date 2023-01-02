@@ -8,7 +8,7 @@ export function SignUpPage() {
   return (
     <AuthenticationLayout
       title="Sign-Up Account"
-      subtitle="Start a new journey by creating a new account"
+      subtitle="Start a new awsome journey by creating a new account"
       form={<SignUpForm />}
     >
       <p className="text-end text-sm text-gray-500">

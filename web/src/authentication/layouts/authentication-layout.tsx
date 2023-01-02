@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { Header } from '~/common/components';
+
 interface AuthenticationLayoutProps {
   children?: React.ReactNode;
   form: React.ReactNode;
@@ -15,14 +17,7 @@ export function AuthenticationLayout({
 }: AuthenticationLayoutProps) {
   return (
     <div className="rounded-md border p-5 md:p-8">
-      <header className="mb-8 space-y-1">
-        <h1 className="text-center text-xl font-bold uppercase md:text-2xl">
-          {title}
-        </h1>
-        <p className="text-center text-sm text-gray-500 md:text-base">
-          {subtitle}
-        </p>
-      </header>
+      <Header title={title} subtitle={subtitle} />
       {form}
       <div className="pt-6">{children}</div>
     </div>
