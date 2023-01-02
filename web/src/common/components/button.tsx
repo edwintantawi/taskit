@@ -21,12 +21,13 @@ export function Button({
   const sizeStyle = {
     small: 'py-2 px-3 text-xs',
     medium: 'py-2 px-4 text-sm',
-    large: 'py-3 px-5 text-base',
+    large: 'py-3 px-5 text-sm md:text-base',
   };
 
   const variantStyle = {
     normal: 'text-gray-900 hover:bg-gray-100',
-    contained: 'bg-gray-900 text-white hover:bg-gray-800',
+    contained:
+      'bg-gray-900 text-white hover:bg-gray-800 border border-gray-900',
     outlined: 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100',
   };
 

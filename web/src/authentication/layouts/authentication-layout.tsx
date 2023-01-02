@@ -14,10 +14,14 @@ export function AuthenticationLayout({
   subtitle,
 }: AuthenticationLayoutProps) {
   return (
-    <div className="rounded-md border p-8">
+    <div className="rounded-md border p-5 md:p-8">
       <header className="mb-8 space-y-1">
-        <h1 className="text-center text-2xl font-bold uppercase">{title}</h1>
-        <p className="text-center text-gray-500">{subtitle}</p>
+        <h1 className="text-center text-xl font-bold uppercase md:text-2xl">
+          {title}
+        </h1>
+        <p className="text-center text-sm text-gray-500 md:text-base">
+          {subtitle}
+        </p>
       </header>
       {form}
       <div className="pt-6">{children}</div>
