@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 import { Button, Footer, Header } from '~/common/components';
 
@@ -11,6 +12,8 @@ export function HomePage() {
           subtitle="Become focused, organize and enjoy your task with Taskit."
         />
         <Button
+          as={Link}
+          to="/app"
           variants="contained"
           size="large"
           className="shadow-xl shadow-gray-300 transition-shadow duration-500 hover:shadow-none"
