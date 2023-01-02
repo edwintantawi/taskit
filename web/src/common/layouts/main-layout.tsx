@@ -5,5 +5,5 @@ interface MainLayoutProps {
 }
 
 export function MainLayout({ children }: MainLayoutProps) {
-  return <main className="flex-1 py-6">{children}</main>;
+  return <main className="flex flex-1 flex-col pt-6">{children}</main>;
 }
