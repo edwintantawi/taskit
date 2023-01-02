@@ -1,9 +1,9 @@
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 
-import { SignInPage, SignUpPage } from '../authentication/pages';
+import { SignInPage, SignUpPage } from '~/authentication/pages';
 
-function AppRouter() {
+export function AppRouter() {
   return (
     <Routes>
       <Route path="/authentications">
@@ -13,5 +13,3 @@ function AppRouter() {
     </Routes>
   );
 }
-
-export { AppRouter };
