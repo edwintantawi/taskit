@@ -7,7 +7,7 @@ export function TaskCheck() {
   const handleChange = () => setIsChecked((prev) => !prev);
 
   return (
-    <div className="relative">
+    <div className="relative mt-1">
       <input
         type="checkbox"
         className="peer absolute top-0 z-50 aspect-square h-5 w-5 cursor-pointer opacity-0"
