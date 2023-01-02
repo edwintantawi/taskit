@@ -6,7 +6,9 @@ import { Logo, Button } from '~/common/components';
 export function Navbar() {
   return (
     <header className="flex items-center justify-between border-b py-3 px-2">
-      <Logo />
+      <Link to="/">
+        <Logo />
+      </Link>
       <div className="space-x-2">
         <Button
           as={Link}
@@ -22,7 +24,7 @@ export function Navbar() {
           variants="contained"
           to="/authentications/sign-up"
         >
-          Sign-Up
+          Create Account
         </Button>
       </div>
     </header>
