@@ -38,6 +38,10 @@
       2,
       { "namedComponents": "function-declaration" }
     ],
-    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "_" }]
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { "argsIgnorePattern": "_" }
+    ],
+    "jsx-a11y/no-autofocus": 0
   }
 }
