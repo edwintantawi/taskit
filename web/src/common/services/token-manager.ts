@@ -14,4 +14,8 @@ export class TokenManager {
   static getRefreshToken() {
     return localStorage.getItem(REFRESH_TOKEN_KEY);
   }
+  static clearToken() {
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+  }
 }
