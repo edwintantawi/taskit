@@ -1,12 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-import { SignInForm } from '~/authentication/components/';
-import { AuthenticationLayout } from '~/authentication/layouts';
+import { SignInForm } from '~/authentication/containers';
+import { FormLayout } from '~/common/layouts';
 
 export function SignInPage() {
   return (
-    <AuthenticationLayout
+    <FormLayout
       title="Sign-In Account"
       subtitle="Continue your awsome journey by sign-in existing account"
       form={<SignInForm />}
@@ -17,6 +17,6 @@ export function SignInPage() {
           Create account now
         </Link>
       </p>
-    </AuthenticationLayout>
+    </FormLayout>
   );
 }
