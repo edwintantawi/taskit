@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-
-import { CheckIcon } from '~/common/components/icons';
+import { CheckIcon } from '@heroicons/react/24/outline';
 
 export function TaskCheck() {
   const [isChecked, setIsChecked] = useState(false);

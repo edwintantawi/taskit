@@ -1,7 +1,7 @@
 import React from 'react';
+import { CalendarIcon } from '@heroicons/react/24/outline';
 
 import { Button } from '~/common/components';
-import { CalendarIcon } from '~/common/components/icons';
 
 export function TaskEditor() {
   return (
@@ -24,7 +24,7 @@ export function TaskEditor() {
             size="small"
             className="flex items-center gap-1 border-gray-500 py-1 text-gray-500"
           >
-            <CalendarIcon className="w-3" /> Due Date
+            <CalendarIcon className="h-3 w-3" /> Due Date
           </Button>
         </div>
       </div>

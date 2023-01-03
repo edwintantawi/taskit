@@ -1,7 +1,7 @@
 import React from 'react';
+import { PlusIcon } from '@heroicons/react/24/outline';
 
 import { Button } from '~/common/components';
-import { PlusIcon } from '~/common/components/icons';
 import { TaskEditor } from '~/task/components/';
 
 interface TaskListProps {
@@ -18,7 +18,7 @@ export function TaskList({ children }: TaskListProps) {
           size="small"
           className="flex items-center gap-1 font-semibold"
         >
-          <PlusIcon className="w-3" /> Add New Task
+          <PlusIcon className="h-3 w-3" /> Add New Task
         </Button>
         <TaskEditor />
       </li>
