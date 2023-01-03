@@ -1,5 +1,6 @@
 import Axios from 'axios';
 
+import { appConfig } from '~/app';
 import { TokenManager } from '~/common/services';
 
 export type HTTPResponseSuccess<T> = {
@@ -15,7 +16,7 @@ export type HTTPResponseError = {
 };
 
 const http = Axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: appConfig.BASE_API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
