@@ -9,5 +9,9 @@ export function useAuth() {
     throw new Error('Auth context value is not provided!');
   }
 
-  return { user: ctx.user, setUser: ctx.setUser };
+  return {
+    user: ctx.user,
+    setUser: ctx.setUser,
+    isAuthenticate: ctx.user !== null,
+  };
 }
