@@ -8,7 +8,7 @@ import {
   SignInResponse,
 } from '~/authentication/services';
 import { TokenManager } from '~/common/services';
-import { HTTPResponseError } from '~/common/libs';
+import { HTTPResponseError, queryClient } from '~/common/libs';
 
 export function useSignIn() {
   const navigate = useNavigate();
@@ -18,6 +18,7 @@ export function useSignIn() {
       access_token: data.payload.access_token,
       refresh_token: data.payload.refresh_token,
     });
+    queryClient.invalidateQueries({ queryKey: ['auth-profile'] });
     navigate('/app');
   };
 

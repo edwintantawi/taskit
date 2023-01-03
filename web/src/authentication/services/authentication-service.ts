@@ -2,12 +2,14 @@ import { AxiosResponse } from 'axios';
 
 import { http, HTTPResponseSuccess } from '~/common/libs';
 import { Authentication } from '~/authentication/entity';
+import { User } from '~/user/entity';
 
 export type SignInPayload = { email: string; password: string };
 export type SignOutPayload = { refreshToken: string };
 export type RefreshPayload = { refreshToken: string };
 
 export type SignInResponse = AxiosResponse<HTTPResponseSuccess<Authentication>>;
+export type GetAuthUserResponse = AxiosResponse<HTTPResponseSuccess<User>>;
 export type RefreshResponse = AxiosResponse<
   HTTPResponseSuccess<Authentication>
 >;
@@ -20,6 +22,12 @@ export class AuthenticationService {
         email: payload.email,
         password: payload.password,
       },
+    });
+  }
+
+  static async getAuthProfile(): Promise<RefreshResponse> {
+    return http('/authentications', {
+      method: 'GET',
     });
   }
 
