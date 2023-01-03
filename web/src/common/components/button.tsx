@@ -37,7 +37,7 @@ export function Button({
     <Component
       {...props}
       className={twMerge(
-        'inline-block rounded-md',
+        'inline-block rounded-md disabled:cursor-not-allowed',
         fullWidth && 'w-full',
         sizeStyle[size],
         variantStyle[variants],
