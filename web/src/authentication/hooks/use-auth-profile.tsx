@@ -16,6 +16,7 @@ export function useAuthProfile() {
 
   const query = useQuery('auth-profile', AuthenticationService.getAuthProfile, {
     retry: false,
+    refetchOnWindowFocus: false,
     onSuccess,
   });
 
