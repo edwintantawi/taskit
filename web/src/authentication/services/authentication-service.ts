@@ -25,7 +25,7 @@ export class AuthenticationService {
     });
   }
 
-  static async getAuthProfile(): Promise<RefreshResponse> {
+  static async profile(): Promise<RefreshResponse> {
     return http('/authentications', {
       method: 'GET',
     });

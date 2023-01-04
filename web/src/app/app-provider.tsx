@@ -4,7 +4,7 @@ import { QueryClientProvider } from 'react-query';
 import { ReactQueryDevtools } from 'react-query/devtools';
 
 import { AuthContextProvider } from '~/authentication/contexts';
-import { InitAuthProfile } from '~/authentication/containers/init-auth-profile';
+import { InitAuth } from '~/authentication/containers';
 import { queryClient } from '~/common/libs';
 
 interface AppProviderProps {
@@ -17,7 +17,7 @@ export function AppProvider({ children }: AppProviderProps) {
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <AuthContextProvider>
-          <InitAuthProfile>{children}</InitAuthProfile>
+          <InitAuth>{children}</InitAuth>
         </AuthContextProvider>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
