@@ -12,6 +12,9 @@ RUN CGO_ENABLED=0 GOOS=linux go build cmd/main.go
 
 FROM scratch
 
+WORKDIR /app
+
 COPY --from=builder /app/main .
+COPY --from=builder /app/migrations ./migrations
 
 CMD ["./main"]

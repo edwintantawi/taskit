@@ -28,33 +28,44 @@ import (
 func main() {
 	cfg := config.New()
 
-	db := postgres.New(cfg.PostgresDSN)
+	// Create new postgres connection.
+	db, migrate := postgres.New(&cfg.Postgres)
 	defer db.Close()
 
+	// Migrate database.
+	if err := migrate(cfg.AutoMigrate); err != nil {
+		log.Fatalf("Failed to migrate database: %v", err)
+	}
+
+	// Create new providers.
 	hashProvider := security.NewBcrypt()
 	idProvider := idgen.NewUUID()
 	jwtProvider := security.NewJWT(
-		security.JWTTokenConfig{Key: cfg.AccessTokenKey, Exp: cfg.AccessTokenExp},
-		security.JWTTokenConfig{Key: cfg.RefreshTokenKey, Exp: cfg.RefreshTokenExp},
+		security.JWTTokenConfig{Key: cfg.AccessTokenKey, Exp: cfg.AccessTokenExpiration},
+		security.JWTTokenConfig{Key: cfg.RefreshTokenKey, Exp: cfg.RefreshTokenExpiration},
 	)
 
+	// User.
 	userRepository := userRepository.New(db, idProvider)
 	userUsecase := userUsecase.New(userRepository, hashProvider)
 	userHTTPHandler := userHTTPHandler.New(userUsecase)
 
+	// Auth.
 	authRepository := authRepository.New(db, idProvider)
 	authUsecase := authUsecase.New(authRepository, userRepository, hashProvider, jwtProvider)
 	authHTTPHandler := authHTTPHandler.New(authUsecase)
 	authMiddleware := authMiddleware.New(jwtProvider)
 
+	// Task.
 	taskRepository := taskRepository.New(db, idProvider)
 	taskUsecase := taskUsecase.New(taskRepository)
 	taskHTTPHandler := taskHTTPHandler.New(taskUsecase)
 
+	// Create new router.
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{cfg.AllowOrigin},
+		AllowedOrigins:   []string{cfg.AllowedOrigin},
 		AllowedMethods:   []string{http.MethodOptions, http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
@@ -82,6 +93,7 @@ func main() {
 		r.Put("/api/tasks/{task_id}", taskHTTPHandler.Put)
 	})
 
+	// Start HTTP server.
 	log.Printf("Server running at %s", cfg.Port)
 	svr := httpsvr.New(":"+cfg.Port, r)
 	if err := svr.Run(); err != nil {
