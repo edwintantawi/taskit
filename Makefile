@@ -11,7 +11,7 @@ help:
 ## dev: run development server
 .PHONY: dev
 dev:
-	@go run cmd/main.go
+	@APP_ENV=dev go run cmd/main.go
 
 ## mocks: generate or update mocks
 .PHONY: mocks
