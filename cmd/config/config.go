@@ -54,7 +54,7 @@ func New() *Config {
 	flag.StringVar(&config.Postgres.DB, "postgres-db", postgresDB, "provide postgres db")
 	flag.StringVar(&config.Postgres.User, "postgres-user", postgresUser, "provide postgres user")
 	flag.StringVar(&config.Postgres.Password, "postgres-password", postgresPassword, "provide postgres password")
-	flag.StringVar(&config.Postgres.SSLMode, "postgres-sslmode", postgresSSLModeEnv, "provide postgres ssl mode (disable | required)")
+	flag.StringVar(&config.Postgres.SSLMode, "postgres-sslmode", postgresSSLModeEnv, "provide postgres ssl mode (disable | require)")
 
 	flag.Parse()
 
