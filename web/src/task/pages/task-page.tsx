@@ -1,17 +1,11 @@
 import React from 'react';
 
-import { TaskItem, TaskList } from '~/task/components';
+import { TaskSection } from '~/task/containers';
 
 export function TaskPage() {
   return (
-    <div>
-      <TaskList>
-        <TaskItem />
-        <TaskItem />
-        <TaskItem />
-        <TaskItem />
-        <TaskItem />
-      </TaskList>
+    <div className="mb-16 space-y-8">
+      <TaskSection title="All task" />
     </div>
   );
 }
