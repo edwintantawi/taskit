@@ -237,6 +237,9 @@ func (s *TaskHTTPHandlerTestSuite) TestGet() {
 }
 
 func (s *TaskHTTPHandlerTestSuite) TestDelete() {
+	type args struct {
+		params map[string]string
+	}
 	type expected struct {
 		contentType string
 		statusCode  int
@@ -247,6 +250,7 @@ func (s *TaskHTTPHandlerTestSuite) TestDelete() {
 	tests := []struct {
 		name     string
 		isError  bool
+		args     args
 		expected expected
 		setup    func(d *dependency)
 	}{
@@ -269,6 +273,11 @@ func (s *TaskHTTPHandlerTestSuite) TestDelete() {
 		{
 			name:    "it should response with success when success",
 			isError: false,
+			args: args{
+				params: map[string]string{
+					"task_id": "task-xxxxx",
+				},
+			},
 			expected: expected{
 				contentType: "application/json",
 				statusCode:  http.StatusOK,
@@ -278,7 +287,7 @@ func (s *TaskHTTPHandlerTestSuite) TestDelete() {
 			setup: func(d *dependency) {
 				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
 
-				d.taskUsecase.On("Remove", mock.Anything, &domain.RemoveTaskIn{TaskID: "", UserID: "user-xxxxx"}).
+				d.taskUsecase.On("Remove", mock.Anything, &domain.RemoveTaskIn{TaskID: "task-xxxxx", UserID: "user-xxxxx"}).
 					Return(nil)
 			},
 		},
@@ -287,7 +296,9 @@ func (s *TaskHTTPHandlerTestSuite) TestDelete() {
 	for _, t := range tests {
 		s.Run(t.name, func() {
 			rr := httptest.NewRecorder()
-			req := httptest.NewRequest("DELETE", "/", nil)
+			req := httptest.NewRequest("DELETE", "/{task_id}", nil)
+
+			req = test.InjectChiRouterParams(req, t.args.params)
 
 			deps := &dependency{
 				req:         req,
@@ -322,6 +333,9 @@ func (s *TaskHTTPHandlerTestSuite) TestDelete() {
 }
 
 func (s *TaskHTTPHandlerTestSuite) TestGetByID() {
+	type args struct {
+		params map[string]string
+	}
 	type expected struct {
 		contentType string
 		statusCode  int
@@ -332,6 +346,7 @@ func (s *TaskHTTPHandlerTestSuite) TestGetByID() {
 	tests := []struct {
 		name     string
 		isError  bool
+		args     args
 		expected expected
 		setup    func(d *dependency)
 	}{
@@ -354,22 +369,27 @@ func (s *TaskHTTPHandlerTestSuite) TestGetByID() {
 		{
 			name:    "it should response with success when success",
 			isError: false,
+			args: args{
+				params: map[string]string{
+					"task_id": "task-xxxxx",
+				},
+			},
 			expected: expected{
 				contentType: "application/json",
 				statusCode:  http.StatusOK,
 				message:     http.StatusText(http.StatusOK),
 				payload: map[string]any{
-					"id": "task-yyyyy", "content": "task_yyyyy_content", "description": "task_yyyyy_description", "is_completed": true, "due_date": test.TimeAfterNow.Format(time.RFC3339Nano), "created_at": test.TimeBeforeNow.Format(time.RFC3339Nano), "updated_at": test.TimeBeforeNow.Format(time.RFC3339Nano),
+					"id": "task-xxxxx", "content": "task_xxxxx_content", "description": "task_xxxxx_description", "is_completed": true, "due_date": test.TimeAfterNow.Format(time.RFC3339Nano), "created_at": test.TimeBeforeNow.Format(time.RFC3339Nano), "updated_at": test.TimeBeforeNow.Format(time.RFC3339Nano),
 				},
 			},
 			setup: func(d *dependency) {
 				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
 
-				d.taskUsecase.On("GetByID", mock.Anything, &domain.GetTaskByIDIn{TaskID: "", UserID: "user-xxxxx"}).
+				d.taskUsecase.On("GetByID", mock.Anything, &domain.GetTaskByIDIn{TaskID: "task-xxxxx", UserID: "user-xxxxx"}).
 					Return(domain.GetTaskByIDOut{
-						ID:          "task-yyyyy",
-						Content:     "task_yyyyy_content",
-						Description: "task_yyyyy_description",
+						ID:          "task-xxxxx",
+						Content:     "task_xxxxx_content",
+						Description: "task_xxxxx_description",
 						IsCompleted: true,
 						DueDate:     &test.TimeAfterNow,
 						CreatedAt:   test.TimeBeforeNow,
@@ -383,6 +403,8 @@ func (s *TaskHTTPHandlerTestSuite) TestGetByID() {
 		s.Run(t.name, func() {
 			rr := httptest.NewRecorder()
 			req := httptest.NewRequest("GET", "/{task_id}", nil)
+
+			req = test.InjectChiRouterParams(req, t.args.params)
 
 			deps := &dependency{
 				req:         req,
@@ -419,6 +441,7 @@ func (s *TaskHTTPHandlerTestSuite) TestGetByID() {
 func (s *TaskHTTPHandlerTestSuite) TestPut() {
 	type args struct {
 		requestBody []byte
+		params      map[string]string
 	}
 	type expected struct {
 		contentType string
@@ -472,6 +495,9 @@ func (s *TaskHTTPHandlerTestSuite) TestPut() {
 			isError: false,
 			args: args{
 				requestBody: []byte(`{}`),
+				params: map[string]string{
+					"task_id": "task-xxxxx",
+				},
 			},
 			expected: expected{
 				contentType: "application/json",
@@ -485,7 +511,7 @@ func (s *TaskHTTPHandlerTestSuite) TestPut() {
 				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
 
 				d.taskUsecase.On("Update", mock.Anything, &domain.UpdateTaskIn{
-					TaskID: "",
+					TaskID: "task-xxxxx",
 					UserID: "user-xxxxx",
 				}).Return(domain.UpdateTaskOut{
 					ID: "task-xxxxx",
@@ -499,6 +525,8 @@ func (s *TaskHTTPHandlerTestSuite) TestPut() {
 			reqBody := bytes.NewReader(t.args.requestBody)
 			rr := httptest.NewRecorder()
 			req := httptest.NewRequest("PUT", "/{task_id}", reqBody)
+
+			req = test.InjectChiRouterParams(req, t.args.params)
 
 			deps := &dependency{
 				req:         req,
