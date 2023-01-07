@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/dto"
 	"github.com/edwintantawi/taskit/internal/domain/mocks"
 	"github.com/edwintantawi/taskit/pkg/errorx"
 	"github.com/edwintantawi/taskit/pkg/response"
@@ -27,6 +27,7 @@ func TestUserHTTPHandlerSuite(t *testing.T) {
 
 type dependency struct {
 	req         *http.Request
+	validator   *mocks.ValidatorProvider
 	userUsecase *mocks.UserUsecase
 }
 
@@ -63,6 +64,23 @@ func (s *UserHTTPHandlerTestSuite) TestPost() {
 			setup: func(d *dependency) {},
 		},
 		{
+			name:    "it should response with error when payload is not valid",
+			isError: true,
+			args: args{
+				requestBody: []byte(`{}`),
+			},
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusInternalServerError,
+				message:     http.StatusText(http.StatusInternalServerError),
+				error:       errorx.InternalServerErrorMessage,
+			},
+			setup: func(d *dependency) {
+				d.validator.On("Validate", &dto.CreateUserIn{}).
+					Return(test.ErrValidator)
+			},
+		},
+		{
 			name:    "it should response with error when user usecase Create return unexpected error",
 			isError: true,
 			args: args{
@@ -75,8 +93,11 @@ func (s *UserHTTPHandlerTestSuite) TestPost() {
 				error:       errorx.InternalServerErrorMessage,
 			},
 			setup: func(d *dependency) {
-				d.userUsecase.On("Create", mock.Anything, &domain.CreateUserIn{}).
-					Return(domain.CreateUserOut{}, test.ErrUnexpected)
+				d.validator.On("Validate", &dto.CreateUserIn{}).
+					Return(nil)
+
+				d.userUsecase.On("Create", mock.Anything, &dto.CreateUserIn{}).
+					Return(dto.CreateUserOut{}, test.ErrUnexpected)
 			},
 		},
 		{
@@ -95,8 +116,11 @@ func (s *UserHTTPHandlerTestSuite) TestPost() {
 				},
 			},
 			setup: func(d *dependency) {
-				d.userUsecase.On("Create", mock.Anything, &domain.CreateUserIn{}).
-					Return(domain.CreateUserOut{ID: "user-xxxxx", Email: "gopher@go.dev"}, nil)
+				d.validator.On("Validate", &dto.CreateUserIn{}).
+					Return(nil)
+
+				d.userUsecase.On("Create", mock.Anything, &dto.CreateUserIn{}).
+					Return(dto.CreateUserOut{ID: "user-xxxxx", Email: "gopher@go.dev"}, nil)
 			},
 		},
 	}
@@ -108,12 +132,13 @@ func (s *UserHTTPHandlerTestSuite) TestPost() {
 			req := httptest.NewRequest("POST", "/", reqBody)
 
 			deps := &dependency{
+				validator:   &mocks.ValidatorProvider{},
 				userUsecase: &mocks.UserUsecase{},
 				req:         req,
 			}
 			t.setup(deps)
 
-			handler := New(deps.userUsecase)
+			handler := New(deps.validator, deps.userUsecase)
 			handler.Post(rr, deps.req)
 
 			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))

@@ -5,17 +5,19 @@ import (
 	"net/http"
 
 	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/dto"
 	"github.com/edwintantawi/taskit/pkg/errorx"
 	"github.com/edwintantawi/taskit/pkg/response"
 )
 
 type HTTPHandler struct {
 	userUsecase domain.UserUsecase
+	validator   domain.ValidatorProvider
 }
 
 // New creates a new user handler.
-func New(userUsecase domain.UserUsecase) *HTTPHandler {
-	return &HTTPHandler{userUsecase: userUsecase}
+func New(validator domain.ValidatorProvider, userUsecase domain.UserUsecase) *HTTPHandler {
+	return &HTTPHandler{validator: validator, userUsecase: userUsecase}
 }
 
 // POST /users to create new user.
@@ -23,10 +25,16 @@ func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 
-	var payload domain.CreateUserIn
+	var payload dto.CreateUserIn
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		encoder.Encode(response.Error(http.StatusBadRequest, "Invalid request body"))
+		return
+	}
+	if err := h.validator.Validate(&payload); err != nil {
+		code, msg := errorx.HTTPErrorTranslator(err)
+		w.WriteHeader(code)
+		encoder.Encode(response.Error(code, msg))
 		return
 	}
 

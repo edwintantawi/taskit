@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/dto"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 )
 
@@ -26,11 +27,12 @@ func (s *HTTPErrorTranslatorTestSuite) TestErrorTranslator() {
 		expectedMsg  string
 	}{
 		// User entity
-		{entity.ErrEmailEmpty, 400, "Email is required field"},
 		{entity.ErrEmailInvalid, 400, "Email must be a valid email address"},
-		{entity.ErrPasswordEmpty, 400, "Password is required field"},
 		{entity.ErrPasswordTooShort, 400, fmt.Sprintf("Password must be greater then %d character in length", entity.MinPasswordLength)},
-		{entity.ErrNameEmpty, 400, "Name is required field"},
+		// User DTO
+		{dto.ErrEmailEmpty, 400, "Email is required field"},
+		{dto.ErrPasswordEmpty, 400, "Password is required field"},
+		{dto.ErrNameEmpty, 400, "Name is required field"},
 		// User repository
 		{domain.ErrEmailNotAvailable, 400, "Email is not available"},
 		{domain.ErrUserNotFound, 404, "User not found"},

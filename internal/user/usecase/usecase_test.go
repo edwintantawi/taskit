@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/dto"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/internal/domain/mocks"
 	"github.com/edwintantawi/taskit/test"
@@ -28,7 +28,7 @@ type dependency struct {
 func (s *UserUsecaseTestSuite) TestCreate() {
 	s.Run("it should return error when user validation fail", func() {
 		ctx := context.Background()
-		payload := &domain.CreateUserIn{}
+		payload := &dto.CreateUserIn{}
 
 		usecase := New(nil, nil)
 		output, err := usecase.Create(ctx, payload)
@@ -39,10 +39,10 @@ func (s *UserUsecaseTestSuite) TestCreate() {
 
 	type args struct {
 		ctx     context.Context
-		payload *domain.CreateUserIn
+		payload *dto.CreateUserIn
 	}
 	type expected struct {
-		output domain.CreateUserOut
+		output dto.CreateUserOut
 		err    error
 	}
 	tests := []struct {
@@ -55,10 +55,10 @@ func (s *UserUsecaseTestSuite) TestCreate() {
 			name: "it should return error when user repository VerifyAvailableEmail return unexpected error",
 			args: args{
 				ctx:     context.Background(),
-				payload: &domain.CreateUserIn{Name: "Gopher", Email: "gopher@go.dev", Password: "secret_password"},
+				payload: &dto.CreateUserIn{Name: "Gopher", Email: "gopher@go.dev", Password: "secret_password"},
 			},
 			expected: expected{
-				output: domain.CreateUserOut{},
+				output: dto.CreateUserOut{},
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
@@ -69,10 +69,10 @@ func (s *UserUsecaseTestSuite) TestCreate() {
 			name: "it should return error when hash provider Hash return unexpected error",
 			args: args{
 				ctx:     context.Background(),
-				payload: &domain.CreateUserIn{Name: "Gopher", Email: "gopher@go.dev", Password: "secret_password"},
+				payload: &dto.CreateUserIn{Name: "Gopher", Email: "gopher@go.dev", Password: "secret_password"},
 			},
 			expected: expected{
-				output: domain.CreateUserOut{},
+				output: dto.CreateUserOut{},
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
@@ -84,10 +84,10 @@ func (s *UserUsecaseTestSuite) TestCreate() {
 			name: "it should return error when user repository Store return unexpected error",
 			args: args{
 				ctx:     context.Background(),
-				payload: &domain.CreateUserIn{Name: "Gopher", Email: "gopher@go.dev", Password: "secret_password"},
+				payload: &dto.CreateUserIn{Name: "Gopher", Email: "gopher@go.dev", Password: "secret_password"},
 			},
 			expected: expected{
-				output: domain.CreateUserOut{},
+				output: dto.CreateUserOut{},
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
@@ -105,10 +105,10 @@ func (s *UserUsecaseTestSuite) TestCreate() {
 			name: "it should return error nil and output when success",
 			args: args{
 				ctx:     context.Background(),
-				payload: &domain.CreateUserIn{Name: "Gopher", Email: "gopher@go.dev", Password: "secret_password"},
+				payload: &dto.CreateUserIn{Name: "Gopher", Email: "gopher@go.dev", Password: "secret_password"},
 			},
 			expected: expected{
-				output: domain.CreateUserOut{ID: "user-xxxxx", Email: "gopher@go.dev"},
+				output: dto.CreateUserOut{ID: "user-xxxxx", Email: "gopher@go.dev"},
 				err:    nil,
 			},
 			setup: func(d *dependency) {

@@ -23,6 +23,7 @@ import (
 	"github.com/edwintantawi/taskit/pkg/idgen"
 	"github.com/edwintantawi/taskit/pkg/postgres"
 	"github.com/edwintantawi/taskit/pkg/security"
+	"github.com/edwintantawi/taskit/pkg/validator"
 )
 
 func main() {
@@ -40,6 +41,7 @@ func main() {
 	// Create new providers.
 	hashProvider := security.NewBcrypt()
 	idProvider := idgen.NewUUID()
+	validator := validator.New()
 	jwtProvider := security.NewJWT(
 		security.JWTTokenConfig{Key: cfg.AccessTokenKey, Exp: cfg.AccessTokenExpiration},
 		security.JWTTokenConfig{Key: cfg.RefreshTokenKey, Exp: cfg.RefreshTokenExpiration},
@@ -48,7 +50,7 @@ func main() {
 	// User.
 	userRepository := userRepository.New(db, idProvider)
 	userUsecase := userUsecase.New(userRepository, hashProvider)
-	userHTTPHandler := userHTTPHandler.New(userUsecase)
+	userHTTPHandler := userHTTPHandler.New(validator, userUsecase)
 
 	// Auth.
 	authRepository := authRepository.New(db, idProvider)

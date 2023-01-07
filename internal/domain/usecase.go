@@ -3,6 +3,8 @@ package domain
 import (
 	"context"
 	"errors"
+
+	"github.com/edwintantawi/taskit/internal/domain/dto"
 )
 
 // Auth usecase errors.
@@ -18,7 +20,7 @@ var (
 
 // UserUsecase represent user usecase contract.
 type UserUsecase interface {
-	Create(ctx context.Context, payload *CreateUserIn) (CreateUserOut, error)
+	Create(ctx context.Context, payload *dto.CreateUserIn) (dto.CreateUserOut, error)
 }
 
 // AuthUsecase represent auth usecase contract.

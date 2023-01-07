@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/dto"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 )
 
@@ -18,25 +19,25 @@ func New(userRepository domain.UserRepository, hashProvider domain.HashProvider)
 }
 
 // Create create a new user.
-func (u *usecase) Create(ctx context.Context, payload *domain.CreateUserIn) (domain.CreateUserOut, error) {
+func (u *usecase) Create(ctx context.Context, payload *dto.CreateUserIn) (dto.CreateUserOut, error) {
 	user := &entity.User{Name: payload.Name, Email: payload.Email, Password: payload.Password}
 	if err := user.Validate(); err != nil {
-		return domain.CreateUserOut{}, err
+		return dto.CreateUserOut{}, err
 	}
 
 	if err := u.userRepository.VerifyAvailableEmail(ctx, user.Email); err != nil {
-		return domain.CreateUserOut{}, err
+		return dto.CreateUserOut{}, err
 	}
 
 	securePassword, err := u.hashProvider.Hash(user.Password)
 	if err != nil {
-		return domain.CreateUserOut{}, err
+		return dto.CreateUserOut{}, err
 	}
 	user.Password = string(securePassword)
 
 	id, err := u.userRepository.Store(ctx, user)
 	if err != nil {
-		return domain.CreateUserOut{}, err
+		return dto.CreateUserOut{}, err
 	}
-	return domain.CreateUserOut{ID: id, Email: user.Email}, nil
+	return dto.CreateUserOut{ID: id, Email: user.Email}, nil
 }
