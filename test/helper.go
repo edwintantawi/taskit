@@ -17,6 +17,7 @@ var (
 	ErrDatabase    = errors.New("test.database")
 	ErrRowScan     = errors.New("test.rowscan")
 	ErrRows        = errors.New("test.rows")
+	ErrValidator   = errors.New("test.validator")
 
 	TimeAfterNow  = time.Now().Add(time.Hour)
 	TimeBeforeNow = time.Now().Add(-time.Hour)
