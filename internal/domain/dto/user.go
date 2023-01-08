@@ -1,15 +1,7 @@
 package dto
 
 import (
-	"errors"
-
 	"github.com/edwintantawi/taskit/internal/domain/entity"
-)
-
-var (
-	ErrEmailEmpty    = errors.New("dto.email_empty")
-	ErrPasswordEmpty = errors.New("dto.password_empty")
-	ErrNameEmpty     = errors.New("dto.name_empty")
 )
 
 // CreateUserIn represents the input of user creation.
