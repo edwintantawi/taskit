@@ -138,15 +138,15 @@ func (s *TaskHTTPHandlerTestSuite) TestPost() {
 			rr := httptest.NewRecorder()
 			req := httptest.NewRequest("POST", "/", reqBody)
 
-			deps := &dependency{
+			d := &dependency{
 				req:         req,
 				validator:   &mocks.ValidatorProvider{},
 				taskUsecase: &mocks.TaskUsecase{},
 			}
-			t.setup(deps)
+			t.setup(d)
 
-			handler := New(deps.validator, deps.taskUsecase)
-			handler.Post(rr, deps.req)
+			handler := New(d.validator, d.taskUsecase)
+			handler.Post(rr, d.req)
 
 			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
 			s.Equal(t.expected.statusCode, rr.Code)
@@ -230,14 +230,14 @@ func (s *TaskHTTPHandlerTestSuite) TestGet() {
 			rr := httptest.NewRecorder()
 			req := httptest.NewRequest("GET", "/", nil)
 
-			deps := &dependency{
+			d := &dependency{
 				req:         req,
 				taskUsecase: &mocks.TaskUsecase{},
 			}
-			t.setup(deps)
+			t.setup(d)
 
-			handler := New(nil, deps.taskUsecase)
-			handler.Get(rr, deps.req)
+			handler := New(nil, d.taskUsecase)
+			handler.Get(rr, d.req)
 
 			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
 			s.Equal(t.expected.statusCode, rr.Code)
@@ -329,14 +329,14 @@ func (s *TaskHTTPHandlerTestSuite) TestDelete() {
 
 			req = test.InjectChiRouterParams(req, t.args.params)
 
-			deps := &dependency{
+			d := &dependency{
 				req:         req,
 				taskUsecase: &mocks.TaskUsecase{},
 			}
-			t.setup(deps)
+			t.setup(d)
 
-			handler := New(nil, deps.taskUsecase)
-			handler.Delete(rr, deps.req)
+			handler := New(nil, d.taskUsecase)
+			handler.Delete(rr, d.req)
 
 			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
 			s.Equal(t.expected.statusCode, rr.Code)
@@ -435,14 +435,14 @@ func (s *TaskHTTPHandlerTestSuite) TestGetByID() {
 
 			req = test.InjectChiRouterParams(req, t.args.params)
 
-			deps := &dependency{
+			d := &dependency{
 				req:         req,
 				taskUsecase: &mocks.TaskUsecase{},
 			}
-			t.setup(deps)
+			t.setup(d)
 
-			handler := New(nil, deps.taskUsecase)
-			handler.GetByID(rr, deps.req)
+			handler := New(nil, d.taskUsecase)
+			handler.GetByID(rr, d.req)
 
 			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
 			s.Equal(t.expected.statusCode, rr.Code)
@@ -582,15 +582,15 @@ func (s *TaskHTTPHandlerTestSuite) TestPut() {
 
 			req = test.InjectChiRouterParams(req, t.args.params)
 
-			deps := &dependency{
+			d := &dependency{
 				req:         req,
 				validator:   &mocks.ValidatorProvider{},
 				taskUsecase: &mocks.TaskUsecase{},
 			}
-			t.setup(deps)
+			t.setup(d)
 
-			handler := New(deps.validator, deps.taskUsecase)
-			handler.Put(rr, deps.req)
+			handler := New(d.validator, d.taskUsecase)
+			handler.Put(rr, d.req)
 
 			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
 			s.Equal(t.expected.statusCode, rr.Code)

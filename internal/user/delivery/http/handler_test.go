@@ -131,15 +131,15 @@ func (s *UserHTTPHandlerTestSuite) TestPost() {
 			rr := httptest.NewRecorder()
 			req := httptest.NewRequest("POST", "/", reqBody)
 
-			deps := &dependency{
+			d := &dependency{
 				validator:   &mocks.ValidatorProvider{},
 				userUsecase: &mocks.UserUsecase{},
 				req:         req,
 			}
-			t.setup(deps)
+			t.setup(d)
 
-			handler := New(deps.validator, deps.userUsecase)
-			handler.Post(rr, deps.req)
+			handler := New(d.validator, d.userUsecase)
+			handler.Post(rr, d.req)
 
 			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
 			s.Equal(t.expected.statusCode, rr.Code)

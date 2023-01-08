@@ -249,12 +249,12 @@ func (s *TaskUsecaseTestSuite) TestRemove() {
 	}
 
 	for _, t := range tests {
-		deps := &dependency{
+		d := &dependency{
 			taskRepository: &mocks.TaskRepository{},
 		}
-		t.setup(deps)
+		t.setup(d)
 
-		usecase := New(deps.taskRepository)
+		usecase := New(d.taskRepository)
 		err := usecase.Remove(t.args.ctx, t.args.payload)
 
 		s.Equal(t.expected.err, err)
@@ -347,12 +347,12 @@ func (s *TaskUsecaseTestSuite) TestGetByID() {
 	}
 
 	for _, t := range tests {
-		deps := &dependency{
+		d := &dependency{
 			taskRepository: &mocks.TaskRepository{},
 		}
-		t.setup(deps)
+		t.setup(d)
 
-		usecase := New(deps.taskRepository)
+		usecase := New(d.taskRepository)
 		output, err := usecase.GetByID(t.args.ctx, t.args.payload)
 
 		s.Equal(t.expected.err, err)
@@ -471,12 +471,12 @@ func (s *TaskUsecaseTestSuite) TestUpdate() {
 
 	for _, t := range tests {
 		s.Run(t.name, func() {
-			deps := &dependency{
+			d := &dependency{
 				taskRepository: &mocks.TaskRepository{},
 			}
-			t.setup(deps)
+			t.setup(d)
 
-			usecase := New(deps.taskRepository)
+			usecase := New(d.taskRepository)
 			output, err := usecase.Update(t.args.ctx, t.args.payload)
 
 			s.Equal(t.expected.err, err)

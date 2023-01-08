@@ -132,13 +132,13 @@ func (s *AuthHTTPHandlerTestSuite) TestPost() {
 			rr := httptest.NewRecorder()
 			req := httptest.NewRequest("POST", "/", reqBody)
 
-			deps := &dependency{
+			d := &dependency{
 				validator:   &mocks.ValidatorProvider{},
 				authUsecase: &mocks.AuthUsecase{},
 			}
-			t.setup(deps)
+			t.setup(d)
 
-			handler := New(deps.validator, deps.authUsecase)
+			handler := New(d.validator, d.authUsecase)
 			handler.Post(rr, req)
 
 			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
@@ -261,13 +261,13 @@ func (s *AuthHTTPHandlerTestSuite) TestDelete() {
 			rr := httptest.NewRecorder()
 			req := httptest.NewRequest("DELETE", "/", reqBody)
 
-			deps := &dependency{
+			d := &dependency{
 				validator:   &mocks.ValidatorProvider{},
 				authUsecase: &mocks.AuthUsecase{},
 			}
-			t.setup(deps)
+			t.setup(d)
 
-			handler := New(deps.validator, deps.authUsecase)
+			handler := New(d.validator, d.authUsecase)
 			handler.Delete(rr, req)
 
 			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
@@ -349,15 +349,15 @@ func (s *AuthHTTPHandlerTestSuite) TestGet() {
 			rr := httptest.NewRecorder()
 			req := httptest.NewRequest("GET", "/", nil)
 
-			deps := &dependency{
+			d := &dependency{
 				req:         req,
 				validator:   &mocks.ValidatorProvider{},
 				authUsecase: &mocks.AuthUsecase{},
 			}
-			t.setup(deps)
+			t.setup(d)
 
-			handler := New(deps.validator, deps.authUsecase)
-			handler.Get(rr, deps.req)
+			handler := New(d.validator, d.authUsecase)
+			handler.Get(rr, d.req)
 
 			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
 			s.Equal(t.expected.statusCode, rr.Code)
@@ -482,13 +482,13 @@ func (s *AuthHTTPHandlerTestSuite) TestPut() {
 			rr := httptest.NewRecorder()
 			req := httptest.NewRequest("PUT", "/", reqBody)
 
-			deps := &dependency{
+			d := &dependency{
 				validator:   &mocks.ValidatorProvider{},
 				authUsecase: &mocks.AuthUsecase{},
 			}
-			t.setup(deps)
+			t.setup(d)
 
-			handler := New(deps.validator, deps.authUsecase)
+			handler := New(d.validator, d.authUsecase)
 			handler.Put(rr, req)
 
 			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
