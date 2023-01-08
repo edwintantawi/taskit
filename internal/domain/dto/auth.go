@@ -30,7 +30,8 @@ type AuthLogoutIn struct {
 }
 
 func (a *AuthLogoutIn) Validate() error {
-	if a.RefreshToken == "" {
+	switch {
+	case a.RefreshToken == "":
 		return ErrRefreshTokenEmpty
 	}
 	return nil
@@ -54,7 +55,8 @@ type AuthRefreshIn struct {
 }
 
 func (a *AuthRefreshIn) Validate() error {
-	if a.RefreshToken == "" {
+	switch {
+	case a.RefreshToken == "":
 		return ErrRefreshTokenEmpty
 	}
 	return nil
