@@ -9,19 +9,20 @@ import (
 )
 
 type usecase struct {
+	validator      domain.ValidatorProvider
 	userRepository domain.UserRepository
 	hashProvider   domain.HashProvider
 }
 
 // New create a new user usecase.
-func New(userRepository domain.UserRepository, hashProvider domain.HashProvider) domain.UserUsecase {
-	return &usecase{userRepository: userRepository, hashProvider: hashProvider}
+func New(validator domain.ValidatorProvider, userRepository domain.UserRepository, hashProvider domain.HashProvider) domain.UserUsecase {
+	return &usecase{validator: validator, userRepository: userRepository, hashProvider: hashProvider}
 }
 
 // Create create a new user.
 func (u *usecase) Create(ctx context.Context, payload *dto.UserCreateIn) (dto.UserCreateOut, error) {
 	user := &entity.User{Name: payload.Name, Email: payload.Email, Password: payload.Password}
-	if err := user.Validate(); err != nil {
+	if err := u.validator.Validate(user); err != nil {
 		return dto.UserCreateOut{}, err
 	}
 

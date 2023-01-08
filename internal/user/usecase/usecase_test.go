@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/edwintantawi/taskit/internal/domain/dto"
@@ -21,22 +22,12 @@ func TestUserUsecaseSuite(t *testing.T) {
 }
 
 type dependency struct {
+	validator      *mocks.ValidatorProvider
 	userRepository *mocks.UserRepository
 	hashProvider   *mocks.HashProvider
 }
 
 func (s *UserUsecaseTestSuite) TestCreate() {
-	s.Run("it should return error when user validation fail", func() {
-		ctx := context.Background()
-		payload := &dto.UserCreateIn{}
-
-		usecase := New(nil, nil)
-		output, err := usecase.Create(ctx, payload)
-
-		s.Error(err)
-		s.Empty(output)
-	})
-
 	type args struct {
 		ctx     context.Context
 		payload *dto.UserCreateIn
@@ -52,6 +43,20 @@ func (s *UserUsecaseTestSuite) TestCreate() {
 		setup    func(d *dependency)
 	}{
 		{
+			name: "it should return error when user validation error",
+			args: args{
+				ctx:     context.Background(),
+				payload: &dto.UserCreateIn{},
+			},
+			expected: expected{
+				output: dto.UserCreateOut{},
+				err:    test.ErrValidator,
+			},
+			setup: func(d *dependency) {
+				d.validator.On("Validate", mock.Anything).Return(test.ErrValidator)
+			},
+		},
+		{
 			name: "it should return error when user repository VerifyAvailableEmail return unexpected error",
 			args: args{
 				ctx:     context.Background(),
@@ -62,7 +67,10 @@ func (s *UserUsecaseTestSuite) TestCreate() {
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
-				d.userRepository.On("VerifyAvailableEmail", context.Background(), "gopher@go.dev").Return(test.ErrUnexpected)
+				d.validator.On("Validate", mock.Anything).Return(nil)
+
+				d.userRepository.On("VerifyAvailableEmail", context.Background(), "gopher@go.dev").
+					Return(test.ErrUnexpected)
 			},
 		},
 		{
@@ -76,8 +84,13 @@ func (s *UserUsecaseTestSuite) TestCreate() {
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
-				d.userRepository.On("VerifyAvailableEmail", context.Background(), "gopher@go.dev").Return(nil)
-				d.hashProvider.On("Hash", "secret_password").Return(nil, test.ErrUnexpected)
+				d.validator.On("Validate", mock.Anything).Return(nil)
+
+				d.userRepository.On("VerifyAvailableEmail", context.Background(), "gopher@go.dev").
+					Return(nil)
+
+				d.hashProvider.On("Hash", "secret_password").
+					Return(nil, test.ErrUnexpected)
 			},
 		},
 		{
@@ -91,6 +104,8 @@ func (s *UserUsecaseTestSuite) TestCreate() {
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
+				d.validator.On("Validate", mock.Anything).Return(nil)
+
 				d.userRepository.On("VerifyAvailableEmail", context.Background(), "gopher@go.dev").
 					Return(nil)
 
@@ -112,6 +127,8 @@ func (s *UserUsecaseTestSuite) TestCreate() {
 				err:    nil,
 			},
 			setup: func(d *dependency) {
+				d.validator.On("Validate", mock.Anything).Return(nil)
+
 				d.userRepository.On("VerifyAvailableEmail", context.Background(), "gopher@go.dev").
 					Return(nil)
 
@@ -127,12 +144,13 @@ func (s *UserUsecaseTestSuite) TestCreate() {
 	for _, t := range tests {
 		s.Run(t.name, func() {
 			d := &dependency{
+				validator:      &mocks.ValidatorProvider{},
 				userRepository: &mocks.UserRepository{},
 				hashProvider:   &mocks.HashProvider{},
 			}
 			t.setup(d)
 
-			usecase := New(d.userRepository, d.hashProvider)
+			usecase := New(d.validator, d.userRepository, d.hashProvider)
 			output, err := usecase.Create(t.args.ctx, t.args.payload)
 
 			s.Equal(t.expected.err, err)
