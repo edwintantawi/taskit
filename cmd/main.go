@@ -23,6 +23,7 @@ import (
 	"github.com/edwintantawi/taskit/pkg/idgen"
 	"github.com/edwintantawi/taskit/pkg/postgres"
 	"github.com/edwintantawi/taskit/pkg/security"
+	"github.com/edwintantawi/taskit/pkg/validator"
 )
 
 func main() {
@@ -40,6 +41,7 @@ func main() {
 	// Create new providers.
 	hashProvider := security.NewBcrypt()
 	idProvider := idgen.NewUUID()
+	validator := validator.New()
 	jwtProvider := security.NewJWT(
 		security.JWTTokenConfig{Key: cfg.AccessTokenKey, Exp: cfg.AccessTokenExpiration},
 		security.JWTTokenConfig{Key: cfg.RefreshTokenKey, Exp: cfg.RefreshTokenExpiration},
@@ -47,19 +49,19 @@ func main() {
 
 	// User.
 	userRepository := userRepository.New(db, idProvider)
-	userUsecase := userUsecase.New(userRepository, hashProvider)
-	userHTTPHandler := userHTTPHandler.New(userUsecase)
+	userUsecase := userUsecase.New(validator, userRepository, hashProvider)
+	userHTTPHandler := userHTTPHandler.New(validator, userUsecase)
 
 	// Auth.
 	authRepository := authRepository.New(db, idProvider)
-	authUsecase := authUsecase.New(authRepository, userRepository, hashProvider, jwtProvider)
-	authHTTPHandler := authHTTPHandler.New(authUsecase)
+	authUsecase := authUsecase.New(validator, authRepository, userRepository, hashProvider, jwtProvider)
+	authHTTPHandler := authHTTPHandler.New(validator, authUsecase)
 	authMiddleware := authMiddleware.New(jwtProvider)
 
 	// Task.
 	taskRepository := taskRepository.New(db, idProvider)
 	taskUsecase := taskUsecase.New(taskRepository)
-	taskHTTPHandler := taskHTTPHandler.New(taskUsecase)
+	taskHTTPHandler := taskHTTPHandler.New(validator, taskUsecase)
 
 	// Create new router.
 	r := chi.NewRouter()

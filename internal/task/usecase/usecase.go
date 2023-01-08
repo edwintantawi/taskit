@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/dto"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 )
 
@@ -17,28 +18,26 @@ func New(taskRepository domain.TaskRepository) domain.TaskUsecase {
 }
 
 // Create create a new task.
-func (u *usecase) Create(ctx context.Context, payload *domain.CreateTaskIn) (domain.CreateTaskOut, error) {
+func (u *usecase) Create(ctx context.Context, payload *dto.TaskCreateIn) (dto.TaskCreateOut, error) {
 	task := &entity.Task{UserID: payload.UserID, Content: payload.Content, Description: payload.Description, DueDate: payload.DueDate}
-	if err := task.Validate(); err != nil {
-		return domain.CreateTaskOut{}, err
-	}
+
 	taskID, err := u.taskRepository.Store(ctx, task)
 	if err != nil {
-		return domain.CreateTaskOut{}, err
+		return dto.TaskCreateOut{}, err
 	}
-	return domain.CreateTaskOut{ID: taskID}, nil
+	return dto.TaskCreateOut{ID: taskID}, nil
 }
 
 // GetAll get all tasks.
-func (u *usecase) GetAll(ctx context.Context, payload *domain.GetAllTaskIn) ([]domain.GetAllTaskOut, error) {
+func (u *usecase) GetAll(ctx context.Context, payload *dto.TaskGetAllIn) ([]dto.TaskGetAllOut, error) {
 	tasks, err := u.taskRepository.FindAllByUserID(ctx, payload.UserID)
 	if err != nil {
 		return nil, err
 	}
 
-	output := make([]domain.GetAllTaskOut, len(tasks))
+	output := make([]dto.TaskGetAllOut, len(tasks))
 	for i, task := range tasks {
-		output[i] = domain.GetAllTaskOut{
+		output[i] = dto.TaskGetAllOut{
 			ID:          task.ID,
 			Content:     task.Content,
 			Description: task.Description,
@@ -52,7 +51,7 @@ func (u *usecase) GetAll(ctx context.Context, payload *domain.GetAllTaskIn) ([]d
 }
 
 // Remove remove a task.
-func (u *usecase) Remove(ctx context.Context, payload *domain.RemoveTaskIn) error {
+func (u *usecase) Remove(ctx context.Context, payload *dto.TaskRemoveIn) error {
 	task, err := u.taskRepository.FindByID(ctx, payload.TaskID)
 	if err != nil {
 		return err
@@ -67,16 +66,16 @@ func (u *usecase) Remove(ctx context.Context, payload *domain.RemoveTaskIn) erro
 }
 
 // GetByID get task by id.
-func (u *usecase) GetByID(ctx context.Context, payload *domain.GetTaskByIDIn) (domain.GetTaskByIDOut, error) {
+func (u *usecase) GetByID(ctx context.Context, payload *dto.TaskGetByIDIn) (dto.TaskGetByIDOut, error) {
 	task, err := u.taskRepository.FindByID(ctx, payload.TaskID)
 	if err != nil {
-		return domain.GetTaskByIDOut{}, err
+		return dto.TaskGetByIDOut{}, err
 	}
 	if task.UserID != payload.UserID {
-		return domain.GetTaskByIDOut{}, domain.ErrTaskAuthorization
+		return dto.TaskGetByIDOut{}, domain.ErrTaskAuthorization
 	}
 
-	output := domain.GetTaskByIDOut{
+	output := dto.TaskGetByIDOut{
 		ID:          task.ID,
 		Content:     task.Content,
 		Description: task.Description,
@@ -88,13 +87,13 @@ func (u *usecase) GetByID(ctx context.Context, payload *domain.GetTaskByIDIn) (d
 	return output, nil
 }
 
-func (u *usecase) Update(ctx context.Context, payload *domain.UpdateTaskIn) (domain.UpdateTaskOut, error) {
+func (u *usecase) Update(ctx context.Context, payload *dto.TaskUpdateIn) (dto.TaskUpdateOut, error) {
 	task, err := u.taskRepository.FindByID(ctx, payload.TaskID)
 	if err != nil {
-		return domain.UpdateTaskOut{}, err
+		return dto.TaskUpdateOut{}, err
 	}
 	if task.UserID != payload.UserID {
-		return domain.UpdateTaskOut{}, domain.ErrTaskAuthorization
+		return dto.TaskUpdateOut{}, domain.ErrTaskAuthorization
 	}
 
 	task.Content = payload.Content
@@ -104,7 +103,7 @@ func (u *usecase) Update(ctx context.Context, payload *domain.UpdateTaskIn) (dom
 
 	taskID, err := u.taskRepository.Update(ctx, &task)
 	if err != nil {
-		return domain.UpdateTaskOut{}, err
+		return dto.TaskUpdateOut{}, err
 	}
-	return domain.UpdateTaskOut{ID: taskID}, nil
+	return dto.TaskUpdateOut{ID: taskID}, nil
 }

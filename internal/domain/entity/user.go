@@ -16,11 +16,8 @@ var emailRegex = regexp.MustCompile(emailRegexStr)
 
 // User entity errors.
 var (
-	ErrEmailEmpty       = errors.New("user.entity.email_empty")
 	ErrEmailInvalid     = errors.New("user.entity.email_invalid")
-	ErrPasswordEmpty    = errors.New("user.entity.password_empty")
 	ErrPasswordTooShort = errors.New("user.entity.password_too_short")
-	ErrNameEmpty        = errors.New("user.entity.name_empty")
 )
 
 type UserID string
@@ -38,16 +35,10 @@ type User struct {
 // Validate user fields.
 func (u *User) Validate() error {
 	switch {
-	case u.Email == "":
-		return ErrEmailEmpty
 	case !emailRegex.MatchString(u.Email):
 		return ErrEmailInvalid
-	case u.Password == "":
-		return ErrPasswordEmpty
 	case len(u.Password) < MinPasswordLength:
 		return ErrPasswordTooShort
-	case u.Name == "":
-		return ErrNameEmpty
 	}
 	return nil
 }

@@ -5,9 +5,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/dto"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/internal/domain/mocks"
 	"github.com/edwintantawi/taskit/test"
@@ -22,6 +24,7 @@ func TestAuthUsecaseSuite(t *testing.T) {
 }
 
 type dependency struct {
+	validator      *mocks.ValidatorProvider
 	authRepository *mocks.AuthRepository
 	userRepository *mocks.UserRepository
 	hashProvider   *mocks.HashProvider
@@ -31,10 +34,10 @@ type dependency struct {
 func (s *AuthUsecaseTestSuite) TestLogin() {
 	type args struct {
 		ctx     context.Context
-		payload *domain.LoginAuthIn
+		payload *dto.AuthLoginIn
 	}
 	type expected struct {
-		output domain.LoginAuthOut
+		output dto.AuthLoginOut
 		err    error
 	}
 	tests := []struct {
@@ -44,18 +47,39 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 		setup    func(d *dependency)
 	}{
 		{
+			name: "it should return error when user validation failed",
+			args: args{
+				ctx:     context.Background(),
+				payload: &dto.AuthLoginIn{},
+			},
+			expected: expected{
+				output: dto.AuthLoginOut{},
+				err:    test.ErrValidator,
+			},
+			setup: func(d *dependency) {
+				d.validator.On("Validate", mock.Anything).
+					Return(test.ErrValidator)
+
+				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
+					Return(entity.User{}, domain.ErrUserNotFound)
+			},
+		},
+		{
 			name: "it should return error ErrEmailNotExist when email not found",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.LoginAuthIn{
+				payload: &dto.AuthLoginIn{
 					Email: "gopher@go.dev",
 				},
 			},
 			expected: expected{
-				output: domain.LoginAuthOut{},
+				output: dto.AuthLoginOut{},
 				err:    domain.ErrEmailNotExist,
 			},
 			setup: func(d *dependency) {
+				d.validator.On("Validate", mock.Anything).
+					Return(nil)
+
 				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
 					Return(entity.User{}, domain.ErrUserNotFound)
 			},
@@ -64,15 +88,18 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 			name: "it should return error when user repository FindByEmail return unexpected error",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.LoginAuthIn{
+				payload: &dto.AuthLoginIn{
 					Email: "gopher@go.dev",
 				},
 			},
 			expected: expected{
-				output: domain.LoginAuthOut{},
+				output: dto.AuthLoginOut{},
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
+				d.validator.On("Validate", mock.Anything).
+					Return(nil)
+
 				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
 					Return(entity.User{}, test.ErrUnexpected)
 			},
@@ -81,16 +108,19 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 			name: "it should return error ErrPasswordIncorrect when password is incorrect",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.LoginAuthIn{
+				payload: &dto.AuthLoginIn{
 					Email:    "gopher@go.dev",
 					Password: "secret_password",
 				},
 			},
 			expected: expected{
-				output: domain.LoginAuthOut{},
+				output: dto.AuthLoginOut{},
 				err:    domain.ErrPasswordIncorrect,
 			},
 			setup: func(d *dependency) {
+				d.validator.On("Validate", mock.Anything).
+					Return(nil)
+
 				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
 					Return(entity.User{Password: "secret_hashed_password"}, nil)
 
@@ -102,16 +132,19 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 			name: "it should return error when generate access token failed",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.LoginAuthIn{
+				payload: &dto.AuthLoginIn{
 					Email:    "gopher@go.dev",
 					Password: "secret_password",
 				},
 			},
 			expected: expected{
-				output: domain.LoginAuthOut{},
+				output: dto.AuthLoginOut{},
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
+				d.validator.On("Validate", mock.Anything).
+					Return(nil)
+
 				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
 					Return(entity.User{ID: "user-xxxxx", Password: "secret_hashed_password"}, nil)
 
@@ -126,16 +159,19 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 			name: "it should return error when generate refresh token failed",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.LoginAuthIn{
+				payload: &dto.AuthLoginIn{
 					Email:    "gopher@go.dev",
 					Password: "secret_password",
 				},
 			},
 			expected: expected{
-				output: domain.LoginAuthOut{},
+				output: dto.AuthLoginOut{},
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
+				d.validator.On("Validate", mock.Anything).
+					Return(nil)
+
 				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
 					Return(entity.User{ID: "user-xxxxx", Password: "secret_hashed_password"}, nil)
 
@@ -153,16 +189,19 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 			name: "it should return error when auth respository Store return unexpected error",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.LoginAuthIn{
+				payload: &dto.AuthLoginIn{
 					Email:    "gopher@go.dev",
 					Password: "secret_password",
 				},
 			},
 			expected: expected{
-				output: domain.LoginAuthOut{},
+				output: dto.AuthLoginOut{},
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
+				d.validator.On("Validate", mock.Anything).
+					Return(nil)
+
 				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
 					Return(entity.User{ID: "user-xxxxx", Password: "secret_hashed_password"}, nil)
 
@@ -183,19 +222,22 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 			name: "it should return error nil and output when success",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.LoginAuthIn{
+				payload: &dto.AuthLoginIn{
 					Email:    "gopher@go.dev",
 					Password: "secret_password",
 				},
 			},
 			expected: expected{
-				output: domain.LoginAuthOut{
+				output: dto.AuthLoginOut{
 					AccessToken:  "xxxxx.xxxxx.xxxxx",
 					RefreshToken: "yyyyy.yyyyy.yyyyy",
 				},
 				err: nil,
 			},
 			setup: func(d *dependency) {
+				d.validator.On("Validate", mock.Anything).
+					Return(nil)
+
 				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
 					Return(entity.User{ID: "user-xxxxx", Password: "secret_hashed_password"}, nil)
 
@@ -217,6 +259,7 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 	for _, t := range tests {
 		s.Run(t.name, func() {
 			d := &dependency{
+				validator:      &mocks.ValidatorProvider{},
 				userRepository: &mocks.UserRepository{},
 				authRepository: &mocks.AuthRepository{},
 				hashProvider:   &mocks.HashProvider{},
@@ -224,7 +267,7 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 			}
 			t.setup(d)
 
-			usecase := New(d.authRepository, d.userRepository, d.hashProvider, d.jwtProvider)
+			usecase := New(d.validator, d.authRepository, d.userRepository, d.hashProvider, d.jwtProvider)
 			output, err := usecase.Login(t.args.ctx, t.args.payload)
 
 			s.Equal(t.expected.err, err)
@@ -234,19 +277,9 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 }
 
 func (s *AuthUsecaseTestSuite) TestLogout() {
-	s.Run("it should return error when validation fail", func() {
-		ctx := context.Background()
-		payload := &domain.LogoutAuthIn{}
-		usecase := New(nil, nil, nil, nil)
-
-		err := usecase.Logout(ctx, payload)
-
-		s.Error(err)
-	})
-
 	type args struct {
 		ctx     context.Context
-		payload *domain.LogoutAuthIn
+		payload *dto.AuthLogoutIn
 	}
 	type expected struct {
 		err error
@@ -261,7 +294,7 @@ func (s *AuthUsecaseTestSuite) TestLogout() {
 			name: "it should return error when auth VerifyAvailableByToken return error",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.LogoutAuthIn{
+				payload: &dto.AuthLogoutIn{
 					RefreshToken: "yyyyy.yyyyy.yyyyy",
 				},
 			},
@@ -277,7 +310,7 @@ func (s *AuthUsecaseTestSuite) TestLogout() {
 			name: "it should return error when auth Delete repository return unexpected error",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.LogoutAuthIn{
+				payload: &dto.AuthLogoutIn{
 					RefreshToken: "yyyyy.yyyyy.yyyyy",
 				},
 			},
@@ -296,7 +329,7 @@ func (s *AuthUsecaseTestSuite) TestLogout() {
 			name: "it should return error nil when successfully delete authentication",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.LogoutAuthIn{
+				payload: &dto.AuthLogoutIn{
 					RefreshToken: "yyyyy.yyyyy.yyyyy",
 				},
 			},
@@ -320,7 +353,7 @@ func (s *AuthUsecaseTestSuite) TestLogout() {
 			}
 			t.setup(d)
 
-			usecase := New(d.authRepository, d.userRepository, d.hashProvider, d.jwtProvider)
+			usecase := New(nil, d.authRepository, d.userRepository, d.hashProvider, d.jwtProvider)
 			err := usecase.Logout(t.args.ctx, t.args.payload)
 
 			s.Equal(t.expected.err, err)
@@ -331,10 +364,10 @@ func (s *AuthUsecaseTestSuite) TestLogout() {
 func (s *AuthUsecaseTestSuite) TestGetProfile() {
 	type args struct {
 		ctx     context.Context
-		payload *domain.GetProfileAuthIn
+		payload *dto.AuthProfileIn
 	}
 	type expected struct {
-		output domain.GetProfileAuthOut
+		output dto.AuthProfileOut
 		err    error
 	}
 	tests := []struct {
@@ -347,12 +380,12 @@ func (s *AuthUsecaseTestSuite) TestGetProfile() {
 			name: "it should return error when user repository FindByID return unexpected error",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.GetProfileAuthIn{
+				payload: &dto.AuthProfileIn{
 					UserID: "user-xxxxx",
 				},
 			},
 			expected: expected{
-				output: domain.GetProfileAuthOut{},
+				output: dto.AuthProfileOut{},
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
@@ -364,12 +397,12 @@ func (s *AuthUsecaseTestSuite) TestGetProfile() {
 			name: "it should return error nil and output when success",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.GetProfileAuthIn{
+				payload: &dto.AuthProfileIn{
 					UserID: "user-xxxxx",
 				},
 			},
 			expected: expected{
-				output: domain.GetProfileAuthOut{
+				output: dto.AuthProfileOut{
 					ID:    "user-xxxxx",
 					Name:  "Gopher",
 					Email: "gopher@go.dev",
@@ -390,7 +423,7 @@ func (s *AuthUsecaseTestSuite) TestGetProfile() {
 			}
 			t.setup(d)
 
-			usecase := New(d.authRepository, d.userRepository, d.hashProvider, d.jwtProvider)
+			usecase := New(nil, d.authRepository, d.userRepository, d.hashProvider, d.jwtProvider)
 			output, err := usecase.GetProfile(t.args.ctx, t.args.payload)
 
 			s.Equal(t.expected.err, err)
@@ -402,10 +435,10 @@ func (s *AuthUsecaseTestSuite) TestGetProfile() {
 func (s *AuthUsecaseTestSuite) TestRefresh() {
 	type args struct {
 		ctx     context.Context
-		payload *domain.RefreshAuthIn
+		payload *dto.AuthRefreshIn
 	}
 	type expected struct {
-		output domain.RefreshAuthOut
+		output dto.AuthRefreshOut
 		err    error
 	}
 	tests := []struct {
@@ -418,12 +451,12 @@ func (s *AuthUsecaseTestSuite) TestRefresh() {
 			name: "it should return error when auth repository FindByToken return unexpected error",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.RefreshAuthIn{
+				payload: &dto.AuthRefreshIn{
 					RefreshToken: "yyyyy.yyyyy.yyyyy",
 				},
 			},
 			expected: expected{
-				output: domain.RefreshAuthOut{},
+				output: dto.AuthRefreshOut{},
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
@@ -435,12 +468,12 @@ func (s *AuthUsecaseTestSuite) TestRefresh() {
 			name: "it should return error ErrAuthTokenExpired when token is expired",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.RefreshAuthIn{
+				payload: &dto.AuthRefreshIn{
 					RefreshToken: "yyyyy.yyyyy.yyyyy",
 				},
 			},
 			expected: expected{
-				output: domain.RefreshAuthOut{},
+				output: dto.AuthRefreshOut{},
 				err:    entity.ErrAuthTokenExpired,
 			},
 			setup: func(d *dependency) {
@@ -452,12 +485,12 @@ func (s *AuthUsecaseTestSuite) TestRefresh() {
 			name: "it should return error when generate new access token failed",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.RefreshAuthIn{
+				payload: &dto.AuthRefreshIn{
 					RefreshToken: "yyyyy.yyyyy.yyyyy",
 				},
 			},
 			expected: expected{
-				output: domain.RefreshAuthOut{},
+				output: dto.AuthRefreshOut{},
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
@@ -472,12 +505,12 @@ func (s *AuthUsecaseTestSuite) TestRefresh() {
 			name: "it should return error when generate new refresh token failed",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.RefreshAuthIn{
+				payload: &dto.AuthRefreshIn{
 					RefreshToken: "yyyyy.yyyyy.yyyyy",
 				},
 			},
 			expected: expected{
-				output: domain.RefreshAuthOut{},
+				output: dto.AuthRefreshOut{},
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
@@ -495,12 +528,12 @@ func (s *AuthUsecaseTestSuite) TestRefresh() {
 			name: "it should return error when auth respository Delete return unexpected error",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.RefreshAuthIn{
+				payload: &dto.AuthRefreshIn{
 					RefreshToken: "yyyyy.yyyyy.yyyyy",
 				},
 			},
 			expected: expected{
-				output: domain.RefreshAuthOut{},
+				output: dto.AuthRefreshOut{},
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
@@ -521,12 +554,12 @@ func (s *AuthUsecaseTestSuite) TestRefresh() {
 			name: "it should return error when auth respository Store return unexpected error",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.RefreshAuthIn{
+				payload: &dto.AuthRefreshIn{
 					RefreshToken: "yyyyy.yyyyy.yyyyy",
 				},
 			},
 			expected: expected{
-				output: domain.RefreshAuthOut{},
+				output: dto.AuthRefreshOut{},
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
@@ -550,12 +583,12 @@ func (s *AuthUsecaseTestSuite) TestRefresh() {
 			name: "it should return error nil and output when success",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.RefreshAuthIn{
+				payload: &dto.AuthRefreshIn{
 					RefreshToken: "yyyyy.yyyyy.yyyyy",
 				},
 			},
 			expected: expected{
-				output: domain.RefreshAuthOut{
+				output: dto.AuthRefreshOut{
 					AccessToken:  "xxxxx.xxxxx.xxxxx",
 					RefreshToken: "zzzzz.zzzzz.zzzzz",
 				},
@@ -588,7 +621,7 @@ func (s *AuthUsecaseTestSuite) TestRefresh() {
 			}
 			t.setup(d)
 
-			usecase := New(d.authRepository, d.userRepository, d.hashProvider, d.jwtProvider)
+			usecase := New(nil, d.authRepository, d.userRepository, d.hashProvider, d.jwtProvider)
 			output, err := usecase.Refresh(t.args.ctx, t.args.payload)
 
 			s.Equal(t.expected.err, err)

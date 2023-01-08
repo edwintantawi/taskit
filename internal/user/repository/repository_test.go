@@ -86,13 +86,13 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 				s.FailNow("an error '%s' was not expected when opening a database mock connection", err)
 			}
 
-			deps := &dependency{
+			d := &dependency{
 				mockDB:     mockDB,
 				idProvider: &mocks.IDProvider{},
 			}
-			t.setup(deps)
+			t.setup(d)
 
-			repository := New(db, deps.idProvider)
+			repository := New(db, d.idProvider)
 			userID, err := repository.Store(t.args.ctx, t.args.user)
 
 			s.Equal(t.expected.userID, userID)
@@ -170,10 +170,10 @@ func (s *UserRepositoryTestSuite) TestVerifyAvailableEmail() {
 				s.FailNow("an error '%s' was not expected when opening a database mock connection", err)
 			}
 
-			deps := &dependency{
+			d := &dependency{
 				mockDB: mockDB,
 			}
-			t.setup(deps)
+			t.setup(d)
 
 			repository := New(db, nil)
 			err = repository.VerifyAvailableEmail(t.args.ctx, t.args.email)
@@ -265,10 +265,10 @@ func (s *UserRepositoryTestSuite) TestFindByEmail() {
 				s.FailNow("an error '%s' was not expected when opening a database mock connection", err)
 			}
 
-			deps := &dependency{
+			d := &dependency{
 				mockDB: mockDB,
 			}
-			t.setup(deps)
+			t.setup(d)
 
 			repository := New(db, nil)
 			user, err := repository.FindByEmail(t.args.ctx, t.args.email)
@@ -361,10 +361,10 @@ func (s *UserRepositoryTestSuite) TestFindByID() {
 				s.FailNow("an error '%s' was not expected when opening a database mock connection", err)
 			}
 
-			deps := &dependency{
+			d := &dependency{
 				mockDB: mockDB,
 			}
-			t.setup(deps)
+			t.setup(d)
 
 			repository := New(db, nil)
 			user, err := repository.FindByID(t.args.ctx, t.args.userID)

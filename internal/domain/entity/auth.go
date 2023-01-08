@@ -8,7 +8,6 @@ import (
 
 // Auth entity errors.
 var (
-	ErrAuthTokenEmpty   = errors.New("auth.entity.token.empty")
 	ErrAuthTokenExpired = errors.New("auth.entity.token.expired")
 )
 
@@ -24,15 +23,6 @@ type Auth struct {
 	UserID    UserID
 	Token     string
 	ExpiresAt time.Time
-}
-
-// Validate auth fields.
-func (a *Auth) Validate() error {
-	switch {
-	case a.Token == "":
-		return ErrAuthTokenEmpty
-	}
-	return nil
 }
 
 // VerifyTokenExpires checks if the token has expired.

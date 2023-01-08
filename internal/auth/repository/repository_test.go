@@ -86,13 +86,13 @@ func (s *AuthRepositoryTestSuite) TestStore() {
 				s.FailNow("an error '%s' was not expected when opening a database mock connection", err)
 			}
 
-			deps := &dependency{
+			d := &dependency{
 				mockDB:     mockDB,
 				idProvider: &mocks.IDProvider{},
 			}
-			t.setup(deps)
+			t.setup(d)
 
-			repository := New(db, deps.idProvider)
+			repository := New(db, d.idProvider)
 			err = repository.Store(t.args.ctx, t.args.auth)
 
 			s.Equal(t.expected.err, err)
@@ -184,10 +184,10 @@ func (s *AuthRepositoryTestSuite) TestVerifyAvailableByID() {
 				s.FailNow("an error '%s' was not expected when opening a database mock connection", err)
 			}
 
-			deps := &dependency{
+			d := &dependency{
 				mockDB: mockDB,
 			}
-			t.setup(deps)
+			t.setup(d)
 
 			repository := New(db, nil)
 			err = repository.VerifyAvailableByToken(t.args.ctx, t.args.token)

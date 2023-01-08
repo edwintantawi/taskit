@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/dto"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/internal/domain/mocks"
 	"github.com/edwintantawi/taskit/pkg/errorx"
@@ -28,6 +28,7 @@ func TestAuthHTTPHandlerSuite(t *testing.T) {
 
 type dependency struct {
 	req         *http.Request
+	validator   *mocks.ValidatorProvider
 	authUsecase *mocks.AuthUsecase
 }
 
@@ -64,6 +65,24 @@ func (s *AuthHTTPHandlerTestSuite) TestPost() {
 			setup: func(d *dependency) {},
 		},
 		{
+			name:    "it should response with error when payload is not valid",
+			isError: true,
+			args: args{
+				requestBody: []byte(`{}`),
+			},
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusInternalServerError,
+				message:     http.StatusText(http.StatusInternalServerError),
+				error:       errorx.InternalServerErrorMessage,
+			},
+			setup: func(d *dependency) {
+				d.validator.On("Validate", &dto.AuthLoginIn{}).
+					Return(test.ErrValidator)
+			},
+		},
+
+		{
 			name:    "it should response with error when auth usecase Login return unexpected error",
 			isError: true,
 			args: args{
@@ -76,8 +95,11 @@ func (s *AuthHTTPHandlerTestSuite) TestPost() {
 				error:       errorx.InternalServerErrorMessage,
 			},
 			setup: func(d *dependency) {
-				d.authUsecase.On("Login", mock.Anything, &domain.LoginAuthIn{}).
-					Return(domain.LoginAuthOut{}, test.ErrUnexpected)
+				d.validator.On("Validate", &dto.AuthLoginIn{}).
+					Return(nil)
+
+				d.authUsecase.On("Login", mock.Anything, &dto.AuthLoginIn{}).
+					Return(dto.AuthLoginOut{}, test.ErrUnexpected)
 			},
 		},
 		{
@@ -95,8 +117,11 @@ func (s *AuthHTTPHandlerTestSuite) TestPost() {
 				},
 			},
 			setup: func(d *dependency) {
-				d.authUsecase.On("Login", mock.Anything, &domain.LoginAuthIn{}).
-					Return(domain.LoginAuthOut{AccessToken: "xxxxx.xxxxx.xxxxx", RefreshToken: "yyyyy.yyyyy.yyyyy"}, nil)
+				d.validator.On("Validate", &dto.AuthLoginIn{}).
+					Return(nil)
+
+				d.authUsecase.On("Login", mock.Anything, &dto.AuthLoginIn{}).
+					Return(dto.AuthLoginOut{AccessToken: "xxxxx.xxxxx.xxxxx", RefreshToken: "yyyyy.yyyyy.yyyyy"}, nil)
 			},
 		},
 	}
@@ -107,12 +132,13 @@ func (s *AuthHTTPHandlerTestSuite) TestPost() {
 			rr := httptest.NewRecorder()
 			req := httptest.NewRequest("POST", "/", reqBody)
 
-			deps := &dependency{
+			d := &dependency{
+				validator:   &mocks.ValidatorProvider{},
 				authUsecase: &mocks.AuthUsecase{},
 			}
-			t.setup(deps)
+			t.setup(d)
 
-			handler := New(deps.authUsecase)
+			handler := New(d.validator, d.authUsecase)
 			handler.Post(rr, req)
 
 			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
@@ -171,6 +197,23 @@ func (s *AuthHTTPHandlerTestSuite) TestDelete() {
 			setup: func(d *dependency) {},
 		},
 		{
+			name:    "it should response with error when payload is not valid",
+			isError: true,
+			args: args{
+				requestBody: []byte(`{}`),
+			},
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusInternalServerError,
+				message:     http.StatusText(http.StatusInternalServerError),
+				error:       errorx.InternalServerErrorMessage,
+			},
+			setup: func(d *dependency) {
+				d.validator.On("Validate", &dto.AuthLogoutIn{}).
+					Return(test.ErrValidator)
+			},
+		},
+		{
 			name:    "it should response with error when auth usecase Logout return unexpected error",
 			isError: true,
 			args: args{
@@ -183,7 +226,10 @@ func (s *AuthHTTPHandlerTestSuite) TestDelete() {
 				error:       errorx.InternalServerErrorMessage,
 			},
 			setup: func(d *dependency) {
-				d.authUsecase.On("Logout", mock.Anything, &domain.LogoutAuthIn{}).
+				d.validator.On("Validate", &dto.AuthLogoutIn{}).
+					Return(nil)
+
+				d.authUsecase.On("Logout", mock.Anything, &dto.AuthLogoutIn{}).
 					Return(test.ErrUnexpected)
 			},
 		},
@@ -200,7 +246,10 @@ func (s *AuthHTTPHandlerTestSuite) TestDelete() {
 				payload:     nil,
 			},
 			setup: func(d *dependency) {
-				d.authUsecase.On("Logout", mock.Anything, &domain.LogoutAuthIn{}).
+				d.validator.On("Validate", &dto.AuthLogoutIn{}).
+					Return(nil)
+
+				d.authUsecase.On("Logout", mock.Anything, &dto.AuthLogoutIn{}).
 					Return(nil)
 			},
 		},
@@ -212,12 +261,13 @@ func (s *AuthHTTPHandlerTestSuite) TestDelete() {
 			rr := httptest.NewRecorder()
 			req := httptest.NewRequest("DELETE", "/", reqBody)
 
-			deps := &dependency{
+			d := &dependency{
+				validator:   &mocks.ValidatorProvider{},
 				authUsecase: &mocks.AuthUsecase{},
 			}
-			t.setup(deps)
+			t.setup(d)
 
-			handler := New(deps.authUsecase)
+			handler := New(d.validator, d.authUsecase)
 			handler.Delete(rr, req)
 
 			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
@@ -268,8 +318,8 @@ func (s *AuthHTTPHandlerTestSuite) TestGet() {
 			setup: func(d *dependency) {
 				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
 
-				d.authUsecase.On("GetProfile", mock.Anything, &domain.GetProfileAuthIn{UserID: entity.UserID("user-xxxxx")}).
-					Return(domain.GetProfileAuthOut{}, test.ErrUnexpected)
+				d.authUsecase.On("GetProfile", mock.Anything, &dto.AuthProfileIn{UserID: entity.UserID("user-xxxxx")}).
+					Return(dto.AuthProfileOut{}, test.ErrUnexpected)
 			},
 		},
 		{
@@ -288,8 +338,8 @@ func (s *AuthHTTPHandlerTestSuite) TestGet() {
 			setup: func(d *dependency) {
 				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
 
-				d.authUsecase.On("GetProfile", mock.Anything, &domain.GetProfileAuthIn{UserID: entity.UserID("user-xxxxx")}).
-					Return(domain.GetProfileAuthOut{ID: "user-xxxxx", Name: "Gopher", Email: "gopher@go.dev"}, nil)
+				d.authUsecase.On("GetProfile", mock.Anything, &dto.AuthProfileIn{UserID: entity.UserID("user-xxxxx")}).
+					Return(dto.AuthProfileOut{ID: "user-xxxxx", Name: "Gopher", Email: "gopher@go.dev"}, nil)
 			},
 		},
 	}
@@ -299,14 +349,15 @@ func (s *AuthHTTPHandlerTestSuite) TestGet() {
 			rr := httptest.NewRecorder()
 			req := httptest.NewRequest("GET", "/", nil)
 
-			deps := &dependency{
-				authUsecase: &mocks.AuthUsecase{},
+			d := &dependency{
 				req:         req,
+				validator:   &mocks.ValidatorProvider{},
+				authUsecase: &mocks.AuthUsecase{},
 			}
-			t.setup(deps)
+			t.setup(d)
 
-			handler := New(deps.authUsecase)
-			handler.Get(rr, deps.req)
+			handler := New(d.validator, d.authUsecase)
+			handler.Get(rr, d.req)
 
 			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
 			s.Equal(t.expected.statusCode, rr.Code)
@@ -364,6 +415,23 @@ func (s *AuthHTTPHandlerTestSuite) TestPut() {
 			setup: func(d *dependency) {},
 		},
 		{
+			name:    "it should response with error when payload is not valid",
+			isError: true,
+			args: args{
+				requestBody: []byte(`{}`),
+			},
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusInternalServerError,
+				message:     http.StatusText(http.StatusInternalServerError),
+				error:       errorx.InternalServerErrorMessage,
+			},
+			setup: func(d *dependency) {
+				d.validator.On("Validate", &dto.AuthRefreshIn{}).
+					Return(test.ErrValidator)
+			},
+		},
+		{
 			name:    "it should response with error when auth usecase Refresh return unexpected error",
 			isError: true,
 			args: args{
@@ -376,8 +444,11 @@ func (s *AuthHTTPHandlerTestSuite) TestPut() {
 				error:       errorx.InternalServerErrorMessage,
 			},
 			setup: func(d *dependency) {
-				d.authUsecase.On("Refresh", mock.Anything, &domain.RefreshAuthIn{}).
-					Return(domain.RefreshAuthOut{}, test.ErrUnexpected)
+				d.validator.On("Validate", &dto.AuthRefreshIn{}).
+					Return(nil)
+
+				d.authUsecase.On("Refresh", mock.Anything, &dto.AuthRefreshIn{}).
+					Return(dto.AuthRefreshOut{}, test.ErrUnexpected)
 			},
 		},
 		{
@@ -396,8 +467,11 @@ func (s *AuthHTTPHandlerTestSuite) TestPut() {
 				},
 			},
 			setup: func(d *dependency) {
-				d.authUsecase.On("Refresh", mock.Anything, &domain.RefreshAuthIn{}).
-					Return(domain.RefreshAuthOut{AccessToken: "xxxxx.xxxxx.xxxxx", RefreshToken: "yyyyy.yyyyy.yyyyy"}, nil)
+				d.validator.On("Validate", &dto.AuthRefreshIn{}).
+					Return(nil)
+
+				d.authUsecase.On("Refresh", mock.Anything, &dto.AuthRefreshIn{}).
+					Return(dto.AuthRefreshOut{AccessToken: "xxxxx.xxxxx.xxxxx", RefreshToken: "yyyyy.yyyyy.yyyyy"}, nil)
 			},
 		},
 	}
@@ -408,12 +482,13 @@ func (s *AuthHTTPHandlerTestSuite) TestPut() {
 			rr := httptest.NewRecorder()
 			req := httptest.NewRequest("PUT", "/", reqBody)
 
-			deps := &dependency{
+			d := &dependency{
+				validator:   &mocks.ValidatorProvider{},
 				authUsecase: &mocks.AuthUsecase{},
 			}
-			t.setup(deps)
+			t.setup(d)
 
-			handler := New(deps.authUsecase)
+			handler := New(d.validator, d.authUsecase)
 			handler.Put(rr, req)
 
 			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
