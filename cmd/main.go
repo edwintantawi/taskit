@@ -61,7 +61,7 @@ func main() {
 	// Task.
 	taskRepository := taskRepository.New(db, idProvider)
 	taskUsecase := taskUsecase.New(taskRepository)
-	taskHTTPHandler := taskHTTPHandler.New(taskUsecase)
+	taskHTTPHandler := taskHTTPHandler.New(validator, taskUsecase)
 
 	// Create new router.
 	r := chi.NewRouter()

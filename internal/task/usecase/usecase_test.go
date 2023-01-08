@@ -26,17 +26,6 @@ type dependency struct {
 }
 
 func (s *TaskUsecaseTestSuite) TestCreate() {
-	s.Run("it should return error when validation fail", func() {
-		ctx := context.Background()
-		payload := &dto.TaskCreateIn{}
-		usecase := New(nil)
-
-		output, err := usecase.Create(ctx, payload)
-
-		s.Error(err)
-		s.Empty(output)
-	})
-
 	type args struct {
 		ctx     context.Context
 		payload *dto.TaskCreateIn

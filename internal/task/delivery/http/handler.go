@@ -14,12 +14,13 @@ import (
 )
 
 type HTTPHandler struct {
+	validator   domain.ValidatorProvider
 	taskUsecase domain.TaskUsecase
 }
 
 // New creates a new HTTPHandler.
-func New(taskUsecase domain.TaskUsecase) *HTTPHandler {
-	return &HTTPHandler{taskUsecase: taskUsecase}
+func New(validator domain.ValidatorProvider, taskUsecase domain.TaskUsecase) *HTTPHandler {
+	return &HTTPHandler{validator: validator, taskUsecase: taskUsecase}
 }
 
 // POST /tasks to create new task.
@@ -34,6 +35,13 @@ func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	payload.UserID = entity.GetAuthContext(r.Context())
+
+	if err := h.validator.Validate(&payload); err != nil {
+		code, msg := errorx.HTTPErrorTranslator(err)
+		w.WriteHeader(code)
+		encoder.Encode(response.Error(code, msg))
+		return
+	}
 
 	output, err := h.taskUsecase.Create(r.Context(), &payload)
 	if err != nil {
@@ -121,6 +129,13 @@ func (h *HTTPHandler) Put(w http.ResponseWriter, r *http.Request) {
 	}
 	payload.UserID = entity.GetAuthContext(r.Context())
 	payload.TaskID = entity.TaskID(chi.URLParam(r, "task_id"))
+
+	if err := h.validator.Validate(&payload); err != nil {
+		code, msg := errorx.HTTPErrorTranslator(err)
+		w.WriteHeader(code)
+		encoder.Encode(response.Error(code, msg))
+		return
+	}
 
 	output, err := h.taskUsecase.Update(r.Context(), &payload)
 	if err != nil {

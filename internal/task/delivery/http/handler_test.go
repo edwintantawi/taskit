@@ -29,6 +29,7 @@ func TestTaskHTTPHandlerSuite(t *testing.T) {
 
 type dependency struct {
 	req         *http.Request
+	validator   *mocks.ValidatorProvider
 	taskUsecase *mocks.TaskUsecase
 }
 
@@ -65,6 +66,25 @@ func (s *TaskHTTPHandlerTestSuite) TestPost() {
 			setup: func(d *dependency) {},
 		},
 		{
+			name:    "it should response with error when payload is not valid",
+			isError: true,
+			args: args{
+				requestBody: []byte(`{}`),
+			},
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusInternalServerError,
+				message:     http.StatusText(http.StatusInternalServerError),
+				error:       errorx.InternalServerErrorMessage,
+			},
+			setup: func(d *dependency) {
+				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
+
+				d.validator.On("Validate", mock.Anything).
+					Return(test.ErrValidator)
+			},
+		},
+		{
 			name:    "it should response with error when taskUsecase Create returns unexpected error",
 			isError: true,
 			args: args{
@@ -78,6 +98,10 @@ func (s *TaskHTTPHandlerTestSuite) TestPost() {
 			},
 			setup: func(d *dependency) {
 				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
+
+				d.validator.On("Validate", mock.Anything).
+					Return(nil)
+
 				d.taskUsecase.On("Create", mock.Anything, &dto.TaskCreateIn{UserID: "user-xxxxx"}).
 					Return(dto.TaskCreateOut{}, test.ErrUnexpected)
 			},
@@ -98,6 +122,10 @@ func (s *TaskHTTPHandlerTestSuite) TestPost() {
 			},
 			setup: func(d *dependency) {
 				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
+
+				d.validator.On("Validate", mock.Anything).
+					Return(nil)
+
 				d.taskUsecase.On("Create", mock.Anything, &dto.TaskCreateIn{UserID: "user-xxxxx"}).
 					Return(dto.TaskCreateOut{ID: "task-xxxxx"}, nil)
 			},
@@ -112,11 +140,12 @@ func (s *TaskHTTPHandlerTestSuite) TestPost() {
 
 			deps := &dependency{
 				req:         req,
+				validator:   &mocks.ValidatorProvider{},
 				taskUsecase: &mocks.TaskUsecase{},
 			}
 			t.setup(deps)
 
-			handler := New(deps.taskUsecase)
+			handler := New(deps.validator, deps.taskUsecase)
 			handler.Post(rr, deps.req)
 
 			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
@@ -207,7 +236,7 @@ func (s *TaskHTTPHandlerTestSuite) TestGet() {
 			}
 			t.setup(deps)
 
-			handler := New(deps.taskUsecase)
+			handler := New(nil, deps.taskUsecase)
 			handler.Get(rr, deps.req)
 
 			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
@@ -306,7 +335,7 @@ func (s *TaskHTTPHandlerTestSuite) TestDelete() {
 			}
 			t.setup(deps)
 
-			handler := New(deps.taskUsecase)
+			handler := New(nil, deps.taskUsecase)
 			handler.Delete(rr, deps.req)
 
 			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
@@ -412,7 +441,7 @@ func (s *TaskHTTPHandlerTestSuite) TestGetByID() {
 			}
 			t.setup(deps)
 
-			handler := New(deps.taskUsecase)
+			handler := New(nil, deps.taskUsecase)
 			handler.GetByID(rr, deps.req)
 
 			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
@@ -472,6 +501,25 @@ func (s *TaskHTTPHandlerTestSuite) TestPut() {
 			setup: func(d *dependency) {},
 		},
 		{
+			name:    "it should response with error when payload is not valid",
+			isError: true,
+			args: args{
+				requestBody: []byte(`{}`),
+			},
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusInternalServerError,
+				message:     http.StatusText(http.StatusInternalServerError),
+				error:       errorx.InternalServerErrorMessage,
+			},
+			setup: func(d *dependency) {
+				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
+
+				d.validator.On("Validate", mock.Anything).
+					Return(test.ErrValidator)
+			},
+		},
+		{
 			name:    "it should response with error when task usecase GetByID return unexpected error",
 			isError: true,
 			args: args{
@@ -485,6 +533,9 @@ func (s *TaskHTTPHandlerTestSuite) TestPut() {
 			},
 			setup: func(d *dependency) {
 				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
+
+				d.validator.On("Validate", mock.Anything).
+					Return(nil)
 
 				d.taskUsecase.On("Update", mock.Anything, &dto.TaskUpdateIn{TaskID: "", UserID: "user-xxxxx"}).
 					Return(dto.TaskUpdateOut{}, test.ErrUnexpected)
@@ -510,6 +561,9 @@ func (s *TaskHTTPHandlerTestSuite) TestPut() {
 			setup: func(d *dependency) {
 				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
 
+				d.validator.On("Validate", mock.Anything).
+					Return(nil)
+
 				d.taskUsecase.On("Update", mock.Anything, &dto.TaskUpdateIn{
 					TaskID: "task-xxxxx",
 					UserID: "user-xxxxx",
@@ -530,11 +584,12 @@ func (s *TaskHTTPHandlerTestSuite) TestPut() {
 
 			deps := &dependency{
 				req:         req,
+				validator:   &mocks.ValidatorProvider{},
 				taskUsecase: &mocks.TaskUsecase{},
 			}
 			t.setup(deps)
 
-			handler := New(deps.taskUsecase)
+			handler := New(deps.validator, deps.taskUsecase)
 			handler.Put(rr, deps.req)
 
 			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))

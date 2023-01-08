@@ -29,7 +29,7 @@ func HTTPErrorTranslator(err error) (code int, msg string) {
 		return http.StatusBadRequest, "Email is not available"
 	case domain.ErrUserNotFound:
 		return http.StatusNotFound, "User not found"
-		// Auth entity
+	// Auth entity
 	case entity.ErrAuthTokenExpired:
 		return http.StatusBadRequest, "Refresh token is expired"
 	// Auth repository
@@ -40,9 +40,6 @@ func HTTPErrorTranslator(err error) (code int, msg string) {
 	// Auth usecase
 	case domain.ErrPasswordIncorrect:
 		return http.StatusBadRequest, "Password is incorrect"
-	// Task entity
-	case entity.ErrContentEmpty:
-		return http.StatusBadRequest, "Content is required field"
 	// Task repository
 	case domain.ErrTaskNotFound:
 		return http.StatusNotFound, "Task not found"
@@ -58,6 +55,8 @@ func HTTPErrorTranslator(err error) (code int, msg string) {
 		return http.StatusBadRequest, "Name is required field"
 	case dto.ErrRefreshTokenEmpty:
 		return http.StatusBadRequest, "Refresh token is required field"
+	case dto.ErrTaskContentEmpty:
+		return http.StatusBadRequest, "Content is required field"
 	// Other
 	default:
 		return http.StatusInternalServerError, InternalServerErrorMessage

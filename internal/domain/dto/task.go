@@ -14,6 +14,14 @@ type TaskCreateIn struct {
 	DueDate     *time.Time    `json:"due_date"`
 }
 
+func (t *TaskCreateIn) Validate() error {
+	switch {
+	case t.Content == "":
+		return ErrTaskContentEmpty
+	}
+	return nil
+}
+
 // TaskCreateOut represents the output of task creation.
 type TaskCreateOut struct {
 	ID entity.TaskID `json:"id"`
@@ -66,6 +74,14 @@ type TaskUpdateIn struct {
 	Description string        `json:"description"`
 	IsCompleted bool          `json:"is_completed"`
 	DueDate     *time.Time    `json:"due_date"`
+}
+
+func (t *TaskUpdateIn) Validate() error {
+	switch {
+	case t.Content == "":
+		return ErrTaskContentEmpty
+	}
+	return nil
 }
 
 // TaskUpdateOut represents the output of task update

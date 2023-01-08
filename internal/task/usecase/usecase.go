@@ -20,9 +20,7 @@ func New(taskRepository domain.TaskRepository) domain.TaskUsecase {
 // Create create a new task.
 func (u *usecase) Create(ctx context.Context, payload *dto.TaskCreateIn) (dto.TaskCreateOut, error) {
 	task := &entity.Task{UserID: payload.UserID, Content: payload.Content, Description: payload.Description, DueDate: payload.DueDate}
-	if err := task.Validate(); err != nil {
-		return dto.TaskCreateOut{}, err
-	}
+
 	taskID, err := u.taskRepository.Store(ctx, task)
 	if err != nil {
 		return dto.TaskCreateOut{}, err
