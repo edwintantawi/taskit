@@ -6,26 +6,26 @@ import (
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 )
 
-// CreateTaskIn represents the input of task creation.
-type CreateTaskIn struct {
+// TaskCreateIn represents the input of task creation.
+type TaskCreateIn struct {
 	UserID      entity.UserID `json:"-"`
 	Content     string        `json:"content"`
 	Description string        `json:"description"`
 	DueDate     *time.Time    `json:"due_date"`
 }
 
-// CreateTaskOut represents the output of task creation.
-type CreateTaskOut struct {
+// TaskCreateOut represents the output of task creation.
+type TaskCreateOut struct {
 	ID entity.TaskID `json:"id"`
 }
 
-// GetAllTaskIn represents the input of task retrieval.
-type GetAllTaskIn struct {
+// TaskGetAllIn represents the input of task retrieval.
+type TaskGetAllIn struct {
 	UserID entity.UserID `json:"-"`
 }
 
-// GetAllTaskOut represents the output of task retrieval.
-type GetAllTaskOut struct {
+// TaskGetAllOut represents the output of task retrieval.
+type TaskGetAllOut struct {
 	ID          entity.TaskID `json:"id"`
 	Content     string        `json:"content"`
 	Description string        `json:"description"`
@@ -35,20 +35,20 @@ type GetAllTaskOut struct {
 	UpdatedAt   time.Time     `json:"updated_at"`
 }
 
-// RemoveTaskIn represents the input of task removal.
-type RemoveTaskIn struct {
+// TaskRemoveIn represents the input of task removal.
+type TaskRemoveIn struct {
 	TaskID entity.TaskID `json:"-"`
 	UserID entity.UserID `json:"-"`
 }
 
-// GetTaskByIDIn represents the input of task retrieval.
-type GetTaskByIDIn struct {
+// TaskGetByIDIn represents the input of task retrieval.
+type TaskGetByIDIn struct {
 	TaskID entity.TaskID `json:"-"`
 	UserID entity.UserID `json:"-"`
 }
 
-// GetTaskByIDOut represents the output of task retrieval.
-type GetTaskByIDOut struct {
+// TaskGetByIDOut represents the output of task retrieval.
+type TaskGetByIDOut struct {
 	ID          entity.TaskID `json:"id"`
 	Content     string        `json:"content"`
 	Description string        `json:"description"`
@@ -58,8 +58,8 @@ type GetTaskByIDOut struct {
 	UpdatedAt   time.Time     `json:"updated_at"`
 }
 
-// UpdateTaskIn represents the input of task update
-type UpdateTaskIn struct {
+// TaskUpdateIn represents the input of task update
+type TaskUpdateIn struct {
 	TaskID      entity.TaskID `json:"-"`
 	UserID      entity.UserID `json:"-"`
 	Content     string        `json:"content"`
@@ -68,7 +68,7 @@ type UpdateTaskIn struct {
 	DueDate     *time.Time    `json:"due_date"`
 }
 
-// UpdateTaskOut represents the output of task update
-type UpdateTaskOut struct {
+// TaskUpdateOut represents the output of task update
+type TaskUpdateOut struct {
 	ID entity.TaskID `json:"id"`
 }

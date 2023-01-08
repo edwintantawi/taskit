@@ -16,18 +16,18 @@ type TaskUsecase struct {
 }
 
 // Create provides a mock function with given fields: ctx, payload
-func (_m *TaskUsecase) Create(ctx context.Context, payload *dto.CreateTaskIn) (dto.CreateTaskOut, error) {
+func (_m *TaskUsecase) Create(ctx context.Context, payload *dto.TaskCreateIn) (dto.TaskCreateOut, error) {
 	ret := _m.Called(ctx, payload)
 
-	var r0 dto.CreateTaskOut
-	if rf, ok := ret.Get(0).(func(context.Context, *dto.CreateTaskIn) dto.CreateTaskOut); ok {
+	var r0 dto.TaskCreateOut
+	if rf, ok := ret.Get(0).(func(context.Context, *dto.TaskCreateIn) dto.TaskCreateOut); ok {
 		r0 = rf(ctx, payload)
 	} else {
-		r0 = ret.Get(0).(dto.CreateTaskOut)
+		r0 = ret.Get(0).(dto.TaskCreateOut)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *dto.CreateTaskIn) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *dto.TaskCreateIn) error); ok {
 		r1 = rf(ctx, payload)
 	} else {
 		r1 = ret.Error(1)
@@ -37,20 +37,20 @@ func (_m *TaskUsecase) Create(ctx context.Context, payload *dto.CreateTaskIn) (d
 }
 
 // GetAll provides a mock function with given fields: ctx, payload
-func (_m *TaskUsecase) GetAll(ctx context.Context, payload *dto.GetAllTaskIn) ([]dto.GetAllTaskOut, error) {
+func (_m *TaskUsecase) GetAll(ctx context.Context, payload *dto.TaskGetAllIn) ([]dto.TaskGetAllOut, error) {
 	ret := _m.Called(ctx, payload)
 
-	var r0 []dto.GetAllTaskOut
-	if rf, ok := ret.Get(0).(func(context.Context, *dto.GetAllTaskIn) []dto.GetAllTaskOut); ok {
+	var r0 []dto.TaskGetAllOut
+	if rf, ok := ret.Get(0).(func(context.Context, *dto.TaskGetAllIn) []dto.TaskGetAllOut); ok {
 		r0 = rf(ctx, payload)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]dto.GetAllTaskOut)
+			r0 = ret.Get(0).([]dto.TaskGetAllOut)
 		}
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *dto.GetAllTaskIn) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *dto.TaskGetAllIn) error); ok {
 		r1 = rf(ctx, payload)
 	} else {
 		r1 = ret.Error(1)
@@ -60,18 +60,18 @@ func (_m *TaskUsecase) GetAll(ctx context.Context, payload *dto.GetAllTaskIn) ([
 }
 
 // GetByID provides a mock function with given fields: ctx, payload
-func (_m *TaskUsecase) GetByID(ctx context.Context, payload *dto.GetTaskByIDIn) (dto.GetTaskByIDOut, error) {
+func (_m *TaskUsecase) GetByID(ctx context.Context, payload *dto.TaskGetByIDIn) (dto.TaskGetByIDOut, error) {
 	ret := _m.Called(ctx, payload)
 
-	var r0 dto.GetTaskByIDOut
-	if rf, ok := ret.Get(0).(func(context.Context, *dto.GetTaskByIDIn) dto.GetTaskByIDOut); ok {
+	var r0 dto.TaskGetByIDOut
+	if rf, ok := ret.Get(0).(func(context.Context, *dto.TaskGetByIDIn) dto.TaskGetByIDOut); ok {
 		r0 = rf(ctx, payload)
 	} else {
-		r0 = ret.Get(0).(dto.GetTaskByIDOut)
+		r0 = ret.Get(0).(dto.TaskGetByIDOut)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *dto.GetTaskByIDIn) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *dto.TaskGetByIDIn) error); ok {
 		r1 = rf(ctx, payload)
 	} else {
 		r1 = ret.Error(1)
@@ -81,11 +81,11 @@ func (_m *TaskUsecase) GetByID(ctx context.Context, payload *dto.GetTaskByIDIn) 
 }
 
 // Remove provides a mock function with given fields: ctx, payload
-func (_m *TaskUsecase) Remove(ctx context.Context, payload *dto.RemoveTaskIn) error {
+func (_m *TaskUsecase) Remove(ctx context.Context, payload *dto.TaskRemoveIn) error {
 	ret := _m.Called(ctx, payload)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *dto.RemoveTaskIn) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *dto.TaskRemoveIn) error); ok {
 		r0 = rf(ctx, payload)
 	} else {
 		r0 = ret.Error(0)
@@ -95,18 +95,18 @@ func (_m *TaskUsecase) Remove(ctx context.Context, payload *dto.RemoveTaskIn) er
 }
 
 // Update provides a mock function with given fields: ctx, payload
-func (_m *TaskUsecase) Update(ctx context.Context, payload *dto.UpdateTaskIn) (dto.UpdateTaskOut, error) {
+func (_m *TaskUsecase) Update(ctx context.Context, payload *dto.TaskUpdateIn) (dto.TaskUpdateOut, error) {
 	ret := _m.Called(ctx, payload)
 
-	var r0 dto.UpdateTaskOut
-	if rf, ok := ret.Get(0).(func(context.Context, *dto.UpdateTaskIn) dto.UpdateTaskOut); ok {
+	var r0 dto.TaskUpdateOut
+	if rf, ok := ret.Get(0).(func(context.Context, *dto.TaskUpdateIn) dto.TaskUpdateOut); ok {
 		r0 = rf(ctx, payload)
 	} else {
-		r0 = ret.Get(0).(dto.UpdateTaskOut)
+		r0 = ret.Get(0).(dto.TaskUpdateOut)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *dto.UpdateTaskIn) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *dto.TaskUpdateIn) error); ok {
 		r1 = rf(ctx, payload)
 	} else {
 		r1 = ret.Error(1)

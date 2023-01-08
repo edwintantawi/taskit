@@ -27,7 +27,7 @@ func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 
-	var payload dto.CreateTaskIn
+	var payload dto.TaskCreateIn
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		encoder.Encode(response.Error(http.StatusBadRequest, "Invalid request body"))
@@ -52,7 +52,7 @@ func (h *HTTPHandler) Get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 
-	var payload dto.GetAllTaskIn
+	var payload dto.TaskGetAllIn
 	payload.UserID = entity.GetAuthContext(r.Context())
 
 	output, err := h.taskUsecase.GetAll(r.Context(), &payload)
@@ -72,7 +72,7 @@ func (h *HTTPHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 
-	var payload dto.RemoveTaskIn
+	var payload dto.TaskRemoveIn
 	payload.UserID = entity.GetAuthContext(r.Context())
 	payload.TaskID = entity.TaskID(chi.URLParam(r, "task_id"))
 
@@ -92,7 +92,7 @@ func (h *HTTPHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 
-	var payload dto.GetTaskByIDIn
+	var payload dto.TaskGetByIDIn
 	payload.UserID = entity.GetAuthContext(r.Context())
 	payload.TaskID = entity.TaskID(chi.URLParam(r, "task_id"))
 
@@ -113,7 +113,7 @@ func (h *HTTPHandler) Put(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 
-	var payload dto.UpdateTaskIn
+	var payload dto.TaskUpdateIn
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		encoder.Encode(response.Error(http.StatusBadRequest, "Invalid request body"))
