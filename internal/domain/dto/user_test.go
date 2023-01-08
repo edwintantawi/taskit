@@ -14,16 +14,16 @@ func TestUserDTOSuite(t *testing.T) {
 	suite.Run(t, new(UserDTOTestSuite))
 }
 
-func (s *UserDTOTestSuite) TestCreateUserIn() {
+func (s *UserDTOTestSuite) TestUserCreateIn() {
 	tests := []struct {
 		name     string
-		input    CreateUserIn
+		input    UserCreateIn
 		expected error
 	}{
-		{name: "it should return error when email is empty", input: CreateUserIn{}, expected: ErrEmailEmpty},
-		{name: "it should return error when password is empty", input: CreateUserIn{Email: "gopher@go.dev"}, expected: ErrPasswordEmpty},
-		{name: "it should return error when name is empty", input: CreateUserIn{Email: "gopher@go.dev", Password: "123456"}, expected: ErrNameEmpty},
-		{name: "it should return nil when all fields are valid", input: CreateUserIn{Email: "gopher@go.dev", Password: "123456", Name: "Gopher"}, expected: nil},
+		{name: "it should return error when email is empty", input: UserCreateIn{}, expected: ErrEmailEmpty},
+		{name: "it should return error when password is empty", input: UserCreateIn{Email: "gopher@go.dev"}, expected: ErrPasswordEmpty},
+		{name: "it should return error when name is empty", input: UserCreateIn{Email: "gopher@go.dev", Password: "123456"}, expected: ErrNameEmpty},
+		{name: "it should return nil when all fields are valid", input: UserCreateIn{Email: "gopher@go.dev", Password: "123456", Name: "Gopher"}, expected: nil},
 	}
 
 	for _, test := range tests {

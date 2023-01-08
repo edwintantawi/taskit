@@ -20,7 +20,7 @@ var (
 
 // UserUsecase represent user usecase contract.
 type UserUsecase interface {
-	Create(ctx context.Context, payload *dto.CreateUserIn) (dto.CreateUserOut, error)
+	Create(ctx context.Context, payload *dto.UserCreateIn) (dto.UserCreateOut, error)
 }
 
 // AuthUsecase represent auth usecase contract.

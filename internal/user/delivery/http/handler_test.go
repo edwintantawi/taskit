@@ -76,7 +76,7 @@ func (s *UserHTTPHandlerTestSuite) TestPost() {
 				error:       errorx.InternalServerErrorMessage,
 			},
 			setup: func(d *dependency) {
-				d.validator.On("Validate", &dto.CreateUserIn{}).
+				d.validator.On("Validate", &dto.UserCreateIn{}).
 					Return(test.ErrValidator)
 			},
 		},
@@ -93,11 +93,11 @@ func (s *UserHTTPHandlerTestSuite) TestPost() {
 				error:       errorx.InternalServerErrorMessage,
 			},
 			setup: func(d *dependency) {
-				d.validator.On("Validate", &dto.CreateUserIn{}).
+				d.validator.On("Validate", &dto.UserCreateIn{}).
 					Return(nil)
 
-				d.userUsecase.On("Create", mock.Anything, &dto.CreateUserIn{}).
-					Return(dto.CreateUserOut{}, test.ErrUnexpected)
+				d.userUsecase.On("Create", mock.Anything, &dto.UserCreateIn{}).
+					Return(dto.UserCreateOut{}, test.ErrUnexpected)
 			},
 		},
 		{
@@ -116,11 +116,11 @@ func (s *UserHTTPHandlerTestSuite) TestPost() {
 				},
 			},
 			setup: func(d *dependency) {
-				d.validator.On("Validate", &dto.CreateUserIn{}).
+				d.validator.On("Validate", &dto.UserCreateIn{}).
 					Return(nil)
 
-				d.userUsecase.On("Create", mock.Anything, &dto.CreateUserIn{}).
-					Return(dto.CreateUserOut{ID: "user-xxxxx", Email: "gopher@go.dev"}, nil)
+				d.userUsecase.On("Create", mock.Anything, &dto.UserCreateIn{}).
+					Return(dto.UserCreateOut{ID: "user-xxxxx", Email: "gopher@go.dev"}, nil)
 			},
 		},
 	}

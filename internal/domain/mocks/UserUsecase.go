@@ -16,18 +16,18 @@ type UserUsecase struct {
 }
 
 // Create provides a mock function with given fields: ctx, payload
-func (_m *UserUsecase) Create(ctx context.Context, payload *dto.CreateUserIn) (dto.CreateUserOut, error) {
+func (_m *UserUsecase) Create(ctx context.Context, payload *dto.UserCreateIn) (dto.UserCreateOut, error) {
 	ret := _m.Called(ctx, payload)
 
-	var r0 dto.CreateUserOut
-	if rf, ok := ret.Get(0).(func(context.Context, *dto.CreateUserIn) dto.CreateUserOut); ok {
+	var r0 dto.UserCreateOut
+	if rf, ok := ret.Get(0).(func(context.Context, *dto.UserCreateIn) dto.UserCreateOut); ok {
 		r0 = rf(ctx, payload)
 	} else {
-		r0 = ret.Get(0).(dto.CreateUserOut)
+		r0 = ret.Get(0).(dto.UserCreateOut)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *dto.CreateUserIn) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *dto.UserCreateIn) error); ok {
 		r1 = rf(ctx, payload)
 	} else {
 		r1 = ret.Error(1)

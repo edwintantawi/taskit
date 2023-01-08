@@ -4,14 +4,14 @@ import (
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 )
 
-// CreateUserIn represents the input of user creation.
-type CreateUserIn struct {
+// UserCreateIn represents the input of user creation.
+type UserCreateIn struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-func (d *CreateUserIn) Validate() error {
+func (d *UserCreateIn) Validate() error {
 	switch {
 	case d.Email == "":
 		return ErrEmailEmpty
@@ -23,8 +23,8 @@ func (d *CreateUserIn) Validate() error {
 	return nil
 }
 
-// CreateUserOut represents the output of user creation.
-type CreateUserOut struct {
+// UserCreateOut represents the output of user creation.
+type UserCreateOut struct {
 	ID    entity.UserID `json:"id"`
 	Email string        `json:"email"`
 }

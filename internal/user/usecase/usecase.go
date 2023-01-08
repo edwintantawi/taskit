@@ -19,25 +19,25 @@ func New(userRepository domain.UserRepository, hashProvider domain.HashProvider)
 }
 
 // Create create a new user.
-func (u *usecase) Create(ctx context.Context, payload *dto.CreateUserIn) (dto.CreateUserOut, error) {
+func (u *usecase) Create(ctx context.Context, payload *dto.UserCreateIn) (dto.UserCreateOut, error) {
 	user := &entity.User{Name: payload.Name, Email: payload.Email, Password: payload.Password}
 	if err := user.Validate(); err != nil {
-		return dto.CreateUserOut{}, err
+		return dto.UserCreateOut{}, err
 	}
 
 	if err := u.userRepository.VerifyAvailableEmail(ctx, user.Email); err != nil {
-		return dto.CreateUserOut{}, err
+		return dto.UserCreateOut{}, err
 	}
 
 	securePassword, err := u.hashProvider.Hash(user.Password)
 	if err != nil {
-		return dto.CreateUserOut{}, err
+		return dto.UserCreateOut{}, err
 	}
 	user.Password = string(securePassword)
 
 	id, err := u.userRepository.Store(ctx, user)
 	if err != nil {
-		return dto.CreateUserOut{}, err
+		return dto.UserCreateOut{}, err
 	}
-	return dto.CreateUserOut{ID: id, Email: user.Email}, nil
+	return dto.UserCreateOut{ID: id, Email: user.Email}, nil
 }
