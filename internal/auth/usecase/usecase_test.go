@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/edwintantawi/taskit/internal/domain"
@@ -23,6 +24,7 @@ func TestAuthUsecaseSuite(t *testing.T) {
 }
 
 type dependency struct {
+	validator      *mocks.ValidatorProvider
 	authRepository *mocks.AuthRepository
 	userRepository *mocks.UserRepository
 	hashProvider   *mocks.HashProvider
@@ -45,6 +47,24 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 		setup    func(d *dependency)
 	}{
 		{
+			name: "it should return error when user validation failed",
+			args: args{
+				ctx:     context.Background(),
+				payload: &dto.AuthLoginIn{},
+			},
+			expected: expected{
+				output: dto.AuthLoginOut{},
+				err:    test.ErrValidator,
+			},
+			setup: func(d *dependency) {
+				d.validator.On("Validate", mock.Anything).
+					Return(test.ErrValidator)
+
+				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
+					Return(entity.User{}, domain.ErrUserNotFound)
+			},
+		},
+		{
 			name: "it should return error ErrEmailNotExist when email not found",
 			args: args{
 				ctx: context.Background(),
@@ -57,6 +77,9 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 				err:    domain.ErrEmailNotExist,
 			},
 			setup: func(d *dependency) {
+				d.validator.On("Validate", mock.Anything).
+					Return(nil)
+
 				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
 					Return(entity.User{}, domain.ErrUserNotFound)
 			},
@@ -74,6 +97,9 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
+				d.validator.On("Validate", mock.Anything).
+					Return(nil)
+
 				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
 					Return(entity.User{}, test.ErrUnexpected)
 			},
@@ -92,6 +118,9 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 				err:    domain.ErrPasswordIncorrect,
 			},
 			setup: func(d *dependency) {
+				d.validator.On("Validate", mock.Anything).
+					Return(nil)
+
 				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
 					Return(entity.User{Password: "secret_hashed_password"}, nil)
 
@@ -113,6 +142,9 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
+				d.validator.On("Validate", mock.Anything).
+					Return(nil)
+
 				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
 					Return(entity.User{ID: "user-xxxxx", Password: "secret_hashed_password"}, nil)
 
@@ -137,6 +169,9 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
+				d.validator.On("Validate", mock.Anything).
+					Return(nil)
+
 				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
 					Return(entity.User{ID: "user-xxxxx", Password: "secret_hashed_password"}, nil)
 
@@ -164,6 +199,9 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
+				d.validator.On("Validate", mock.Anything).
+					Return(nil)
+
 				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
 					Return(entity.User{ID: "user-xxxxx", Password: "secret_hashed_password"}, nil)
 
@@ -197,6 +235,9 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 				err: nil,
 			},
 			setup: func(d *dependency) {
+				d.validator.On("Validate", mock.Anything).
+					Return(nil)
+
 				d.userRepository.On("FindByEmail", context.Background(), "gopher@go.dev").
 					Return(entity.User{ID: "user-xxxxx", Password: "secret_hashed_password"}, nil)
 
@@ -218,6 +259,7 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 	for _, t := range tests {
 		s.Run(t.name, func() {
 			d := &dependency{
+				validator:      &mocks.ValidatorProvider{},
 				userRepository: &mocks.UserRepository{},
 				authRepository: &mocks.AuthRepository{},
 				hashProvider:   &mocks.HashProvider{},
@@ -225,7 +267,7 @@ func (s *AuthUsecaseTestSuite) TestLogin() {
 			}
 			t.setup(d)
 
-			usecase := New(d.authRepository, d.userRepository, d.hashProvider, d.jwtProvider)
+			usecase := New(d.validator, d.authRepository, d.userRepository, d.hashProvider, d.jwtProvider)
 			output, err := usecase.Login(t.args.ctx, t.args.payload)
 
 			s.Equal(t.expected.err, err)
@@ -311,7 +353,7 @@ func (s *AuthUsecaseTestSuite) TestLogout() {
 			}
 			t.setup(d)
 
-			usecase := New(d.authRepository, d.userRepository, d.hashProvider, d.jwtProvider)
+			usecase := New(nil, d.authRepository, d.userRepository, d.hashProvider, d.jwtProvider)
 			err := usecase.Logout(t.args.ctx, t.args.payload)
 
 			s.Equal(t.expected.err, err)
@@ -381,7 +423,7 @@ func (s *AuthUsecaseTestSuite) TestGetProfile() {
 			}
 			t.setup(d)
 
-			usecase := New(d.authRepository, d.userRepository, d.hashProvider, d.jwtProvider)
+			usecase := New(nil, d.authRepository, d.userRepository, d.hashProvider, d.jwtProvider)
 			output, err := usecase.GetProfile(t.args.ctx, t.args.payload)
 
 			s.Equal(t.expected.err, err)
@@ -579,7 +621,7 @@ func (s *AuthUsecaseTestSuite) TestRefresh() {
 			}
 			t.setup(d)
 
-			usecase := New(d.authRepository, d.userRepository, d.hashProvider, d.jwtProvider)
+			usecase := New(nil, d.authRepository, d.userRepository, d.hashProvider, d.jwtProvider)
 			output, err := usecase.Refresh(t.args.ctx, t.args.payload)
 
 			s.Equal(t.expected.err, err)

@@ -10,6 +10,7 @@ import (
 )
 
 type usecase struct {
+	validator      domain.ValidatorProvider
 	authRepository domain.AuthRepository
 	userRepository domain.UserRepository
 	hashProvider   domain.HashProvider
@@ -18,12 +19,14 @@ type usecase struct {
 
 // New create a new auth usecase.
 func New(
+	validator domain.ValidatorProvider,
 	authRepository domain.AuthRepository,
 	userRepository domain.UserRepository,
 	hashProvider domain.HashProvider,
 	jwtProvider domain.JWTProvider,
 ) domain.AuthUsecase {
 	return &usecase{
+		validator:      validator,
 		authRepository: authRepository,
 		userRepository: userRepository,
 		hashProvider:   hashProvider,
@@ -33,27 +36,32 @@ func New(
 
 // Login authenticates a user.
 func (u *usecase) Login(ctx context.Context, payload *dto.AuthLoginIn) (dto.AuthLoginOut, error) {
-	user, err := u.userRepository.FindByEmail(ctx, payload.Email)
+	user := entity.User{Email: payload.Email, Password: payload.Password}
+	if err := u.validator.Validate(&user); err != nil {
+		return dto.AuthLoginOut{}, err
+	}
+
+	targetUser, err := u.userRepository.FindByEmail(ctx, user.Email)
 	if errors.Is(err, domain.ErrUserNotFound) {
 		return dto.AuthLoginOut{}, domain.ErrEmailNotExist
 	} else if err != nil {
 		return dto.AuthLoginOut{}, err
 	}
 
-	if err := u.hashProvider.Compare(payload.Password, user.Password); err != nil {
+	if err := u.hashProvider.Compare(user.Password, targetUser.Password); err != nil {
 		return dto.AuthLoginOut{}, domain.ErrPasswordIncorrect
 	}
 
-	accessToken, _, err := u.jwtProvider.GenerateAccessToken(user.ID)
+	accessToken, _, err := u.jwtProvider.GenerateAccessToken(targetUser.ID)
 	if err != nil {
 		return dto.AuthLoginOut{}, err
 	}
-	refreshToken, expires, err := u.jwtProvider.GenerateRefreshToken(user.ID)
+	refreshToken, expires, err := u.jwtProvider.GenerateRefreshToken(targetUser.ID)
 	if err != nil {
 		return dto.AuthLoginOut{}, err
 	}
 
-	auth := &entity.Auth{UserID: user.ID, Token: refreshToken, ExpiresAt: expires}
+	auth := &entity.Auth{UserID: targetUser.ID, Token: refreshToken, ExpiresAt: expires}
 	if err := u.authRepository.Store(ctx, auth); err != nil {
 		return dto.AuthLoginOut{}, err
 	}
