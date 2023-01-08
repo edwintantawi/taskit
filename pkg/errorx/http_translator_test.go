@@ -29,15 +29,10 @@ func (s *HTTPErrorTranslatorTestSuite) TestErrorTranslator() {
 		// User entity
 		{entity.ErrEmailInvalid, 400, "Email must be a valid email address"},
 		{entity.ErrPasswordTooShort, 400, fmt.Sprintf("Password must be greater then %d character in length", entity.MinPasswordLength)},
-		// User DTO
-		{dto.ErrEmailEmpty, 400, "Email is required field"},
-		{dto.ErrPasswordEmpty, 400, "Password is required field"},
-		{dto.ErrNameEmpty, 400, "Name is required field"},
 		// User repository
 		{domain.ErrEmailNotAvailable, 400, "Email is not available"},
 		{domain.ErrUserNotFound, 404, "User not found"},
 		// Auth entity
-		{entity.ErrAuthTokenEmpty, 400, "Refresh token is required field"},
 		{entity.ErrAuthTokenExpired, 400, "Refresh token is expired"},
 		// Auth repository
 		{domain.ErrAuthNotFound, 404, "Authentication not found"},
@@ -50,6 +45,11 @@ func (s *HTTPErrorTranslatorTestSuite) TestErrorTranslator() {
 		{domain.ErrTaskNotFound, 404, "Task not found"},
 		// Task usecase
 		{domain.ErrTaskAuthorization, 403, "Not have access to this task"},
+		// DTO
+		{dto.ErrEmailEmpty, 400, "Email is required field"},
+		{dto.ErrPasswordEmpty, 400, "Password is required field"},
+		{dto.ErrNameEmpty, 400, "Name is required field"},
+		{dto.ErrRefreshTokenEmpty, 400, "Refresh token is required field"},
 		// Other
 		{errors.New("other error"), 500, "Something went wrong"},
 	}

@@ -11,13 +11,13 @@ type UserCreateIn struct {
 	Password string `json:"password"`
 }
 
-func (d *UserCreateIn) Validate() error {
+func (u *UserCreateIn) Validate() error {
 	switch {
-	case d.Email == "":
+	case u.Email == "":
 		return ErrEmailEmpty
-	case d.Password == "":
+	case u.Password == "":
 		return ErrPasswordEmpty
-	case d.Name == "":
+	case u.Name == "":
 		return ErrNameEmpty
 	}
 	return nil

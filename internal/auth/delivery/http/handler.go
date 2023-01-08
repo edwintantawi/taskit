@@ -5,18 +5,20 @@ import (
 	"net/http"
 
 	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/dto"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/pkg/errorx"
 	"github.com/edwintantawi/taskit/pkg/response"
 )
 
 type HTTPHandler struct {
+	validator   domain.ValidatorProvider
 	authUsecase domain.AuthUsecase
 }
 
 // New creates a new auth handler
-func New(authUsecase domain.AuthUsecase) *HTTPHandler {
-	return &HTTPHandler{authUsecase: authUsecase}
+func New(validator domain.ValidatorProvider, authUsecase domain.AuthUsecase) *HTTPHandler {
+	return &HTTPHandler{validator: validator, authUsecase: authUsecase}
 }
 
 // POST /authentications to login user
@@ -24,10 +26,16 @@ func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 
-	var payload domain.LoginAuthIn
+	var payload dto.AuthLoginIn
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		encoder.Encode(response.Error(http.StatusBadRequest, "Invalid request body"))
+		return
+	}
+	if err := h.validator.Validate(&payload); err != nil {
+		code, msg := errorx.HTTPErrorTranslator(err)
+		w.WriteHeader(code)
+		encoder.Encode(response.Error(code, msg))
 		return
 	}
 
@@ -48,10 +56,16 @@ func (h *HTTPHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 
-	var payload domain.LogoutAuthIn
+	var payload dto.AuthLogoutIn
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		encoder.Encode(response.Error(http.StatusBadRequest, "Invalid request body"))
+		return
+	}
+	if err := h.validator.Validate(&payload); err != nil {
+		code, msg := errorx.HTTPErrorTranslator(err)
+		w.WriteHeader(code)
+		encoder.Encode(response.Error(code, msg))
 		return
 	}
 
@@ -72,7 +86,7 @@ func (h *HTTPHandler) Get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 
-	var payload domain.GetProfileAuthIn
+	var payload dto.AuthProfileIn
 	payload.UserID = entity.GetAuthContext(r.Context())
 
 	output, err := h.authUsecase.GetProfile(r.Context(), &payload)
@@ -92,10 +106,16 @@ func (h *HTTPHandler) Put(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 
-	var payload domain.RefreshAuthIn
+	var payload dto.AuthRefreshIn
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		encoder.Encode(response.Error(http.StatusBadRequest, "Invalid request body"))
+		return
+	}
+	if err := h.validator.Validate(&payload); err != nil {
+		code, msg := errorx.HTTPErrorTranslator(err)
+		w.WriteHeader(code)
+		encoder.Encode(response.Error(code, msg))
 		return
 	}
 

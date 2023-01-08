@@ -6,46 +6,6 @@ import (
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 )
 
-// LoginAuthIn represent login input.
-type LoginAuthIn struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-// LoginAuthOut represent login output.
-type LoginAuthOut struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-}
-
-// LogoutAuthIn represent logout input.
-type LogoutAuthIn struct {
-	RefreshToken string `json:"refresh_token"`
-}
-
-// GetProfileAuthIn represent get profile input.
-type GetProfileAuthIn struct {
-	UserID entity.UserID `json:"user_id"`
-}
-
-// GetProfileAuthOut represent get profile output.
-type GetProfileAuthOut struct {
-	ID    entity.UserID `json:"id"`
-	Name  string        `json:"name"`
-	Email string        `json:"email"`
-}
-
-// RefreshAuthIn represent refresh input.
-type RefreshAuthIn struct {
-	RefreshToken string `json:"refresh_token"`
-}
-
-// RefreshAuthOut represent refresh output.
-type RefreshAuthOut struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-}
-
 // CreateTaskIn represents the input of task creation.
 type CreateTaskIn struct {
 	UserID      entity.UserID `json:"-"`
