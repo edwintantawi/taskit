@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/dto"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/internal/domain/mocks"
 	"github.com/edwintantawi/taskit/pkg/errorx"
@@ -78,8 +78,8 @@ func (s *TaskHTTPHandlerTestSuite) TestPost() {
 			},
 			setup: func(d *dependency) {
 				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
-				d.taskUsecase.On("Create", mock.Anything, &domain.CreateTaskIn{UserID: "user-xxxxx"}).
-					Return(domain.CreateTaskOut{}, test.ErrUnexpected)
+				d.taskUsecase.On("Create", mock.Anything, &dto.CreateTaskIn{UserID: "user-xxxxx"}).
+					Return(dto.CreateTaskOut{}, test.ErrUnexpected)
 			},
 		},
 		{
@@ -98,8 +98,8 @@ func (s *TaskHTTPHandlerTestSuite) TestPost() {
 			},
 			setup: func(d *dependency) {
 				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
-				d.taskUsecase.On("Create", mock.Anything, &domain.CreateTaskIn{UserID: "user-xxxxx"}).
-					Return(domain.CreateTaskOut{ID: "task-xxxxx"}, nil)
+				d.taskUsecase.On("Create", mock.Anything, &dto.CreateTaskIn{UserID: "user-xxxxx"}).
+					Return(dto.CreateTaskOut{ID: "task-xxxxx"}, nil)
 			},
 		},
 	}
@@ -168,7 +168,7 @@ func (s *TaskHTTPHandlerTestSuite) TestGet() {
 			setup: func(d *dependency) {
 				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
 
-				d.taskUsecase.On("GetAll", mock.Anything, &domain.GetAllTaskIn{UserID: "user-xxxxx"}).
+				d.taskUsecase.On("GetAll", mock.Anything, &dto.GetAllTaskIn{UserID: "user-xxxxx"}).
 					Return(nil, test.ErrUnexpected)
 			},
 		},
@@ -187,8 +187,8 @@ func (s *TaskHTTPHandlerTestSuite) TestGet() {
 			setup: func(d *dependency) {
 				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
 
-				d.taskUsecase.On("GetAll", mock.Anything, &domain.GetAllTaskIn{UserID: "user-xxxxx"}).
-					Return([]domain.GetAllTaskOut{
+				d.taskUsecase.On("GetAll", mock.Anything, &dto.GetAllTaskIn{UserID: "user-xxxxx"}).
+					Return([]dto.GetAllTaskOut{
 						{ID: "task-xxxxx", Content: "task_xxxxx_content", Description: "task_xxxxx_description", IsCompleted: false, DueDate: nil, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
 						{ID: "task-yyyyy", Content: "task_yyyyy_content", Description: "task_yyyyy_description", IsCompleted: true, DueDate: &test.TimeAfterNow, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
 					}, nil)
@@ -266,7 +266,7 @@ func (s *TaskHTTPHandlerTestSuite) TestDelete() {
 			setup: func(d *dependency) {
 				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
 
-				d.taskUsecase.On("Remove", mock.Anything, &domain.RemoveTaskIn{TaskID: "", UserID: "user-xxxxx"}).
+				d.taskUsecase.On("Remove", mock.Anything, &dto.RemoveTaskIn{TaskID: "", UserID: "user-xxxxx"}).
 					Return(test.ErrUnexpected)
 			},
 		},
@@ -287,7 +287,7 @@ func (s *TaskHTTPHandlerTestSuite) TestDelete() {
 			setup: func(d *dependency) {
 				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
 
-				d.taskUsecase.On("Remove", mock.Anything, &domain.RemoveTaskIn{TaskID: "task-xxxxx", UserID: "user-xxxxx"}).
+				d.taskUsecase.On("Remove", mock.Anything, &dto.RemoveTaskIn{TaskID: "task-xxxxx", UserID: "user-xxxxx"}).
 					Return(nil)
 			},
 		},
@@ -362,8 +362,8 @@ func (s *TaskHTTPHandlerTestSuite) TestGetByID() {
 			setup: func(d *dependency) {
 				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
 
-				d.taskUsecase.On("GetByID", mock.Anything, &domain.GetTaskByIDIn{TaskID: "", UserID: "user-xxxxx"}).
-					Return(domain.GetTaskByIDOut{}, test.ErrUnexpected)
+				d.taskUsecase.On("GetByID", mock.Anything, &dto.GetTaskByIDIn{TaskID: "", UserID: "user-xxxxx"}).
+					Return(dto.GetTaskByIDOut{}, test.ErrUnexpected)
 			},
 		},
 		{
@@ -385,8 +385,8 @@ func (s *TaskHTTPHandlerTestSuite) TestGetByID() {
 			setup: func(d *dependency) {
 				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
 
-				d.taskUsecase.On("GetByID", mock.Anything, &domain.GetTaskByIDIn{TaskID: "task-xxxxx", UserID: "user-xxxxx"}).
-					Return(domain.GetTaskByIDOut{
+				d.taskUsecase.On("GetByID", mock.Anything, &dto.GetTaskByIDIn{TaskID: "task-xxxxx", UserID: "user-xxxxx"}).
+					Return(dto.GetTaskByIDOut{
 						ID:          "task-xxxxx",
 						Content:     "task_xxxxx_content",
 						Description: "task_xxxxx_description",
@@ -486,8 +486,8 @@ func (s *TaskHTTPHandlerTestSuite) TestPut() {
 			setup: func(d *dependency) {
 				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
 
-				d.taskUsecase.On("Update", mock.Anything, &domain.UpdateTaskIn{TaskID: "", UserID: "user-xxxxx"}).
-					Return(domain.UpdateTaskOut{}, test.ErrUnexpected)
+				d.taskUsecase.On("Update", mock.Anything, &dto.UpdateTaskIn{TaskID: "", UserID: "user-xxxxx"}).
+					Return(dto.UpdateTaskOut{}, test.ErrUnexpected)
 			},
 		},
 		{
@@ -510,10 +510,10 @@ func (s *TaskHTTPHandlerTestSuite) TestPut() {
 			setup: func(d *dependency) {
 				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
 
-				d.taskUsecase.On("Update", mock.Anything, &domain.UpdateTaskIn{
+				d.taskUsecase.On("Update", mock.Anything, &dto.UpdateTaskIn{
 					TaskID: "task-xxxxx",
 					UserID: "user-xxxxx",
-				}).Return(domain.UpdateTaskOut{
+				}).Return(dto.UpdateTaskOut{
 					ID: "task-xxxxx",
 				}, nil)
 			},

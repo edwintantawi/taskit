@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/dto"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/internal/domain/mocks"
 	"github.com/edwintantawi/taskit/test"
@@ -27,7 +28,7 @@ type dependency struct {
 func (s *TaskUsecaseTestSuite) TestCreate() {
 	s.Run("it should return error when validation fail", func() {
 		ctx := context.Background()
-		payload := &domain.CreateTaskIn{}
+		payload := &dto.CreateTaskIn{}
 		usecase := New(nil)
 
 		output, err := usecase.Create(ctx, payload)
@@ -38,10 +39,10 @@ func (s *TaskUsecaseTestSuite) TestCreate() {
 
 	type args struct {
 		ctx     context.Context
-		payload *domain.CreateTaskIn
+		payload *dto.CreateTaskIn
 	}
 	type expected struct {
-		output domain.CreateTaskOut
+		output dto.CreateTaskOut
 		err    error
 	}
 	tests := []struct {
@@ -54,10 +55,10 @@ func (s *TaskUsecaseTestSuite) TestCreate() {
 			name: "it should return error when task respository return unexpected error",
 			args: args{
 				ctx:     context.Background(),
-				payload: &domain.CreateTaskIn{UserID: "user-xxxxx", Content: "task_content", Description: "content_description", DueDate: nil},
+				payload: &dto.CreateTaskIn{UserID: "user-xxxxx", Content: "task_content", Description: "content_description", DueDate: nil},
 			},
 			expected: expected{
-				output: domain.CreateTaskOut{},
+				output: dto.CreateTaskOut{},
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
@@ -69,10 +70,10 @@ func (s *TaskUsecaseTestSuite) TestCreate() {
 			name: "it should return error nil and output when task respository return nil error",
 			args: args{
 				ctx:     context.Background(),
-				payload: &domain.CreateTaskIn{UserID: "user-xxxxx", Content: "task_content", Description: "content_description", DueDate: nil},
+				payload: &dto.CreateTaskIn{UserID: "user-xxxxx", Content: "task_content", Description: "content_description", DueDate: nil},
 			},
 			expected: expected{
-				output: domain.CreateTaskOut{ID: "task-xxxxx"},
+				output: dto.CreateTaskOut{ID: "task-xxxxx"},
 				err:    nil,
 			},
 			setup: func(d *dependency) {
@@ -101,10 +102,10 @@ func (s *TaskUsecaseTestSuite) TestCreate() {
 func (s *TaskUsecaseTestSuite) TestGetAll() {
 	type args struct {
 		ctx     context.Context
-		payload *domain.GetAllTaskIn
+		payload *dto.GetAllTaskIn
 	}
 	type expected struct {
-		output []domain.GetAllTaskOut
+		output []dto.GetAllTaskOut
 		err    error
 	}
 	tests := []struct {
@@ -117,7 +118,7 @@ func (s *TaskUsecaseTestSuite) TestGetAll() {
 			name: "it should return error when task respository return unexpected error",
 			args: args{
 				ctx:     context.Background(),
-				payload: &domain.GetAllTaskIn{UserID: "user-xxxxx"},
+				payload: &dto.GetAllTaskIn{UserID: "user-xxxxx"},
 			},
 			expected: expected{
 				output: nil,
@@ -132,10 +133,10 @@ func (s *TaskUsecaseTestSuite) TestGetAll() {
 			name: "it should return error nil and tasks when success",
 			args: args{
 				ctx:     context.Background(),
-				payload: &domain.GetAllTaskIn{UserID: "user-xxxxx"},
+				payload: &dto.GetAllTaskIn{UserID: "user-xxxxx"},
 			},
 			expected: expected{
-				output: []domain.GetAllTaskOut{
+				output: []dto.GetAllTaskOut{
 					{ID: "task-xxxxx", Content: "task_xxxxx_content", Description: "task_xxxxx_description", IsCompleted: false, DueDate: nil, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
 					{ID: "task-yyyyy", Content: "task_yyyyy_content", Description: "task_yyyyy_description", IsCompleted: true, DueDate: &test.TimeAfterNow, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
 				},
@@ -171,7 +172,7 @@ func (s *TaskUsecaseTestSuite) TestGetAll() {
 func (s *TaskUsecaseTestSuite) TestRemove() {
 	type args struct {
 		ctx     context.Context
-		payload *domain.RemoveTaskIn
+		payload *dto.RemoveTaskIn
 	}
 	type expected struct {
 		err error
@@ -186,7 +187,7 @@ func (s *TaskUsecaseTestSuite) TestRemove() {
 			name: "it should return error when task repository FindByID return unexpected error",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.RemoveTaskIn{
+				payload: &dto.RemoveTaskIn{
 					TaskID: "task-xxxxx",
 					UserID: "user-xxxxx",
 				},
@@ -203,7 +204,7 @@ func (s *TaskUsecaseTestSuite) TestRemove() {
 			name: "it should return error ErrTaskAuthorization when task not own by the user",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.RemoveTaskIn{
+				payload: &dto.RemoveTaskIn{
 					TaskID: "task-xxxxx",
 					UserID: "user-xxxxx",
 				},
@@ -220,7 +221,7 @@ func (s *TaskUsecaseTestSuite) TestRemove() {
 			name: "it should return error when task repository DeleteByID return unexpected error",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.RemoveTaskIn{
+				payload: &dto.RemoveTaskIn{
 					TaskID: "task-xxxxx",
 					UserID: "user-xxxxx",
 				},
@@ -240,7 +241,7 @@ func (s *TaskUsecaseTestSuite) TestRemove() {
 			name: "it should return error nil when success delete task",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.RemoveTaskIn{
+				payload: &dto.RemoveTaskIn{
 					TaskID: "task-xxxxx",
 					UserID: "user-xxxxx",
 				},
@@ -274,10 +275,10 @@ func (s *TaskUsecaseTestSuite) TestRemove() {
 func (s *TaskUsecaseTestSuite) TestGetByID() {
 	type args struct {
 		ctx     context.Context
-		payload *domain.GetTaskByIDIn
+		payload *dto.GetTaskByIDIn
 	}
 	type expected struct {
-		output domain.GetTaskByIDOut
+		output dto.GetTaskByIDOut
 		err    error
 	}
 	tests := []struct {
@@ -290,10 +291,10 @@ func (s *TaskUsecaseTestSuite) TestGetByID() {
 			name: "it should return error when task repository FindByID return unexpected error",
 			args: args{
 				ctx:     context.Background(),
-				payload: &domain.GetTaskByIDIn{},
+				payload: &dto.GetTaskByIDIn{},
 			},
 			expected: expected{
-				output: domain.GetTaskByIDOut{},
+				output: dto.GetTaskByIDOut{},
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
@@ -305,13 +306,13 @@ func (s *TaskUsecaseTestSuite) TestGetByID() {
 			name: "it should return error ErrTaskAuthorization when task not own by the user",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.GetTaskByIDIn{
+				payload: &dto.GetTaskByIDIn{
 					TaskID: "task-xxxxx",
 					UserID: "user-xxxxx",
 				},
 			},
 			expected: expected{
-				output: domain.GetTaskByIDOut{},
+				output: dto.GetTaskByIDOut{},
 				err:    domain.ErrTaskAuthorization,
 			},
 			setup: func(d *dependency) {
@@ -323,13 +324,13 @@ func (s *TaskUsecaseTestSuite) TestGetByID() {
 			name: "it should return error nil when success get task",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.GetTaskByIDIn{
+				payload: &dto.GetTaskByIDIn{
 					TaskID: "task-xxxxx",
 					UserID: "user-xxxxx",
 				},
 			},
 			expected: expected{
-				output: domain.GetTaskByIDOut{
+				output: dto.GetTaskByIDOut{
 					ID:          "task-xxxxx",
 					Content:     "task_content",
 					Description: "task_description",
@@ -373,10 +374,10 @@ func (s *TaskUsecaseTestSuite) TestGetByID() {
 func (s *TaskUsecaseTestSuite) TestUpdate() {
 	type args struct {
 		ctx     context.Context
-		payload *domain.UpdateTaskIn
+		payload *dto.UpdateTaskIn
 	}
 	type expected struct {
-		output domain.UpdateTaskOut
+		output dto.UpdateTaskOut
 		err    error
 	}
 	tests := []struct {
@@ -389,10 +390,10 @@ func (s *TaskUsecaseTestSuite) TestUpdate() {
 			name: "it should return error when task repository FindByID return unexpected error",
 			args: args{
 				ctx:     context.Background(),
-				payload: &domain.UpdateTaskIn{TaskID: "task-xxxxx"},
+				payload: &dto.UpdateTaskIn{TaskID: "task-xxxxx"},
 			},
 			expected: expected{
-				output: domain.UpdateTaskOut{},
+				output: dto.UpdateTaskOut{},
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
@@ -404,10 +405,10 @@ func (s *TaskUsecaseTestSuite) TestUpdate() {
 			name: "it should return error ErrTaskAuthorization when task is not own by the user",
 			args: args{
 				ctx:     context.Background(),
-				payload: &domain.UpdateTaskIn{TaskID: "task-xxxxx", UserID: "user-xxxxx"},
+				payload: &dto.UpdateTaskIn{TaskID: "task-xxxxx", UserID: "user-xxxxx"},
 			},
 			expected: expected{
-				output: domain.UpdateTaskOut{},
+				output: dto.UpdateTaskOut{},
 				err:    domain.ErrTaskAuthorization,
 			},
 			setup: func(d *dependency) {
@@ -419,10 +420,10 @@ func (s *TaskUsecaseTestSuite) TestUpdate() {
 			name: "it should return error when task repository Update return unexpected error",
 			args: args{
 				ctx:     context.Background(),
-				payload: &domain.UpdateTaskIn{TaskID: "task-xxxxx", UserID: "user-xxxxx"},
+				payload: &dto.UpdateTaskIn{TaskID: "task-xxxxx", UserID: "user-xxxxx"},
 			},
 			expected: expected{
-				output: domain.UpdateTaskOut{},
+				output: dto.UpdateTaskOut{},
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
@@ -437,7 +438,7 @@ func (s *TaskUsecaseTestSuite) TestUpdate() {
 			name: "it should return error nil when success update",
 			args: args{
 				ctx: context.Background(),
-				payload: &domain.UpdateTaskIn{
+				payload: &dto.UpdateTaskIn{
 					TaskID:      "task-xxxxx",
 					UserID:      "user-xxxxx",
 					Content:     "new_content",
@@ -447,7 +448,7 @@ func (s *TaskUsecaseTestSuite) TestUpdate() {
 				},
 			},
 			expected: expected{
-				output: domain.UpdateTaskOut{
+				output: dto.UpdateTaskOut{
 					ID: "task-xxxxx",
 				},
 				err: nil,

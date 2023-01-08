@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/dto"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/pkg/errorx"
 	"github.com/edwintantawi/taskit/pkg/response"
@@ -26,7 +27,7 @@ func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 
-	var payload domain.CreateTaskIn
+	var payload dto.CreateTaskIn
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		encoder.Encode(response.Error(http.StatusBadRequest, "Invalid request body"))
@@ -51,7 +52,7 @@ func (h *HTTPHandler) Get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 
-	var payload domain.GetAllTaskIn
+	var payload dto.GetAllTaskIn
 	payload.UserID = entity.GetAuthContext(r.Context())
 
 	output, err := h.taskUsecase.GetAll(r.Context(), &payload)
@@ -71,7 +72,7 @@ func (h *HTTPHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 
-	var payload domain.RemoveTaskIn
+	var payload dto.RemoveTaskIn
 	payload.UserID = entity.GetAuthContext(r.Context())
 	payload.TaskID = entity.TaskID(chi.URLParam(r, "task_id"))
 
@@ -91,7 +92,7 @@ func (h *HTTPHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 
-	var payload domain.GetTaskByIDIn
+	var payload dto.GetTaskByIDIn
 	payload.UserID = entity.GetAuthContext(r.Context())
 	payload.TaskID = entity.TaskID(chi.URLParam(r, "task_id"))
 
@@ -112,7 +113,7 @@ func (h *HTTPHandler) Put(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 
-	var payload domain.UpdateTaskIn
+	var payload dto.UpdateTaskIn
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		encoder.Encode(response.Error(http.StatusBadRequest, "Invalid request body"))

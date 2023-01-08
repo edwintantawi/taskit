@@ -5,7 +5,8 @@ package mocks
 import (
 	context "context"
 
-	domain "github.com/edwintantawi/taskit/internal/domain"
+	dto "github.com/edwintantawi/taskit/internal/domain/dto"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -15,18 +16,18 @@ type TaskUsecase struct {
 }
 
 // Create provides a mock function with given fields: ctx, payload
-func (_m *TaskUsecase) Create(ctx context.Context, payload *domain.CreateTaskIn) (domain.CreateTaskOut, error) {
+func (_m *TaskUsecase) Create(ctx context.Context, payload *dto.CreateTaskIn) (dto.CreateTaskOut, error) {
 	ret := _m.Called(ctx, payload)
 
-	var r0 domain.CreateTaskOut
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.CreateTaskIn) domain.CreateTaskOut); ok {
+	var r0 dto.CreateTaskOut
+	if rf, ok := ret.Get(0).(func(context.Context, *dto.CreateTaskIn) dto.CreateTaskOut); ok {
 		r0 = rf(ctx, payload)
 	} else {
-		r0 = ret.Get(0).(domain.CreateTaskOut)
+		r0 = ret.Get(0).(dto.CreateTaskOut)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *domain.CreateTaskIn) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *dto.CreateTaskIn) error); ok {
 		r1 = rf(ctx, payload)
 	} else {
 		r1 = ret.Error(1)
@@ -36,20 +37,20 @@ func (_m *TaskUsecase) Create(ctx context.Context, payload *domain.CreateTaskIn)
 }
 
 // GetAll provides a mock function with given fields: ctx, payload
-func (_m *TaskUsecase) GetAll(ctx context.Context, payload *domain.GetAllTaskIn) ([]domain.GetAllTaskOut, error) {
+func (_m *TaskUsecase) GetAll(ctx context.Context, payload *dto.GetAllTaskIn) ([]dto.GetAllTaskOut, error) {
 	ret := _m.Called(ctx, payload)
 
-	var r0 []domain.GetAllTaskOut
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.GetAllTaskIn) []domain.GetAllTaskOut); ok {
+	var r0 []dto.GetAllTaskOut
+	if rf, ok := ret.Get(0).(func(context.Context, *dto.GetAllTaskIn) []dto.GetAllTaskOut); ok {
 		r0 = rf(ctx, payload)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]domain.GetAllTaskOut)
+			r0 = ret.Get(0).([]dto.GetAllTaskOut)
 		}
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *domain.GetAllTaskIn) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *dto.GetAllTaskIn) error); ok {
 		r1 = rf(ctx, payload)
 	} else {
 		r1 = ret.Error(1)
@@ -59,18 +60,18 @@ func (_m *TaskUsecase) GetAll(ctx context.Context, payload *domain.GetAllTaskIn)
 }
 
 // GetByID provides a mock function with given fields: ctx, payload
-func (_m *TaskUsecase) GetByID(ctx context.Context, payload *domain.GetTaskByIDIn) (domain.GetTaskByIDOut, error) {
+func (_m *TaskUsecase) GetByID(ctx context.Context, payload *dto.GetTaskByIDIn) (dto.GetTaskByIDOut, error) {
 	ret := _m.Called(ctx, payload)
 
-	var r0 domain.GetTaskByIDOut
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.GetTaskByIDIn) domain.GetTaskByIDOut); ok {
+	var r0 dto.GetTaskByIDOut
+	if rf, ok := ret.Get(0).(func(context.Context, *dto.GetTaskByIDIn) dto.GetTaskByIDOut); ok {
 		r0 = rf(ctx, payload)
 	} else {
-		r0 = ret.Get(0).(domain.GetTaskByIDOut)
+		r0 = ret.Get(0).(dto.GetTaskByIDOut)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *domain.GetTaskByIDIn) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *dto.GetTaskByIDIn) error); ok {
 		r1 = rf(ctx, payload)
 	} else {
 		r1 = ret.Error(1)
@@ -80,11 +81,11 @@ func (_m *TaskUsecase) GetByID(ctx context.Context, payload *domain.GetTaskByIDI
 }
 
 // Remove provides a mock function with given fields: ctx, payload
-func (_m *TaskUsecase) Remove(ctx context.Context, payload *domain.RemoveTaskIn) error {
+func (_m *TaskUsecase) Remove(ctx context.Context, payload *dto.RemoveTaskIn) error {
 	ret := _m.Called(ctx, payload)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.RemoveTaskIn) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *dto.RemoveTaskIn) error); ok {
 		r0 = rf(ctx, payload)
 	} else {
 		r0 = ret.Error(0)
@@ -94,18 +95,18 @@ func (_m *TaskUsecase) Remove(ctx context.Context, payload *domain.RemoveTaskIn)
 }
 
 // Update provides a mock function with given fields: ctx, payload
-func (_m *TaskUsecase) Update(ctx context.Context, payload *domain.UpdateTaskIn) (domain.UpdateTaskOut, error) {
+func (_m *TaskUsecase) Update(ctx context.Context, payload *dto.UpdateTaskIn) (dto.UpdateTaskOut, error) {
 	ret := _m.Called(ctx, payload)
 
-	var r0 domain.UpdateTaskOut
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.UpdateTaskIn) domain.UpdateTaskOut); ok {
+	var r0 dto.UpdateTaskOut
+	if rf, ok := ret.Get(0).(func(context.Context, *dto.UpdateTaskIn) dto.UpdateTaskOut); ok {
 		r0 = rf(ctx, payload)
 	} else {
-		r0 = ret.Get(0).(domain.UpdateTaskOut)
+		r0 = ret.Get(0).(dto.UpdateTaskOut)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *domain.UpdateTaskIn) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *dto.UpdateTaskIn) error); ok {
 		r1 = rf(ctx, payload)
 	} else {
 		r1 = ret.Error(1)

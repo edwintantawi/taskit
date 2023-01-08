@@ -33,9 +33,9 @@ type AuthUsecase interface {
 
 // TaskUsecase represent task usecase contract.
 type TaskUsecase interface {
-	Create(ctx context.Context, payload *CreateTaskIn) (CreateTaskOut, error)
-	GetAll(ctx context.Context, payload *GetAllTaskIn) ([]GetAllTaskOut, error)
-	Remove(ctx context.Context, payload *RemoveTaskIn) error
-	GetByID(ctx context.Context, payload *GetTaskByIDIn) (GetTaskByIDOut, error)
-	Update(ctx context.Context, payload *UpdateTaskIn) (UpdateTaskOut, error)
+	Create(ctx context.Context, payload *dto.CreateTaskIn) (dto.CreateTaskOut, error)
+	GetAll(ctx context.Context, payload *dto.GetAllTaskIn) ([]dto.GetAllTaskOut, error)
+	Remove(ctx context.Context, payload *dto.RemoveTaskIn) error
+	GetByID(ctx context.Context, payload *dto.GetTaskByIDIn) (dto.GetTaskByIDOut, error)
+	Update(ctx context.Context, payload *dto.UpdateTaskIn) (dto.UpdateTaskOut, error)
 }
