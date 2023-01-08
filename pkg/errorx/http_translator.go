@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/edwintantawi/taskit/internal/domain"
+	"github.com/edwintantawi/taskit/internal/domain/dto"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 )
 
@@ -19,24 +20,16 @@ func HTTPErrorTranslator(err error) (code int, msg string) {
 	log.Println("[ERROR]", err)
 	switch err {
 	// User entity
-	case entity.ErrEmailEmpty:
-		return http.StatusBadRequest, "Email is required field"
 	case entity.ErrEmailInvalid:
 		return http.StatusBadRequest, "Email must be a valid email address"
-	case entity.ErrPasswordEmpty:
-		return http.StatusBadRequest, "Password is required field"
 	case entity.ErrPasswordTooShort:
 		return http.StatusBadRequest, fmt.Sprintf("Password must be greater then %d character in length", entity.MinPasswordLength)
-	case entity.ErrNameEmpty:
-		return http.StatusBadRequest, "Name is required field"
 	// User repository
 	case domain.ErrEmailNotAvailable:
 		return http.StatusBadRequest, "Email is not available"
 	case domain.ErrUserNotFound:
 		return http.StatusNotFound, "User not found"
 	// Auth entity
-	case entity.ErrAuthTokenEmpty:
-		return http.StatusBadRequest, "Refresh token is required field"
 	case entity.ErrAuthTokenExpired:
 		return http.StatusBadRequest, "Refresh token is expired"
 	// Auth repository
@@ -47,15 +40,23 @@ func HTTPErrorTranslator(err error) (code int, msg string) {
 	// Auth usecase
 	case domain.ErrPasswordIncorrect:
 		return http.StatusBadRequest, "Password is incorrect"
-	// Task entity
-	case entity.ErrContentEmpty:
-		return http.StatusBadRequest, "Content is required field"
 	// Task repository
 	case domain.ErrTaskNotFound:
 		return http.StatusNotFound, "Task not found"
 	// Task usecase
 	case domain.ErrTaskAuthorization:
 		return http.StatusForbidden, "Not have access to this task"
+	// DTO
+	case dto.ErrEmailEmpty:
+		return http.StatusBadRequest, "Email is required field"
+	case dto.ErrPasswordEmpty:
+		return http.StatusBadRequest, "Password is required field"
+	case dto.ErrNameEmpty:
+		return http.StatusBadRequest, "Name is required field"
+	case dto.ErrRefreshTokenEmpty:
+		return http.StatusBadRequest, "Refresh token is required field"
+	case dto.ErrContentEmpty:
+		return http.StatusBadRequest, "Content is required field"
 	// Other
 	default:
 		return http.StatusInternalServerError, InternalServerErrorMessage

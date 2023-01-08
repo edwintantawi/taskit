@@ -1,13 +1,6 @@
 package entity
 
-import (
-	"errors"
-	"time"
-)
-
-var (
-	ErrContentEmpty = errors.New("task.entity.content_empty")
-)
+import "time"
 
 type TaskID string
 type TaskDueDate *time.Time
@@ -22,13 +15,4 @@ type Task struct {
 	DueDate     TaskDueDate
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-}
-
-// Validate task fields.
-func (t *Task) Validate() error {
-	switch {
-	case t.Content == "":
-		return ErrContentEmpty
-	}
-	return nil
 }

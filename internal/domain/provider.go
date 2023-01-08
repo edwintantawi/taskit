@@ -23,3 +23,13 @@ type JWTProvider interface {
 	GenerateRefreshToken(userID entity.UserID) (string, time.Time, error)
 	VerifyAccessToken(rawToken string) (entity.UserID, error)
 }
+
+// Validater represent object with validate method.
+type Validater interface {
+	Validate() error
+}
+
+// ValidatorProvider represent validator contract.
+type ValidatorProvider interface {
+	Validate(validater Validater) error
+}

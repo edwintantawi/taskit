@@ -87,13 +87,13 @@ func (s *TaskRepositoryTestSuite) TestStore() {
 				s.FailNow("an error '%s' was not expected when opening a database mock connection", err)
 			}
 
-			deps := &dependency{
+			d := &dependency{
 				mockDB:     mockDB,
 				idProvider: &mocks.IDProvider{},
 			}
-			t.setup(deps)
+			t.setup(d)
 
-			repository := New(db, deps.idProvider)
+			repository := New(db, d.idProvider)
 			taskID, err := repository.Store(t.args.ctx, t.args.task)
 
 			s.Equal(t.expected.err, err)
@@ -201,10 +201,10 @@ func (s *TaskRepositoryTestSuite) TestFindByID() {
 			s.FailNow("an error '%s' was not expected when opening a database mock connection", err)
 		}
 
-		deps := &dependency{
+		d := &dependency{
 			mockDB: mockDB,
 		}
-		t.setup(deps)
+		t.setup(d)
 
 		repository := New(db, nil)
 		task, err := repository.FindByID(t.args.ctx, t.args.taskID)
@@ -336,12 +336,12 @@ func (s *TaskRepositoryTestSuite) TestFindAllByUserID() {
 				s.FailNow("an error '%s' was not expected when opening a database mock connection", err)
 			}
 
-			deps := &dependency{
+			d := &dependency{
 				mockDB: mockDB,
 			}
-			t.setup(deps)
+			t.setup(d)
 
-			repository := New(db, deps.idProvider)
+			repository := New(db, d.idProvider)
 			tasks, err := repository.FindAllByUserID(t.args.ctx, t.args.userID)
 
 			if t.expected.allowAnyError {
@@ -438,10 +438,10 @@ func (s *TaskRepositoryTestSuite) TestVerifyAvailableByID() {
 				s.FailNow("an error '%s' was not expected when opening a database mock connection", err)
 			}
 
-			deps := &dependency{
+			d := &dependency{
 				mockDB: mockDB,
 			}
-			t.setup(deps)
+			t.setup(d)
 
 			repository := New(db, nil)
 			err = repository.VerifyAvailableByID(t.args.ctx, t.args.taskID)
@@ -504,10 +504,10 @@ func (s *TaskRepositoryTestSuite) TestDeleteByID() {
 				s.FailNow("an error '%s' was not expected when opening a database mock connection", err)
 			}
 
-			deps := &dependency{
+			d := &dependency{
 				mockDB: mockDB,
 			}
-			t.setup(deps)
+			t.setup(d)
 
 			repository := New(db, nil)
 			err = repository.DeleteByID(t.args.ctx, t.args.taskID)
@@ -582,10 +582,10 @@ func (s *TaskRepositoryTestSuite) TestUpdate() {
 				s.FailNow("an error '%s' was not expected when opening a database mock connection", err)
 			}
 
-			deps := &dependency{
+			d := &dependency{
 				mockDB: mockDB,
 			}
-			t.setup(deps)
+			t.setup(d)
 
 			repository := New(db, nil)
 			taskID, err := repository.Update(t.args.ctx, t.args.task)

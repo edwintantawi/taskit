@@ -5,7 +5,8 @@ package mocks
 import (
 	context "context"
 
-	domain "github.com/edwintantawi/taskit/internal/domain"
+	dto "github.com/edwintantawi/taskit/internal/domain/dto"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -15,18 +16,18 @@ type AuthUsecase struct {
 }
 
 // GetProfile provides a mock function with given fields: ctx, payload
-func (_m *AuthUsecase) GetProfile(ctx context.Context, payload *domain.GetProfileAuthIn) (domain.GetProfileAuthOut, error) {
+func (_m *AuthUsecase) GetProfile(ctx context.Context, payload *dto.AuthProfileIn) (dto.AuthProfileOut, error) {
 	ret := _m.Called(ctx, payload)
 
-	var r0 domain.GetProfileAuthOut
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.GetProfileAuthIn) domain.GetProfileAuthOut); ok {
+	var r0 dto.AuthProfileOut
+	if rf, ok := ret.Get(0).(func(context.Context, *dto.AuthProfileIn) dto.AuthProfileOut); ok {
 		r0 = rf(ctx, payload)
 	} else {
-		r0 = ret.Get(0).(domain.GetProfileAuthOut)
+		r0 = ret.Get(0).(dto.AuthProfileOut)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *domain.GetProfileAuthIn) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *dto.AuthProfileIn) error); ok {
 		r1 = rf(ctx, payload)
 	} else {
 		r1 = ret.Error(1)
@@ -36,18 +37,18 @@ func (_m *AuthUsecase) GetProfile(ctx context.Context, payload *domain.GetProfil
 }
 
 // Login provides a mock function with given fields: ctx, payload
-func (_m *AuthUsecase) Login(ctx context.Context, payload *domain.LoginAuthIn) (domain.LoginAuthOut, error) {
+func (_m *AuthUsecase) Login(ctx context.Context, payload *dto.AuthLoginIn) (dto.AuthLoginOut, error) {
 	ret := _m.Called(ctx, payload)
 
-	var r0 domain.LoginAuthOut
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.LoginAuthIn) domain.LoginAuthOut); ok {
+	var r0 dto.AuthLoginOut
+	if rf, ok := ret.Get(0).(func(context.Context, *dto.AuthLoginIn) dto.AuthLoginOut); ok {
 		r0 = rf(ctx, payload)
 	} else {
-		r0 = ret.Get(0).(domain.LoginAuthOut)
+		r0 = ret.Get(0).(dto.AuthLoginOut)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *domain.LoginAuthIn) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *dto.AuthLoginIn) error); ok {
 		r1 = rf(ctx, payload)
 	} else {
 		r1 = ret.Error(1)
@@ -57,11 +58,11 @@ func (_m *AuthUsecase) Login(ctx context.Context, payload *domain.LoginAuthIn) (
 }
 
 // Logout provides a mock function with given fields: ctx, payload
-func (_m *AuthUsecase) Logout(ctx context.Context, payload *domain.LogoutAuthIn) error {
+func (_m *AuthUsecase) Logout(ctx context.Context, payload *dto.AuthLogoutIn) error {
 	ret := _m.Called(ctx, payload)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.LogoutAuthIn) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *dto.AuthLogoutIn) error); ok {
 		r0 = rf(ctx, payload)
 	} else {
 		r0 = ret.Error(0)
@@ -71,18 +72,18 @@ func (_m *AuthUsecase) Logout(ctx context.Context, payload *domain.LogoutAuthIn)
 }
 
 // Refresh provides a mock function with given fields: ctx, payload
-func (_m *AuthUsecase) Refresh(ctx context.Context, payload *domain.RefreshAuthIn) (domain.RefreshAuthOut, error) {
+func (_m *AuthUsecase) Refresh(ctx context.Context, payload *dto.AuthRefreshIn) (dto.AuthRefreshOut, error) {
 	ret := _m.Called(ctx, payload)
 
-	var r0 domain.RefreshAuthOut
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.RefreshAuthIn) domain.RefreshAuthOut); ok {
+	var r0 dto.AuthRefreshOut
+	if rf, ok := ret.Get(0).(func(context.Context, *dto.AuthRefreshIn) dto.AuthRefreshOut); ok {
 		r0 = rf(ctx, payload)
 	} else {
-		r0 = ret.Get(0).(domain.RefreshAuthOut)
+		r0 = ret.Get(0).(dto.AuthRefreshOut)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *domain.RefreshAuthIn) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *dto.AuthRefreshIn) error); ok {
 		r1 = rf(ctx, payload)
 	} else {
 		r1 = ret.Error(1)

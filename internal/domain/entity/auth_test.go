@@ -16,24 +16,6 @@ func TestAuthEntitySuite(t *testing.T) {
 	suite.Run(t, new(AuthEntityTestSuite))
 }
 
-func (s *AuthEntityTestSuite) TestValidate() {
-	tests := []struct {
-		name     string
-		input    Auth
-		expected error
-	}{
-		{name: "it should return error when token is empty", input: Auth{}, expected: ErrAuthTokenEmpty},
-		{name: "it should return nil when all fields are valid", input: Auth{Token: "xxxxx.xxxxx.xxxxx"}, expected: nil},
-	}
-
-	for _, test := range tests {
-		s.Run(test.name, func() {
-			err := test.input.Validate()
-			s.Equal(test.expected, err)
-		})
-	}
-}
-
 func (s *AuthEntityTestSuite) TestVerifyTokenExpires() {
 	tests := []struct {
 		name     string

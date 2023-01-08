@@ -20,11 +20,8 @@ func (s *UserEntityTestSuite) TestValidate() {
 		input    User
 		expected error
 	}{
-		{name: "it should return error when email is empty", input: User{}, expected: ErrEmailEmpty},
 		{name: "it should return error when email is invalid", input: User{Email: "invalid"}, expected: ErrEmailInvalid},
-		{name: "it should return error when password is empty", input: User{Email: "gopher@go.dev"}, expected: ErrPasswordEmpty},
 		{name: "it should return error when password is too short", input: User{Email: "gopher@go.dev", Password: "123"}, expected: ErrPasswordTooShort},
-		{name: "it should return error when name is empty", input: User{Email: "gopher@go.dev", Password: "123456"}, expected: ErrNameEmpty},
 		{name: "it should return nil when all fields are valid", input: User{Email: "gopher@go.dev", Password: "123456", Name: "Gopher"}, expected: nil},
 	}
 
