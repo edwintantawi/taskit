@@ -23,7 +23,7 @@ func (s *TaskDTOTestSuite) TestTaskCreateIn() {
 		{
 			name:     "it should return error when content is empty",
 			input:    TaskCreateIn{},
-			expected: ErrTaskContentEmpty,
+			expected: ErrContentEmpty,
 		},
 		{
 			name: "it should return nil when all fields are valid",
@@ -51,7 +51,7 @@ func (s *TaskDTOTestSuite) TestTaskUpdateIn() {
 		{
 			name:     "it should return error when content is empty",
 			input:    TaskUpdateIn{},
-			expected: ErrTaskContentEmpty,
+			expected: ErrContentEmpty,
 		},
 		{
 			name: "it should return nil when all fields are valid",

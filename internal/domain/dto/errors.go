@@ -9,5 +9,5 @@ var (
 
 	ErrRefreshTokenEmpty = errors.New("dto.refresh_token_empty")
 
-	ErrTaskContentEmpty = errors.New("dto.task_content_empty")
+	ErrContentEmpty = errors.New("dto.content_empty")
 )

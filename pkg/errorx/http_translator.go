@@ -55,7 +55,7 @@ func HTTPErrorTranslator(err error) (code int, msg string) {
 		return http.StatusBadRequest, "Name is required field"
 	case dto.ErrRefreshTokenEmpty:
 		return http.StatusBadRequest, "Refresh token is required field"
-	case dto.ErrTaskContentEmpty:
+	case dto.ErrContentEmpty:
 		return http.StatusBadRequest, "Content is required field"
 	// Other
 	default:

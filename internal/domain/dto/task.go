@@ -17,7 +17,7 @@ type TaskCreateIn struct {
 func (t *TaskCreateIn) Validate() error {
 	switch {
 	case t.Content == "":
-		return ErrTaskContentEmpty
+		return ErrContentEmpty
 	}
 	return nil
 }
@@ -79,7 +79,7 @@ type TaskUpdateIn struct {
 func (t *TaskUpdateIn) Validate() error {
 	switch {
 	case t.Content == "":
-		return ErrTaskContentEmpty
+		return ErrContentEmpty
 	}
 	return nil
 }

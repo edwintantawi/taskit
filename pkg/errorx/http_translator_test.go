@@ -48,7 +48,7 @@ func (s *HTTPErrorTranslatorTestSuite) TestErrorTranslator() {
 		{dto.ErrPasswordEmpty, 400, "Password is required field"},
 		{dto.ErrNameEmpty, 400, "Name is required field"},
 		{dto.ErrRefreshTokenEmpty, 400, "Refresh token is required field"},
-		{dto.ErrTaskContentEmpty, 400, "Content is required field"},
+		{dto.ErrContentEmpty, 400, "Content is required field"},
 		// Other
 		{errors.New("other error"), 500, "Something went wrong"},
 	}
