@@ -31,7 +31,7 @@ func New(jwtProvider domain.JWTProvider) middleware {
 			userId, err := jwtProvider.VerifyAccessToken(rawToken)
 			if err != nil {
 				w.WriteHeader(http.StatusUnauthorized)
-				encoder.Encode(response.Error(http.StatusUnauthorized, "The access token provided is invalid"))
+				encoder.Encode(response.Error(http.StatusUnauthorized, err.Error()))
 				return
 			}
 
