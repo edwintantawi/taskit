@@ -19,15 +19,15 @@ type JWTTokenConfig struct {
 	Exp int
 }
 
-type jwtx struct {
+type JWT struct {
 	accessTokenKey      string
 	refreshTokenKey     string
 	accessTokenExpires  int
 	refreshTokenExpires int
 }
 
-func NewJWT(accessToken, refreshToken JWTTokenConfig) *jwtx {
-	return &jwtx{
+func NewJWT(accessToken, refreshToken JWTTokenConfig) JWT {
+	return JWT{
 		accessTokenKey:      accessToken.Key,
 		refreshTokenKey:     refreshToken.Key,
 		accessTokenExpires:  accessToken.Exp,
@@ -35,7 +35,7 @@ func NewJWT(accessToken, refreshToken JWTTokenConfig) *jwtx {
 	}
 }
 
-func (j *jwtx) GenerateAccessToken(userID entity.UserID) (string, time.Time, error) {
+func (j *JWT) GenerateAccessToken(userID entity.UserID) (string, time.Time, error) {
 	expiresTime := time.Now().Add(time.Duration(j.accessTokenExpires) * time.Second)
 	claims := jwtClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -52,7 +52,7 @@ func (j *jwtx) GenerateAccessToken(userID entity.UserID) (string, time.Time, err
 	return signedToken, expiresTime, nil
 }
 
-func (j *jwtx) GenerateRefreshToken(userID entity.UserID) (string, time.Time, error) {
+func (j *JWT) GenerateRefreshToken(userID entity.UserID) (string, time.Time, error) {
 	expiresTime := time.Now().Add(time.Duration(j.refreshTokenExpires) * time.Second)
 	claims := jwtClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -69,7 +69,7 @@ func (j *jwtx) GenerateRefreshToken(userID entity.UserID) (string, time.Time, er
 	return signedToken, expiresTime, nil
 }
 
-func (j *jwtx) VerifyAccessToken(rawToken string) (entity.UserID, error) {
+func (j *JWT) VerifyAccessToken(rawToken string) (entity.UserID, error) {
 	token, err := jwt.Parse(rawToken, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid token alg")

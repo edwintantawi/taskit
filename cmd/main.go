@@ -54,9 +54,9 @@ func main() {
 
 	// Auth.
 	authRepository := authRepository.New(db, &idProvider)
-	authUsecase := authUsecase.New(&validator, authRepository, userRepository, hashProvider, jwtProvider)
+	authUsecase := authUsecase.New(&validator, authRepository, userRepository, hashProvider, &jwtProvider)
 	authHTTPHandler := authHTTPHandler.New(&validator, authUsecase)
-	authMiddleware := authMiddleware.New(jwtProvider)
+	authMiddleware := authMiddleware.New(&jwtProvider)
 
 	// Task.
 	taskRepository := taskRepository.New(db, &idProvider)
