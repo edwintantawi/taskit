@@ -8,10 +8,10 @@ import (
 
 // TaskCreateIn represents the input of task creation.
 type TaskCreateIn struct {
-	UserID      entity.UserID      `json:"-"`
-	Content     string             `json:"content"`
-	Description string             `json:"description"`
-	DueDate     entity.TaskDueDate `json:"due_date"`
+	UserID      entity.UserID   `json:"-"`
+	Content     string          `json:"content"`
+	Description string          `json:"description"`
+	DueDate     entity.NullTime `json:"due_date"`
 }
 
 func (t *TaskCreateIn) Validate() error {
@@ -34,13 +34,13 @@ type TaskGetAllIn struct {
 
 // TaskGetAllOut represents the output of task retrieval.
 type TaskGetAllOut struct {
-	ID          entity.TaskID      `json:"id"`
-	Content     string             `json:"content"`
-	Description string             `json:"description"`
-	IsCompleted bool               `json:"is_completed"`
-	DueDate     entity.TaskDueDate `json:"due_date"`
-	CreatedAt   time.Time          `json:"created_at"`
-	UpdatedAt   time.Time          `json:"updated_at"`
+	ID          entity.TaskID   `json:"id"`
+	Content     string          `json:"content"`
+	Description string          `json:"description"`
+	IsCompleted bool            `json:"is_completed"`
+	DueDate     entity.NullTime `json:"due_date"`
+	CreatedAt   time.Time       `json:"created_at"`
+	UpdatedAt   time.Time       `json:"updated_at"`
 }
 
 // TaskRemoveIn represents the input of task removal.
@@ -57,23 +57,23 @@ type TaskGetByIDIn struct {
 
 // TaskGetByIDOut represents the output of task retrieval.
 type TaskGetByIDOut struct {
-	ID          entity.TaskID      `json:"id"`
-	Content     string             `json:"content"`
-	Description string             `json:"description"`
-	IsCompleted bool               `json:"is_completed"`
-	DueDate     entity.TaskDueDate `json:"due_date"`
-	CreatedAt   time.Time          `json:"created_at"`
-	UpdatedAt   time.Time          `json:"updated_at"`
+	ID          entity.TaskID   `json:"id"`
+	Content     string          `json:"content"`
+	Description string          `json:"description"`
+	IsCompleted bool            `json:"is_completed"`
+	DueDate     entity.NullTime `json:"due_date"`
+	CreatedAt   time.Time       `json:"created_at"`
+	UpdatedAt   time.Time       `json:"updated_at"`
 }
 
 // TaskUpdateIn represents the input of task update
 type TaskUpdateIn struct {
-	TaskID      entity.TaskID      `json:"-"`
-	UserID      entity.UserID      `json:"-"`
-	Content     string             `json:"content"`
-	Description string             `json:"description"`
-	IsCompleted bool               `json:"is_completed"`
-	DueDate     entity.TaskDueDate `json:"due_date"`
+	TaskID      entity.TaskID   `json:"-"`
+	UserID      entity.UserID   `json:"-"`
+	Content     string          `json:"content"`
+	Description string          `json:"description"`
+	IsCompleted bool            `json:"is_completed"`
+	DueDate     entity.NullTime `json:"due_date"`
 }
 
 func (t *TaskUpdateIn) Validate() error {

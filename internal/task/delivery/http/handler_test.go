@@ -219,8 +219,8 @@ func (s *TaskHTTPHandlerTestSuite) TestGet() {
 
 				d.taskUsecase.On("GetAll", mock.Anything, &dto.TaskGetAllIn{UserID: "user-xxxxx"}).
 					Return([]dto.TaskGetAllOut{
-						{ID: "task-xxxxx", Content: "task_xxxxx_content", Description: "task_xxxxx_description", IsCompleted: false, DueDate: entity.TaskDueDate{NullTime: sql.NullTime{Valid: false}}, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
-						{ID: "task-yyyyy", Content: "task_yyyyy_content", Description: "task_yyyyy_description", IsCompleted: true, DueDate: entity.TaskDueDate{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}}, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+						{ID: "task-xxxxx", Content: "task_xxxxx_content", Description: "task_xxxxx_description", IsCompleted: false, DueDate: entity.NullTime{NullTime: sql.NullTime{Valid: false}}, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+						{ID: "task-yyyyy", Content: "task_yyyyy_content", Description: "task_yyyyy_description", IsCompleted: true, DueDate: entity.NullTime{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}}, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
 					}, nil)
 			},
 		},
@@ -421,7 +421,7 @@ func (s *TaskHTTPHandlerTestSuite) TestGetByID() {
 						Content:     "task_xxxxx_content",
 						Description: "task_xxxxx_description",
 						IsCompleted: true,
-						DueDate:     entity.TaskDueDate{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
+						DueDate:     entity.NullTime{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
 						CreatedAt:   test.TimeBeforeNow,
 						UpdatedAt:   test.TimeBeforeNow,
 					}, nil)

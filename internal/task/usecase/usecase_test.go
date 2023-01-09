@@ -49,7 +49,7 @@ func (s *TaskUsecaseTestSuite) TestCreate() {
 					UserID:      "user-xxxxx",
 					Content:     "task_content",
 					Description: "content_description",
-					DueDate:     entity.TaskDueDate{NullTime: sql.NullTime{Valid: false}},
+					DueDate:     entity.NullTime{NullTime: sql.NullTime{Valid: false}},
 				},
 			},
 			expected: expected{
@@ -61,7 +61,7 @@ func (s *TaskUsecaseTestSuite) TestCreate() {
 					UserID:      "user-xxxxx",
 					Content:     "task_content",
 					Description: "content_description",
-					DueDate:     entity.TaskDueDate{NullTime: sql.NullTime{Valid: false}},
+					DueDate:     entity.NullTime{NullTime: sql.NullTime{Valid: false}},
 				}).Return(entity.TaskID(""), test.ErrUnexpected)
 			},
 		},
@@ -73,7 +73,7 @@ func (s *TaskUsecaseTestSuite) TestCreate() {
 					UserID:      "user-xxxxx",
 					Content:     "task_content",
 					Description: "content_description",
-					DueDate:     entity.TaskDueDate{NullTime: sql.NullTime{Valid: false}},
+					DueDate:     entity.NullTime{NullTime: sql.NullTime{Valid: false}},
 				},
 			},
 			expected: expected{
@@ -85,7 +85,7 @@ func (s *TaskUsecaseTestSuite) TestCreate() {
 					UserID:      "user-xxxxx",
 					Content:     "task_content",
 					Description: "content_description",
-					DueDate:     entity.TaskDueDate{NullTime: sql.NullTime{Valid: false}},
+					DueDate:     entity.NullTime{NullTime: sql.NullTime{Valid: false}},
 				}).Return(entity.TaskID("task-xxxxx"), nil)
 			},
 		},
@@ -145,14 +145,14 @@ func (s *TaskUsecaseTestSuite) TestGetAll() {
 			},
 			expected: expected{
 				output: []dto.TaskGetAllOut{
-					{ID: "task-xxxxx", Content: "task_xxxxx_content", Description: "task_xxxxx_description", IsCompleted: false, DueDate: entity.TaskDueDate{NullTime: sql.NullTime{Valid: false}}, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
-					{ID: "task-yyyyy", Content: "task_yyyyy_content", Description: "task_yyyyy_description", IsCompleted: true, DueDate: entity.TaskDueDate{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}}, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+					{ID: "task-xxxxx", Content: "task_xxxxx_content", Description: "task_xxxxx_description", IsCompleted: false, DueDate: entity.NullTime{NullTime: sql.NullTime{Valid: false}}, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+					{ID: "task-yyyyy", Content: "task_yyyyy_content", Description: "task_yyyyy_description", IsCompleted: true, DueDate: entity.NullTime{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}}, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
 				},
 			},
 			setup: func(d *dependency) {
 				tasks := []entity.Task{
-					{ID: "task-xxxxx", Content: "task_xxxxx_content", Description: "task_xxxxx_description", IsCompleted: false, DueDate: entity.TaskDueDate{NullTime: sql.NullTime{Valid: false}}, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
-					{ID: "task-yyyyy", Content: "task_yyyyy_content", Description: "task_yyyyy_description", IsCompleted: true, DueDate: entity.TaskDueDate{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}}, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+					{ID: "task-xxxxx", Content: "task_xxxxx_content", Description: "task_xxxxx_description", IsCompleted: false, DueDate: entity.NullTime{NullTime: sql.NullTime{Valid: false}}, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+					{ID: "task-yyyyy", Content: "task_yyyyy_content", Description: "task_yyyyy_description", IsCompleted: true, DueDate: entity.NullTime{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}}, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
 				}
 
 				d.taskRepository.On("FindAllByUserID", context.Background(), entity.UserID("user-xxxxx")).
@@ -343,7 +343,7 @@ func (s *TaskUsecaseTestSuite) TestGetByID() {
 					Content:     "task_content",
 					Description: "task_description",
 					IsCompleted: true,
-					DueDate:     entity.TaskDueDate{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
+					DueDate:     entity.NullTime{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
 					CreatedAt:   test.TimeBeforeNow,
 					UpdatedAt:   test.TimeBeforeNow,
 				},
@@ -357,7 +357,7 @@ func (s *TaskUsecaseTestSuite) TestGetByID() {
 						Content:     "task_content",
 						Description: "task_description",
 						IsCompleted: true,
-						DueDate:     entity.TaskDueDate{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
+						DueDate:     entity.NullTime{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
 						CreatedAt:   test.TimeBeforeNow,
 						UpdatedAt:   test.TimeBeforeNow,
 					}, nil)
@@ -452,7 +452,7 @@ func (s *TaskUsecaseTestSuite) TestUpdate() {
 					Content:     "new_content",
 					Description: "new_description",
 					IsCompleted: true,
-					DueDate:     entity.TaskDueDate{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
+					DueDate:     entity.NullTime{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
 				},
 			},
 			expected: expected{
@@ -469,7 +469,7 @@ func (s *TaskUsecaseTestSuite) TestUpdate() {
 						Content:     "task_content",
 						Description: "task_description",
 						IsCompleted: false,
-						DueDate:     entity.TaskDueDate{NullTime: sql.NullTime{Valid: false}},
+						DueDate:     entity.NullTime{NullTime: sql.NullTime{Valid: false}},
 						CreatedAt:   test.TimeBeforeNow,
 						UpdatedAt:   test.TimeBeforeNow,
 					}, nil)
@@ -480,7 +480,7 @@ func (s *TaskUsecaseTestSuite) TestUpdate() {
 					Content:     "new_content",
 					Description: "new_description",
 					IsCompleted: true,
-					DueDate:     entity.TaskDueDate{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
+					DueDate:     entity.NullTime{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
 					CreatedAt:   test.TimeBeforeNow,
 					UpdatedAt:   test.TimeBeforeNow,
 				}).Return(entity.TaskID("task-xxxxx"), nil)

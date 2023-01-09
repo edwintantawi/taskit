@@ -52,7 +52,7 @@ func (s *TaskRepositoryTestSuite) TestStore() {
 					UserID:      "user-xxxxx",
 					Content:     "task_content",
 					Description: "task_description",
-					DueDate:     entity.TaskDueDate{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
+					DueDate:     entity.NullTime{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
 				},
 			},
 			expected: expected{
@@ -74,7 +74,7 @@ func (s *TaskRepositoryTestSuite) TestStore() {
 					UserID:      "user-xxxxx",
 					Content:     "task_content",
 					Description: "task_description",
-					DueDate:     entity.TaskDueDate{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
+					DueDate:     entity.NullTime{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
 				},
 			},
 			expected: expected{
@@ -188,7 +188,7 @@ func (s *TaskRepositoryTestSuite) TestFindByID() {
 					Content:     "task_content",
 					Description: "task_description",
 					IsCompleted: true,
-					DueDate: entity.TaskDueDate{
+					DueDate: entity.NullTime{
 						NullTime: sql.NullTime{
 							Time:  test.TimeAfterNow,
 							Valid: true,
@@ -332,7 +332,7 @@ func (s *TaskRepositoryTestSuite) TestFindAllByUserID() {
 						Content:     "task_xxxxx_content",
 						Description: "task_xxxxx_description",
 						IsCompleted: false,
-						DueDate:     entity.TaskDueDate{NullTime: sql.NullTime{Valid: false}},
+						DueDate:     entity.NullTime{NullTime: sql.NullTime{Valid: false}},
 						CreatedAt:   test.TimeBeforeNow,
 						UpdatedAt:   test.TimeBeforeNow,
 					},
@@ -341,7 +341,7 @@ func (s *TaskRepositoryTestSuite) TestFindAllByUserID() {
 						Content:     "task_yyyyy_content",
 						Description: "task_yyyyy_description",
 						IsCompleted: true,
-						DueDate:     entity.TaskDueDate{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
+						DueDate:     entity.NullTime{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
 						CreatedAt:   test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow,
 					},
 				},
@@ -574,7 +574,7 @@ func (s *TaskRepositoryTestSuite) TestUpdate() {
 			},
 			setup: func(d *dependency) {
 				d.mockDB.ExpectExec(regexp.QuoteMeta("UPDATE tasks SET content = $2, description = $3, is_completed = $4, due_date = $5, updated_at = $6 WHERE id = $1")).
-					WithArgs("", "", "", false, entity.TaskDueDate{NullTime: sql.NullTime{Valid: false}}, sqlmock.AnyArg()).
+					WithArgs("", "", "", false, entity.NullTime{NullTime: sql.NullTime{Valid: false}}, sqlmock.AnyArg()).
 					WillReturnError(test.ErrDatabase)
 			},
 		},
@@ -588,7 +588,7 @@ func (s *TaskRepositoryTestSuite) TestUpdate() {
 					Content:     "task_content",
 					Description: "task_description",
 					IsCompleted: true,
-					DueDate:     entity.TaskDueDate{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
+					DueDate:     entity.NullTime{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
 					CreatedAt:   test.TimeBeforeNow,
 					UpdatedAt:   test.TimeBeforeNow,
 				},
@@ -599,7 +599,7 @@ func (s *TaskRepositoryTestSuite) TestUpdate() {
 			},
 			setup: func(d *dependency) {
 				d.mockDB.ExpectExec(regexp.QuoteMeta("UPDATE tasks SET content = $2, description = $3, is_completed = $4, due_date = $5, updated_at = $6 WHERE id = $1")).
-					WithArgs("task-xxxxx", "task_content", "task_description", true, entity.TaskDueDate{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}}, sqlmock.AnyArg()).
+					WithArgs("task-xxxxx", "task_content", "task_description", true, entity.NullTime{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}}, sqlmock.AnyArg()).
 					WillReturnResult(sqlmock.NewResult(1, 1))
 			},
 		},
