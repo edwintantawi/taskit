@@ -60,7 +60,7 @@ func main() {
 
 	// Task.
 	taskRepository := taskRepository.New(db, &idProvider)
-	taskUsecase := taskUsecase.New(taskRepository)
+	taskUsecase := taskUsecase.New(&taskRepository)
 	taskHTTPHandler := taskHTTPHandler.New(&validator, taskUsecase)
 
 	// Create new router.
