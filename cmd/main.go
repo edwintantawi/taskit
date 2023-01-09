@@ -30,7 +30,7 @@ func main() {
 	cfg := config.New()
 
 	// Create new postgres connection.
-	db, migrate := postgres.New(&cfg.Postgres)
+	db, migrate := postgres.New(cfg.Postgres)
 	defer db.Close()
 
 	// Migrate database.

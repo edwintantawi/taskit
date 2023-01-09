@@ -23,7 +23,7 @@ type Config struct {
 	Postgres               postgres.Config
 }
 
-func New() *Config {
+func New() Config {
 	var config Config
 
 	portEnv := os.Getenv("PORT")
@@ -62,5 +62,5 @@ func New() *Config {
 		strCfg, _ := json.MarshalIndent(&config, "", "  ")
 		log.Println("Configuration:", string(strCfg))
 	}
-	return &config
+	return config
 }
