@@ -50,7 +50,7 @@ func main() {
 	// User.
 	userRepository := userRepository.New(db, &idProvider)
 	userUsecase := userUsecase.New(&validator, &userRepository, &hashProvider)
-	userHTTPHandler := userHTTPHandler.New(&validator, userUsecase)
+	userHTTPHandler := userHTTPHandler.New(&validator, &userUsecase)
 
 	// Auth.
 	authRepository := authRepository.New(db, &idProvider)
