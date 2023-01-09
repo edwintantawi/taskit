@@ -75,7 +75,7 @@ func (s *HTTPAuthMiddlewareTestSuite) TestAuthentication() {
 				contentType: "application/json",
 				statusCode:  http.StatusUnauthorized,
 				message:     http.StatusText(http.StatusUnauthorized),
-				error:       "The access token provided is invalid",
+				error:       test.ErrUnexpected.Error(),
 			},
 			setup: func(d *dependency) {
 				d.req.Header.Set("Authorization", "Bearer xxxxx.xxxxx.xxxxx")

@@ -80,10 +80,11 @@ func (j *jwtx) VerifyAccessToken(rawToken string) (entity.UserID, error) {
 		return "", err
 	}
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		userID := entity.UserID(claims["user_id"].(string))
-		return userID, nil
-	} else {
-		return "", errors.New("invalid token")
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return "", errors.New("invalid access token")
 	}
+
+	userID := entity.UserID(claims["user_id"].(string))
+	return userID, nil
 }
