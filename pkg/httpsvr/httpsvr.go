@@ -19,8 +19,8 @@ type Server struct {
 }
 
 // New creates a new HTTP server.
-func New(addr string, r *chi.Mux) *Server {
-	return &Server{Addr: addr, Router: r}
+func New(addr string, r *chi.Mux) Server {
+	return Server{Addr: addr, Router: r}
 }
 
 // Run starts the HTTP server with gracefully shutdown.

@@ -17,8 +17,8 @@ type E struct {
 }
 
 // Success creates a new ResponseSuccess.
-func Success(statusCode int, message string, payload any) *S {
-	return &S{
+func Success(statusCode int, message string, payload any) S {
+	return S{
 		StatusCode: statusCode,
 		Message:    message,
 		Payload:    payload,
@@ -26,8 +26,8 @@ func Success(statusCode int, message string, payload any) *S {
 }
 
 // Error creates a new ResponseError and translate an error.
-func Error(statusCode int, errorMessage string) *E {
-	return &E{
+func Error(statusCode int, errorMessage string) E {
+	return E{
 		StatusCode: statusCode,
 		Message:    http.StatusText(statusCode),
 		Error:      errorMessage,
