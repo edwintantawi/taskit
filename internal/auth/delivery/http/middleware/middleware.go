@@ -8,6 +8,7 @@ import (
 
 	"github.com/edwintantawi/taskit/internal/domain"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
+	"github.com/edwintantawi/taskit/pkg/errorx"
 	"github.com/edwintantawi/taskit/pkg/response"
 )
 
@@ -36,8 +37,9 @@ func (m *Middleware) Authenticate(next http.Handler) http.Handler {
 		rawToken := strings.TrimPrefix(bearerToken, "Bearer ")
 		userId, err := m.jwtProvider.VerifyAccessToken(rawToken)
 		if err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
-			encoder.Encode(response.Error(http.StatusUnauthorized, err.Error()))
+			code, msg := errorx.HTTPErrorTranslator(err)
+			w.WriteHeader(code)
+			encoder.Encode(response.Error(code, msg))
 			return
 		}
 

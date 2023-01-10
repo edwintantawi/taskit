@@ -10,6 +10,7 @@ import (
 
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/internal/domain/mocks"
+	"github.com/edwintantawi/taskit/pkg/errorx"
 	"github.com/edwintantawi/taskit/pkg/response"
 	"github.com/edwintantawi/taskit/test"
 )
@@ -73,9 +74,9 @@ func (s *HTTPAuthMiddlewareTestSuite) TestAuthentication() {
 			},
 			expected: expected{
 				contentType: "application/json",
-				statusCode:  http.StatusUnauthorized,
-				message:     http.StatusText(http.StatusUnauthorized),
-				error:       test.ErrUnexpected.Error(),
+				statusCode:  http.StatusInternalServerError,
+				message:     http.StatusText(http.StatusInternalServerError),
+				error:       errorx.InternalServerErrorMessage,
 			},
 			setup: func(d *dependency) {
 				d.req.Header.Set("Authorization", "Bearer xxxxx.xxxxx.xxxxx")
