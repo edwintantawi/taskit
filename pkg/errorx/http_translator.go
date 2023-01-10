@@ -8,6 +8,7 @@ import (
 	"github.com/edwintantawi/taskit/internal/domain"
 	"github.com/edwintantawi/taskit/internal/domain/dto"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
+	"github.com/edwintantawi/taskit/pkg/security"
 )
 
 // HTTPError message
@@ -57,6 +58,11 @@ func HTTPErrorTranslator(err error) (code int, msg string) {
 		return http.StatusBadRequest, "Refresh token is required field"
 	case dto.ErrContentEmpty:
 		return http.StatusBadRequest, "Content is required field"
+	// Security JWT
+	case security.ErrAccessTokenExpired:
+		return http.StatusUnauthorized, "Access token is expired"
+	case security.ErrAccessTokenInvalid:
+		return http.StatusUnauthorized, "Access token is invalid"
 	// Other
 	default:
 		return http.StatusInternalServerError, InternalServerErrorMessage

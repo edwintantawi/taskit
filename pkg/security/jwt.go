@@ -9,6 +9,11 @@ import (
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 )
 
+var (
+	ErrAccessTokenExpired = errors.New("security.jwt.access_token_expired")
+	ErrAccessTokenInvalid = errors.New("security.jwt.access_token_invalid")
+)
+
 type jwtClaims struct {
 	jwt.RegisteredClaims
 	UserID entity.UserID `json:"user_id"`
@@ -76,13 +81,16 @@ func (j *JWT) VerifyAccessToken(rawToken string) (entity.UserID, error) {
 		}
 		return []byte(j.accessTokenKey), nil
 	})
-	if err != nil {
-		return "", err
+
+	if errors.Is(err, jwt.ErrTokenExpired) {
+		return "", ErrAccessTokenExpired
+	} else if err != nil {
+		return "", ErrAccessTokenInvalid
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {
-		return "", errors.New("invalid access token")
+		return "", ErrAccessTokenInvalid
 	}
 
 	userID := entity.UserID(claims["user_id"].(string))
