@@ -11,32 +11,37 @@ import (
 	"github.com/edwintantawi/taskit/pkg/response"
 )
 
-type middleware func(next http.Handler) http.Handler
+type Middleware struct {
+	jwtProvider domain.JWTProvider
+}
 
-// New creates a new authentication middleware.
-func New(jwtProvider domain.JWTProvider) middleware {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			encoder := json.NewEncoder(w)
+// New creates a new HTTP auth middleware.
+func New(jwtProvider domain.JWTProvider) Middleware {
+	return Middleware{jwtProvider: jwtProvider}
+}
 
-			bearerToken := r.Header.Get("Authorization")
-			if !strings.Contains(bearerToken, "Bearer") {
-				w.WriteHeader(http.StatusUnauthorized)
-				encoder.Encode(response.Error(http.StatusUnauthorized, "Authentication bearer token are not provided"))
-				return
-			}
+// Authenticate authenticates the request.
+func (m *Middleware) Authenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		encoder := json.NewEncoder(w)
 
-			rawToken := strings.TrimPrefix(bearerToken, "Bearer ")
-			userId, err := jwtProvider.VerifyAccessToken(rawToken)
-			if err != nil {
-				w.WriteHeader(http.StatusUnauthorized)
-				encoder.Encode(response.Error(http.StatusUnauthorized, err.Error()))
-				return
-			}
+		bearerToken := r.Header.Get("Authorization")
+		if !strings.Contains(bearerToken, "Bearer") {
+			w.WriteHeader(http.StatusUnauthorized)
+			encoder.Encode(response.Error(http.StatusUnauthorized, "Authentication bearer token are not provided"))
+			return
+		}
 
-			ctx := context.WithValue(r.Context(), entity.AuthUserIDKey, userId)
-			next.ServeHTTP(w, r.WithContext(ctx))
-		})
-	}
+		rawToken := strings.TrimPrefix(bearerToken, "Bearer ")
+		userId, err := m.jwtProvider.VerifyAccessToken(rawToken)
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			encoder.Encode(response.Error(http.StatusUnauthorized, err.Error()))
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), entity.AuthUserIDKey, userId)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
