@@ -10,6 +10,7 @@ import (
 	"github.com/edwintantawi/taskit/internal/domain"
 	"github.com/edwintantawi/taskit/internal/domain/dto"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
+	"github.com/edwintantawi/taskit/pkg/security"
 )
 
 type HTTPErrorTranslatorTestSuite struct {
@@ -49,6 +50,9 @@ func (s *HTTPErrorTranslatorTestSuite) TestErrorTranslator() {
 		{dto.ErrNameEmpty, 400, "Name is required field"},
 		{dto.ErrRefreshTokenEmpty, 400, "Refresh token is required field"},
 		{dto.ErrContentEmpty, 400, "Content is required field"},
+		// Security JWT
+		{security.ErrAccessTokenExpired, 401, "Access token is expired"},
+		{security.ErrAccessTokenInvalid, 401, "Access token is invalid"},
 		// Other
 		{errors.New("other error"), 500, "Something went wrong"},
 	}
