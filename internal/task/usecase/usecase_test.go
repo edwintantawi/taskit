@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -43,31 +44,49 @@ func (s *TaskUsecaseTestSuite) TestCreate() {
 		{
 			name: "it should return error when task respository return unexpected error",
 			args: args{
-				ctx:     context.Background(),
-				payload: &dto.TaskCreateIn{UserID: "user-xxxxx", Content: "task_content", Description: "content_description", DueDate: nil},
+				ctx: context.Background(),
+				payload: &dto.TaskCreateIn{
+					UserID:      "user-xxxxx",
+					Content:     "task_content",
+					Description: "content_description",
+					DueDate:     entity.NullTime{NullTime: sql.NullTime{Valid: false}},
+				},
 			},
 			expected: expected{
 				output: dto.TaskCreateOut{},
 				err:    test.ErrUnexpected,
 			},
 			setup: func(d *dependency) {
-				d.taskRepository.On("Store", context.Background(), &entity.Task{UserID: "user-xxxxx", Content: "task_content", Description: "content_description", DueDate: nil}).
-					Return(entity.TaskID(""), test.ErrUnexpected)
+				d.taskRepository.On("Store", context.Background(), &entity.Task{
+					UserID:      "user-xxxxx",
+					Content:     "task_content",
+					Description: "content_description",
+					DueDate:     entity.NullTime{NullTime: sql.NullTime{Valid: false}},
+				}).Return(entity.TaskID(""), test.ErrUnexpected)
 			},
 		},
 		{
 			name: "it should return error nil and output when task respository return nil error",
 			args: args{
-				ctx:     context.Background(),
-				payload: &dto.TaskCreateIn{UserID: "user-xxxxx", Content: "task_content", Description: "content_description", DueDate: nil},
+				ctx: context.Background(),
+				payload: &dto.TaskCreateIn{
+					UserID:      "user-xxxxx",
+					Content:     "task_content",
+					Description: "content_description",
+					DueDate:     entity.NullTime{NullTime: sql.NullTime{Valid: false}},
+				},
 			},
 			expected: expected{
 				output: dto.TaskCreateOut{ID: "task-xxxxx"},
 				err:    nil,
 			},
 			setup: func(d *dependency) {
-				d.taskRepository.On("Store", context.Background(), &entity.Task{UserID: "user-xxxxx", Content: "task_content", Description: "content_description", DueDate: nil}).
-					Return(entity.TaskID("task-xxxxx"), nil)
+				d.taskRepository.On("Store", context.Background(), &entity.Task{
+					UserID:      "user-xxxxx",
+					Content:     "task_content",
+					Description: "content_description",
+					DueDate:     entity.NullTime{NullTime: sql.NullTime{Valid: false}},
+				}).Return(entity.TaskID("task-xxxxx"), nil)
 			},
 		},
 	}
@@ -126,14 +145,14 @@ func (s *TaskUsecaseTestSuite) TestGetAll() {
 			},
 			expected: expected{
 				output: []dto.TaskGetAllOut{
-					{ID: "task-xxxxx", Content: "task_xxxxx_content", Description: "task_xxxxx_description", IsCompleted: false, DueDate: nil, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
-					{ID: "task-yyyyy", Content: "task_yyyyy_content", Description: "task_yyyyy_description", IsCompleted: true, DueDate: &test.TimeAfterNow, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+					{ID: "task-xxxxx", Content: "task_xxxxx_content", Description: "task_xxxxx_description", IsCompleted: false, DueDate: entity.NullTime{NullTime: sql.NullTime{Valid: false}}, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+					{ID: "task-yyyyy", Content: "task_yyyyy_content", Description: "task_yyyyy_description", IsCompleted: true, DueDate: entity.NullTime{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}}, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
 				},
 			},
 			setup: func(d *dependency) {
 				tasks := []entity.Task{
-					{ID: "task-xxxxx", Content: "task_xxxxx_content", Description: "task_xxxxx_description", IsCompleted: false, DueDate: nil, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
-					{ID: "task-yyyyy", Content: "task_yyyyy_content", Description: "task_yyyyy_description", IsCompleted: true, DueDate: &test.TimeAfterNow, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+					{ID: "task-xxxxx", Content: "task_xxxxx_content", Description: "task_xxxxx_description", IsCompleted: false, DueDate: entity.NullTime{NullTime: sql.NullTime{Valid: false}}, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+					{ID: "task-yyyyy", Content: "task_yyyyy_content", Description: "task_yyyyy_description", IsCompleted: true, DueDate: entity.NullTime{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}}, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
 				}
 
 				d.taskRepository.On("FindAllByUserID", context.Background(), entity.UserID("user-xxxxx")).
@@ -324,7 +343,7 @@ func (s *TaskUsecaseTestSuite) TestGetByID() {
 					Content:     "task_content",
 					Description: "task_description",
 					IsCompleted: true,
-					DueDate:     &test.TimeAfterNow,
+					DueDate:     entity.NullTime{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
 					CreatedAt:   test.TimeBeforeNow,
 					UpdatedAt:   test.TimeBeforeNow,
 				},
@@ -338,7 +357,7 @@ func (s *TaskUsecaseTestSuite) TestGetByID() {
 						Content:     "task_content",
 						Description: "task_description",
 						IsCompleted: true,
-						DueDate:     &test.TimeAfterNow,
+						DueDate:     entity.NullTime{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
 						CreatedAt:   test.TimeBeforeNow,
 						UpdatedAt:   test.TimeBeforeNow,
 					}, nil)
@@ -433,7 +452,7 @@ func (s *TaskUsecaseTestSuite) TestUpdate() {
 					Content:     "new_content",
 					Description: "new_description",
 					IsCompleted: true,
-					DueDate:     &test.TimeAfterNow,
+					DueDate:     entity.NullTime{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
 				},
 			},
 			expected: expected{
@@ -450,7 +469,7 @@ func (s *TaskUsecaseTestSuite) TestUpdate() {
 						Content:     "task_content",
 						Description: "task_description",
 						IsCompleted: false,
-						DueDate:     nil,
+						DueDate:     entity.NullTime{NullTime: sql.NullTime{Valid: false}},
 						CreatedAt:   test.TimeBeforeNow,
 						UpdatedAt:   test.TimeBeforeNow,
 					}, nil)
@@ -461,7 +480,7 @@ func (s *TaskUsecaseTestSuite) TestUpdate() {
 					Content:     "new_content",
 					Description: "new_description",
 					IsCompleted: true,
-					DueDate:     &test.TimeAfterNow,
+					DueDate:     entity.NullTime{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
 					CreatedAt:   test.TimeBeforeNow,
 					UpdatedAt:   test.TimeBeforeNow,
 				}).Return(entity.TaskID("task-xxxxx"), nil)
