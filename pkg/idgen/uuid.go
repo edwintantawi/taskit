@@ -2,14 +2,14 @@ package idgen
 
 import "github.com/google/uuid"
 
-type uuidx struct{}
+type UUID struct{}
 
 // NewUUID creates a new UUID generator.
-func NewUUID() *uuidx {
-	return &uuidx{}
+func NewUUID() UUID {
+	return UUID{}
 }
 
 // Generate generates a new UUID string.
-func (p *uuidx) Generate() string {
+func (p *UUID) Generate() string {
 	return uuid.NewString()
 }

@@ -30,7 +30,7 @@ func main() {
 	cfg := config.New()
 
 	// Create new postgres connection.
-	db, migrate := postgres.New(&cfg.Postgres)
+	db, migrate := postgres.New(cfg.Postgres)
 	defer db.Close()
 
 	// Migrate database.
@@ -48,20 +48,20 @@ func main() {
 	)
 
 	// User.
-	userRepository := userRepository.New(db, idProvider)
-	userUsecase := userUsecase.New(validator, userRepository, hashProvider)
-	userHTTPHandler := userHTTPHandler.New(validator, userUsecase)
+	userRepository := userRepository.New(db, &idProvider)
+	userUsecase := userUsecase.New(&validator, &userRepository, &hashProvider)
+	userHTTPHandler := userHTTPHandler.New(&validator, &userUsecase)
 
 	// Auth.
-	authRepository := authRepository.New(db, idProvider)
-	authUsecase := authUsecase.New(validator, authRepository, userRepository, hashProvider, jwtProvider)
-	authHTTPHandler := authHTTPHandler.New(validator, authUsecase)
-	authMiddleware := authMiddleware.New(jwtProvider)
+	authRepository := authRepository.New(db, &idProvider)
+	authUsecase := authUsecase.New(&validator, &authRepository, &userRepository, &hashProvider, &jwtProvider)
+	authHTTPHandler := authHTTPHandler.New(&validator, &authUsecase)
+	authMiddleware := authMiddleware.New(&jwtProvider)
 
 	// Task.
-	taskRepository := taskRepository.New(db, idProvider)
-	taskUsecase := taskUsecase.New(taskRepository)
-	taskHTTPHandler := taskHTTPHandler.New(validator, taskUsecase)
+	taskRepository := taskRepository.New(db, &idProvider)
+	taskUsecase := taskUsecase.New(&taskRepository)
+	taskHTTPHandler := taskHTTPHandler.New(&validator, &taskUsecase)
 
 	// Create new router.
 	r := chi.NewRouter()
@@ -83,7 +83,7 @@ func main() {
 
 	// private routes (need authentication)
 	r.Group(func(r chi.Router) {
-		r.Use(authMiddleware)
+		r.Use(authMiddleware.Authenticate)
 
 		r.Get("/api/authentications", authHTTPHandler.Get)
 		r.Delete("/api/authentications", authHTTPHandler.Delete)

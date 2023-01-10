@@ -8,19 +8,19 @@ import (
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 )
 
-type usecase struct {
+type Usecase struct {
 	validator      domain.ValidatorProvider
 	userRepository domain.UserRepository
 	hashProvider   domain.HashProvider
 }
 
 // New create a new user usecase.
-func New(validator domain.ValidatorProvider, userRepository domain.UserRepository, hashProvider domain.HashProvider) domain.UserUsecase {
-	return &usecase{validator: validator, userRepository: userRepository, hashProvider: hashProvider}
+func New(validator domain.ValidatorProvider, userRepository domain.UserRepository, hashProvider domain.HashProvider) Usecase {
+	return Usecase{validator: validator, userRepository: userRepository, hashProvider: hashProvider}
 }
 
 // Create create a new user.
-func (u *usecase) Create(ctx context.Context, payload *dto.UserCreateIn) (dto.UserCreateOut, error) {
+func (u *Usecase) Create(ctx context.Context, payload *dto.UserCreateIn) (dto.UserCreateOut, error) {
 	user := &entity.User{Name: payload.Name, Email: payload.Email, Password: payload.Password}
 	if err := u.validator.Validate(user); err != nil {
 		return dto.UserCreateOut{}, err

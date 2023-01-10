@@ -2,12 +2,12 @@ package validator
 
 import "github.com/edwintantawi/taskit/internal/domain"
 
-type validator struct{}
+type Validator struct{}
 
-func New() *validator {
-	return &validator{}
+func New() Validator {
+	return Validator{}
 }
 
-func (v *validator) Validate(validater domain.Validater) error {
+func (v *Validator) Validate(validater domain.Validater) error {
 	return validater.Validate()
 }

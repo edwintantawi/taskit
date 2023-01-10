@@ -17,8 +17,8 @@ type HTTPHandler struct {
 }
 
 // New creates a new auth handler
-func New(validator domain.ValidatorProvider, authUsecase domain.AuthUsecase) *HTTPHandler {
-	return &HTTPHandler{validator: validator, authUsecase: authUsecase}
+func New(validator domain.ValidatorProvider, authUsecase domain.AuthUsecase) HTTPHandler {
+	return HTTPHandler{validator: validator, authUsecase: authUsecase}
 }
 
 // POST /authentications to login user

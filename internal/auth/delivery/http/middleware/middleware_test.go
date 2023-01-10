@@ -118,7 +118,7 @@ func (s *HTTPAuthMiddlewareTestSuite) TestAuthentication() {
 
 			rr := httptest.NewRecorder()
 			middleware := New(dep.jwtProvider)
-			handler := middleware(t.args.handler)
+			handler := middleware.Authenticate(t.args.handler)
 
 			handler.ServeHTTP(rr, dep.req)
 

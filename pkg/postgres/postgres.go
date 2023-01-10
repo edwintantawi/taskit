@@ -25,15 +25,15 @@ type Config struct {
 const Driver = "postgres"
 
 // New create new postgres connection.
-func New(config *Config) (*sql.DB, func(autoMigrate bool) error) {
+func New(cfg Config) (*sql.DB, func(autoMigrate bool) error) {
 	dsn := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		config.User,
-		config.Password,
-		config.Host,
-		config.Port,
-		config.DB,
-		config.SSLMode,
+		cfg.User,
+		cfg.Password,
+		cfg.Host,
+		cfg.Port,
+		cfg.DB,
+		cfg.SSLMode,
 	)
 
 	db, err := sql.Open(Driver, dsn)
