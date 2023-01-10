@@ -9,7 +9,7 @@ import (
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 )
 
-type usecase struct {
+type Usecase struct {
 	validator      domain.ValidatorProvider
 	authRepository domain.AuthRepository
 	userRepository domain.UserRepository
@@ -24,8 +24,8 @@ func New(
 	userRepository domain.UserRepository,
 	hashProvider domain.HashProvider,
 	jwtProvider domain.JWTProvider,
-) domain.AuthUsecase {
-	return &usecase{
+) Usecase {
+	return Usecase{
 		validator:      validator,
 		authRepository: authRepository,
 		userRepository: userRepository,
@@ -35,7 +35,7 @@ func New(
 }
 
 // Login authenticates a user.
-func (u *usecase) Login(ctx context.Context, payload *dto.AuthLoginIn) (dto.AuthLoginOut, error) {
+func (u *Usecase) Login(ctx context.Context, payload *dto.AuthLoginIn) (dto.AuthLoginOut, error) {
 	user := entity.User{Email: payload.Email, Password: payload.Password}
 	if err := u.validator.Validate(&user); err != nil {
 		return dto.AuthLoginOut{}, err
@@ -70,7 +70,7 @@ func (u *usecase) Login(ctx context.Context, payload *dto.AuthLoginIn) (dto.Auth
 }
 
 // Logout remove user authentication.
-func (u *usecase) Logout(ctx context.Context, payload *dto.AuthLogoutIn) error {
+func (u *Usecase) Logout(ctx context.Context, payload *dto.AuthLogoutIn) error {
 	auth := &entity.Auth{Token: payload.RefreshToken}
 
 	if err := u.authRepository.VerifyAvailableByToken(ctx, auth.Token); err != nil {
@@ -84,7 +84,7 @@ func (u *usecase) Logout(ctx context.Context, payload *dto.AuthLogoutIn) error {
 }
 
 // GetProfile get user authenticated profile.
-func (u *usecase) GetProfile(ctx context.Context, payload *dto.AuthProfileIn) (dto.AuthProfileOut, error) {
+func (u *Usecase) GetProfile(ctx context.Context, payload *dto.AuthProfileIn) (dto.AuthProfileOut, error) {
 	user, err := u.userRepository.FindByID(ctx, payload.UserID)
 	if err != nil {
 		return dto.AuthProfileOut{}, err
@@ -93,7 +93,7 @@ func (u *usecase) GetProfile(ctx context.Context, payload *dto.AuthProfileIn) (d
 }
 
 // Refresh refresh user authentication token.
-func (u *usecase) Refresh(ctx context.Context, payload *dto.AuthRefreshIn) (dto.AuthRefreshOut, error) {
+func (u *Usecase) Refresh(ctx context.Context, payload *dto.AuthRefreshIn) (dto.AuthRefreshOut, error) {
 	auth, err := u.authRepository.FindByToken(ctx, payload.RefreshToken)
 	if err != nil {
 		return dto.AuthRefreshOut{}, err

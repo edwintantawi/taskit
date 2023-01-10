@@ -8,17 +8,17 @@ import (
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 )
 
-type usecase struct {
+type Usecase struct {
 	taskRepository domain.TaskRepository
 }
 
 // New create a new usecase.
-func New(taskRepository domain.TaskRepository) domain.TaskUsecase {
-	return &usecase{taskRepository: taskRepository}
+func New(taskRepository domain.TaskRepository) Usecase {
+	return Usecase{taskRepository: taskRepository}
 }
 
 // Create create a new task.
-func (u *usecase) Create(ctx context.Context, payload *dto.TaskCreateIn) (dto.TaskCreateOut, error) {
+func (u *Usecase) Create(ctx context.Context, payload *dto.TaskCreateIn) (dto.TaskCreateOut, error) {
 	task := &entity.Task{UserID: payload.UserID, Content: payload.Content, Description: payload.Description, DueDate: payload.DueDate}
 
 	taskID, err := u.taskRepository.Store(ctx, task)
@@ -29,7 +29,7 @@ func (u *usecase) Create(ctx context.Context, payload *dto.TaskCreateIn) (dto.Ta
 }
 
 // GetAll get all tasks.
-func (u *usecase) GetAll(ctx context.Context, payload *dto.TaskGetAllIn) ([]dto.TaskGetAllOut, error) {
+func (u *Usecase) GetAll(ctx context.Context, payload *dto.TaskGetAllIn) ([]dto.TaskGetAllOut, error) {
 	tasks, err := u.taskRepository.FindAllByUserID(ctx, payload.UserID)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (u *usecase) GetAll(ctx context.Context, payload *dto.TaskGetAllIn) ([]dto.
 }
 
 // Remove remove a task.
-func (u *usecase) Remove(ctx context.Context, payload *dto.TaskRemoveIn) error {
+func (u *Usecase) Remove(ctx context.Context, payload *dto.TaskRemoveIn) error {
 	task, err := u.taskRepository.FindByID(ctx, payload.TaskID)
 	if err != nil {
 		return err
@@ -66,7 +66,7 @@ func (u *usecase) Remove(ctx context.Context, payload *dto.TaskRemoveIn) error {
 }
 
 // GetByID get task by id.
-func (u *usecase) GetByID(ctx context.Context, payload *dto.TaskGetByIDIn) (dto.TaskGetByIDOut, error) {
+func (u *Usecase) GetByID(ctx context.Context, payload *dto.TaskGetByIDIn) (dto.TaskGetByIDOut, error) {
 	task, err := u.taskRepository.FindByID(ctx, payload.TaskID)
 	if err != nil {
 		return dto.TaskGetByIDOut{}, err
@@ -87,7 +87,7 @@ func (u *usecase) GetByID(ctx context.Context, payload *dto.TaskGetByIDIn) (dto.
 	return output, nil
 }
 
-func (u *usecase) Update(ctx context.Context, payload *dto.TaskUpdateIn) (dto.TaskUpdateOut, error) {
+func (u *Usecase) Update(ctx context.Context, payload *dto.TaskUpdateIn) (dto.TaskUpdateOut, error) {
 	task, err := u.taskRepository.FindByID(ctx, payload.TaskID)
 	if err != nil {
 		return dto.TaskUpdateOut{}, err

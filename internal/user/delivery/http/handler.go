@@ -16,8 +16,8 @@ type HTTPHandler struct {
 }
 
 // New creates a new user handler.
-func New(validator domain.ValidatorProvider, userUsecase domain.UserUsecase) *HTTPHandler {
-	return &HTTPHandler{validator: validator, userUsecase: userUsecase}
+func New(validator domain.ValidatorProvider, userUsecase domain.UserUsecase) HTTPHandler {
+	return HTTPHandler{validator: validator, userUsecase: userUsecase}
 }
 
 // POST /users to create new user.

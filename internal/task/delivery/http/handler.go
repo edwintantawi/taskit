@@ -19,8 +19,8 @@ type HTTPHandler struct {
 }
 
 // New creates a new HTTPHandler.
-func New(validator domain.ValidatorProvider, taskUsecase domain.TaskUsecase) *HTTPHandler {
-	return &HTTPHandler{validator: validator, taskUsecase: taskUsecase}
+func New(validator domain.ValidatorProvider, taskUsecase domain.TaskUsecase) HTTPHandler {
+	return HTTPHandler{validator: validator, taskUsecase: taskUsecase}
 }
 
 // POST /tasks to create new task.
