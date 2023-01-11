@@ -9,7 +9,6 @@ import (
 	"github.com/edwintantawi/taskit/internal/domain"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/pkg/errorx"
-	"github.com/edwintantawi/taskit/pkg/response"
 )
 
 type Middleware struct {
@@ -30,7 +29,7 @@ func (m *Middleware) Authenticate(next http.Handler) http.Handler {
 		bearerToken := r.Header.Get("Authorization")
 		if !strings.Contains(bearerToken, "Bearer") {
 			w.WriteHeader(http.StatusUnauthorized)
-			encoder.Encode(response.Error(http.StatusUnauthorized, "Authentication bearer token are not provided"))
+			encoder.Encode(domain.NewErrorResponse(http.StatusUnauthorized, "Authentication bearer token are not provided"))
 			return
 		}
 
@@ -39,7 +38,7 @@ func (m *Middleware) Authenticate(next http.Handler) http.Handler {
 		if err != nil {
 			code, msg := errorx.HTTPErrorTranslator(err)
 			w.WriteHeader(code)
-			encoder.Encode(response.Error(code, msg))
+			encoder.Encode(domain.NewErrorResponse(code, msg))
 			return
 		}
 

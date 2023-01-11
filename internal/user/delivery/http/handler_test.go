@@ -10,10 +10,10 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/edwintantawi/taskit/internal/domain"
 	"github.com/edwintantawi/taskit/internal/domain/dto"
 	"github.com/edwintantawi/taskit/internal/domain/mocks"
 	"github.com/edwintantawi/taskit/pkg/errorx"
-	"github.com/edwintantawi/taskit/pkg/response"
 	"github.com/edwintantawi/taskit/test"
 )
 
@@ -145,14 +145,14 @@ func (s *UserHTTPHandlerTestSuite) TestPost() {
 			s.Equal(t.expected.statusCode, rr.Code)
 
 			if t.isError {
-				var resBody response.E
+				var resBody domain.ErrorResponse
 				json.NewDecoder(rr.Body).Decode(&resBody)
 
 				s.Equal(t.expected.statusCode, resBody.StatusCode)
 				s.Equal(t.expected.message, resBody.Message)
 				s.Equal(t.expected.error, resBody.Error)
 			} else {
-				var resBody response.S
+				var resBody domain.SuccessResponse
 				json.NewDecoder(rr.Body).Decode(&resBody)
 				payloadMap := resBody.Payload.(map[string]any)
 

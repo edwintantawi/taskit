@@ -10,7 +10,6 @@ import (
 	"github.com/edwintantawi/taskit/internal/domain/dto"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/pkg/errorx"
-	"github.com/edwintantawi/taskit/pkg/response"
 )
 
 type HTTPHandler struct {
@@ -31,7 +30,7 @@ func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 	var payload dto.TaskCreateIn
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		encoder.Encode(response.Error(http.StatusBadRequest, "Invalid request body"))
+		encoder.Encode(domain.NewErrorResponse(http.StatusBadRequest, "Invalid request body"))
 		return
 	}
 	payload.UserID = entity.GetAuthContext(r.Context())
@@ -39,7 +38,7 @@ func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 	if err := h.validator.Validate(&payload); err != nil {
 		code, msg := errorx.HTTPErrorTranslator(err)
 		w.WriteHeader(code)
-		encoder.Encode(response.Error(code, msg))
+		encoder.Encode(domain.NewErrorResponse(code, msg))
 		return
 	}
 
@@ -47,12 +46,12 @@ func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		code, msg := errorx.HTTPErrorTranslator(err)
 		w.WriteHeader(code)
-		encoder.Encode(response.Error(code, msg))
+		encoder.Encode(domain.NewErrorResponse(code, msg))
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	encoder.Encode(response.Success(http.StatusCreated, "Successfully created new task", output))
+	encoder.Encode(domain.NewSuccessResponse(http.StatusCreated, "Successfully created new task", output))
 }
 
 // GET /tasks to get all tasks.
@@ -67,12 +66,12 @@ func (h *HTTPHandler) Get(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		code, msg := errorx.HTTPErrorTranslator(err)
 		w.WriteHeader(code)
-		encoder.Encode(response.Error(code, msg))
+		encoder.Encode(domain.NewErrorResponse(code, msg))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	encoder.Encode(response.Success(http.StatusOK, http.StatusText(http.StatusOK), output))
+	encoder.Encode(domain.NewSuccessResponse(http.StatusOK, http.StatusText(http.StatusOK), output))
 }
 
 // DELETE /tasks/{task_id} to remove task.
@@ -87,12 +86,12 @@ func (h *HTTPHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	if err := h.taskUsecase.Remove(r.Context(), &payload); err != nil {
 		code, msg := errorx.HTTPErrorTranslator(err)
 		w.WriteHeader(code)
-		encoder.Encode(response.Error(code, msg))
+		encoder.Encode(domain.NewErrorResponse(code, msg))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	encoder.Encode(response.Success(http.StatusOK, "Successfully deleted task", nil))
+	encoder.Encode(domain.NewSuccessResponse(http.StatusOK, "Successfully deleted task", nil))
 }
 
 // GET /tasks/{task_id} to get task by task id.
@@ -108,12 +107,12 @@ func (h *HTTPHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		code, msg := errorx.HTTPErrorTranslator(err)
 		w.WriteHeader(code)
-		encoder.Encode(response.Error(code, msg))
+		encoder.Encode(domain.NewErrorResponse(code, msg))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	encoder.Encode(response.Success(http.StatusOK, http.StatusText(http.StatusOK), output))
+	encoder.Encode(domain.NewSuccessResponse(http.StatusOK, http.StatusText(http.StatusOK), output))
 }
 
 // PUT /tasks/{task_id} to update task by task id.
@@ -124,7 +123,7 @@ func (h *HTTPHandler) Put(w http.ResponseWriter, r *http.Request) {
 	var payload dto.TaskUpdateIn
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		encoder.Encode(response.Error(http.StatusBadRequest, "Invalid request body"))
+		encoder.Encode(domain.NewErrorResponse(http.StatusBadRequest, "Invalid request body"))
 		return
 	}
 	payload.UserID = entity.GetAuthContext(r.Context())
@@ -133,7 +132,7 @@ func (h *HTTPHandler) Put(w http.ResponseWriter, r *http.Request) {
 	if err := h.validator.Validate(&payload); err != nil {
 		code, msg := errorx.HTTPErrorTranslator(err)
 		w.WriteHeader(code)
-		encoder.Encode(response.Error(code, msg))
+		encoder.Encode(domain.NewErrorResponse(code, msg))
 		return
 	}
 
@@ -141,10 +140,10 @@ func (h *HTTPHandler) Put(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		code, msg := errorx.HTTPErrorTranslator(err)
 		w.WriteHeader(code)
-		encoder.Encode(response.Error(code, msg))
+		encoder.Encode(domain.NewErrorResponse(code, msg))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	encoder.Encode(response.Success(http.StatusOK, "Successfully updated task", output))
+	encoder.Encode(domain.NewSuccessResponse(http.StatusOK, "Successfully updated task", output))
 }
