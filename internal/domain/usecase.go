@@ -39,3 +39,7 @@ type TaskUsecase interface {
 	GetByID(ctx context.Context, payload *dto.TaskGetByIDIn) (dto.TaskGetByIDOut, error)
 	Update(ctx context.Context, payload *dto.TaskUpdateIn) (dto.TaskUpdateOut, error)
 }
+
+type ProjectUsecase interface {
+	Create(ctx context.Context, payload *dto.ProjectCreateIn) (dto.ProjectCreateOut, error)
+}
