@@ -13,6 +13,9 @@ import (
 	authMiddleware "github.com/edwintantawi/taskit/internal/auth/delivery/http/middleware"
 	authRepository "github.com/edwintantawi/taskit/internal/auth/repository"
 	authUsecase "github.com/edwintantawi/taskit/internal/auth/usecase"
+	projectHTTPHandler "github.com/edwintantawi/taskit/internal/project/delivery/http"
+	projectRepository "github.com/edwintantawi/taskit/internal/project/repository"
+	projectUsecase "github.com/edwintantawi/taskit/internal/project/usecase"
 	taskHTTPHandler "github.com/edwintantawi/taskit/internal/task/delivery/http"
 	taskRepository "github.com/edwintantawi/taskit/internal/task/repository"
 	taskUsecase "github.com/edwintantawi/taskit/internal/task/usecase"
@@ -63,6 +66,11 @@ func main() {
 	taskUsecase := taskUsecase.New(&taskRepository)
 	taskHTTPHandler := taskHTTPHandler.New(&validator, &taskUsecase)
 
+	// Project.
+	projectRepository := projectRepository.New(db, &idProvider)
+	projectUsecase := projectUsecase.New(&projectRepository)
+	projectHTTPHandler := projectHTTPHandler.New(&validator, &projectUsecase)
+
 	// Create new router.
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -93,6 +101,8 @@ func main() {
 		r.Get("/api/tasks/{task_id}", taskHTTPHandler.GetByID)
 		r.Delete("/api/tasks/{task_id}", taskHTTPHandler.Delete)
 		r.Put("/api/tasks/{task_id}", taskHTTPHandler.Put)
+
+		r.Post("/api/projects", projectHTTPHandler.Post)
 	})
 
 	// Start HTTP server.
