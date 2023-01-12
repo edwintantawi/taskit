@@ -48,3 +48,8 @@ type TaskRepository interface {
 	DeleteByID(ctx context.Context, taskID entity.TaskID) error
 	Update(ctx context.Context, t *entity.Task) (entity.TaskID, error)
 }
+
+// ProjectRepository represent project repository contract
+type ProjectRepository interface {
+	Store(ctx context.Context, p *entity.Project) (entity.ProjectID, error)
+}
