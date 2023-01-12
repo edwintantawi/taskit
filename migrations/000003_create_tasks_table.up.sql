@@ -3,7 +3,7 @@ CREATE TABLE tasks (
   user_id       VARCHAR(64)   NOT NULL,
   content       VARCHAR(255)  NOT NULL,
   description   TEXT          NOT NULL,
-  is_completed  BOOLEAN       NOT NULL DEFAULT FALSE,
+  is_done       BOOLEAN       NOT NULL DEFAULT FALSE,
   due_date      TIMESTAMP,
   created_at    TIMESTAMP     NOT NULL DEFAULT NOW(),
   updated_at    TIMESTAMP     NOT NULL DEFAULT NOW(),

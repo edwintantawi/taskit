@@ -37,7 +37,7 @@ type TaskGetAllOut struct {
 	ID          entity.TaskID   `json:"id"`
 	Content     string          `json:"content"`
 	Description string          `json:"description"`
-	IsCompleted bool            `json:"is_completed"`
+	IsDone      bool            `json:"is_done"`
 	DueDate     entity.NullTime `json:"due_date"`
 	CreatedAt   time.Time       `json:"created_at"`
 	UpdatedAt   time.Time       `json:"updated_at"`
@@ -60,7 +60,7 @@ type TaskGetByIDOut struct {
 	ID          entity.TaskID   `json:"id"`
 	Content     string          `json:"content"`
 	Description string          `json:"description"`
-	IsCompleted bool            `json:"is_completed"`
+	IsDone      bool            `json:"is_done"`
 	DueDate     entity.NullTime `json:"due_date"`
 	CreatedAt   time.Time       `json:"created_at"`
 	UpdatedAt   time.Time       `json:"updated_at"`
@@ -72,7 +72,7 @@ type TaskUpdateIn struct {
 	UserID      entity.UserID   `json:"-"`
 	Content     string          `json:"content"`
 	Description string          `json:"description"`
-	IsCompleted bool            `json:"is_completed"`
+	IsDone      bool            `json:"is_done"`
 	DueDate     entity.NullTime `json:"due_date"`
 }
 

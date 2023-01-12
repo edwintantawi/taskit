@@ -41,7 +41,7 @@ func (u *Usecase) GetAll(ctx context.Context, payload *dto.TaskGetAllIn) ([]dto.
 			ID:          task.ID,
 			Content:     task.Content,
 			Description: task.Description,
-			IsCompleted: task.IsCompleted,
+			IsDone:      task.IsDone,
 			DueDate:     task.DueDate,
 			CreatedAt:   task.CreatedAt,
 			UpdatedAt:   task.UpdatedAt,
@@ -79,7 +79,7 @@ func (u *Usecase) GetByID(ctx context.Context, payload *dto.TaskGetByIDIn) (dto.
 		ID:          task.ID,
 		Content:     task.Content,
 		Description: task.Description,
-		IsCompleted: task.IsCompleted,
+		IsDone:      task.IsDone,
 		DueDate:     task.DueDate,
 		CreatedAt:   task.CreatedAt,
 		UpdatedAt:   task.UpdatedAt,
@@ -87,6 +87,7 @@ func (u *Usecase) GetByID(ctx context.Context, payload *dto.TaskGetByIDIn) (dto.
 	return output, nil
 }
 
+// Update update task by id.
 func (u *Usecase) Update(ctx context.Context, payload *dto.TaskUpdateIn) (dto.TaskUpdateOut, error) {
 	task, err := u.taskRepository.FindByID(ctx, payload.TaskID)
 	if err != nil {
@@ -98,7 +99,7 @@ func (u *Usecase) Update(ctx context.Context, payload *dto.TaskUpdateIn) (dto.Ta
 
 	task.Content = payload.Content
 	task.Description = payload.Description
-	task.IsCompleted = payload.IsCompleted
+	task.IsDone = payload.IsDone
 	task.DueDate = payload.DueDate
 
 	taskID, err := u.taskRepository.Update(ctx, &task)

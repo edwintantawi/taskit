@@ -10,7 +10,7 @@ type Task struct {
 	UserID      UserID
 	Content     string
 	Description string
-	IsCompleted bool
+	IsDone      bool
 	DueDate     NullTime
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
