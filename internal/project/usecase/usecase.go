@@ -26,3 +26,21 @@ func (u *Usecase) Create(ctx context.Context, payload *dto.ProjectCreateIn) (dto
 	}
 	return dto.ProjectCreateOut{ID: id}, nil
 }
+
+func (u *Usecase) GetAll(ctx context.Context, payload *dto.ProjectGetAllIn) ([]dto.ProjectGetAllOut, error) {
+	projects, err := u.projectRepository.FindAllByUserID(ctx, payload.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	output := make([]dto.ProjectGetAllOut, len(projects))
+	for i, project := range projects {
+		output[i] = dto.ProjectGetAllOut{
+			ID:        project.ID,
+			Title:     project.Title,
+			CreatedAt: project.CreatedAt,
+			UpdatedAt: project.UpdatedAt,
+		}
+	}
+	return output, nil
+}

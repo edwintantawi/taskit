@@ -88,3 +88,73 @@ func (s *ProjectUsecaseTestSuite) TestCreate() {
 		})
 	}
 }
+
+func (s *ProjectUsecaseTestSuite) TestGetAll() {
+	type args struct {
+		ctx     context.Context
+		payload *dto.ProjectGetAllIn
+	}
+	type expected struct {
+		output []dto.ProjectGetAllOut
+		err    error
+	}
+	tests := []struct {
+		name     string
+		args     args
+		expected expected
+		setup    func(d *dependency)
+	}{
+		{
+			name: "it should return error when project respository return unexpected error",
+			args: args{
+				ctx:     context.Background(),
+				payload: &dto.ProjectGetAllIn{UserID: "user-xxxxx"},
+			},
+			expected: expected{
+				output: nil,
+				err:    test.ErrUnexpected,
+			},
+			setup: func(d *dependency) {
+				d.ProjectRepository.On("FindAllByUserID", context.Background(), entity.UserID("user-xxxxx")).
+					Return(nil, test.ErrUnexpected)
+			},
+		},
+		{
+			name: "it should return error nil and projects when success",
+			args: args{
+				ctx:     context.Background(),
+				payload: &dto.ProjectGetAllIn{UserID: "user-xxxxx"},
+			},
+			expected: expected{
+				output: []dto.ProjectGetAllOut{
+					{ID: "project-xxxxx", Title: "project_title_x", CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+					{ID: "project-yyyyy", Title: "project_title_y", CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+				},
+			},
+			setup: func(d *dependency) {
+				tasks := []entity.Project{
+					{ID: "project-xxxxx", Title: "project_title_x", CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+					{ID: "project-yyyyy", Title: "project_title_y", CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+				}
+
+				d.ProjectRepository.On("FindAllByUserID", context.Background(), entity.UserID("user-xxxxx")).
+					Return(tasks, nil)
+			},
+		},
+	}
+
+	for _, t := range tests {
+		s.Run(t.name, func() {
+			d := &dependency{
+				ProjectRepository: &mocks.ProjectRepository{},
+			}
+			t.setup(d)
+
+			usecase := New(d.ProjectRepository)
+			output, err := usecase.GetAll(t.args.ctx, t.args.payload)
+
+			s.Equal(t.expected.err, err)
+			s.Equal(t.expected.output, output)
+		})
+	}
+}
