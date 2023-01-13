@@ -51,3 +51,23 @@ func (h *HTTPHandler) Post(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	encoder.Encode(domain.NewSuccessResponse(http.StatusCreated, "Successfully created project", output))
 }
+
+// GET /projects to get all project.
+func (h *HTTPHandler) Get(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	encoder := json.NewEncoder(w)
+
+	var payload dto.ProjectGetAllIn
+	payload.UserID = entity.GetAuthContext(r.Context())
+
+	output, err := h.projectUsecase.GetAll(r.Context(), &payload)
+	if err != nil {
+		code, msg := errorx.HTTPErrorTranslator(err)
+		w.WriteHeader(code)
+		encoder.Encode(domain.NewErrorResponse(code, msg))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	encoder.Encode(domain.NewSuccessResponse(http.StatusOK, http.StatusText(http.StatusOK), output))
+}

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -165,6 +166,100 @@ func (s *ProjectHTTPHandlerTestSuite) TestPost() {
 				s.Equal(t.expected.statusCode, resBody.StatusCode)
 				s.Equal(t.expected.message, resBody.Message)
 				s.Equal(t.expected.payload, payloadMap)
+			}
+		})
+	}
+}
+
+func (s *ProjectHTTPHandlerTestSuite) TestGet() {
+	type expected struct {
+		contentType string
+		statusCode  int
+		message     string
+		error       string
+		payload     []map[string]any
+	}
+	tests := []struct {
+		name     string
+		isError  bool
+		expected expected
+		setup    func(d *dependency)
+	}{
+		{
+			name:    "it should response with error when project usecase return unexpected error",
+			isError: true,
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusInternalServerError,
+				message:     http.StatusText(http.StatusInternalServerError),
+				error:       errorx.InternalServerErrorMessage,
+			},
+			setup: func(d *dependency) {
+				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
+
+				d.projectUsecase.On("GetAll", mock.Anything, &dto.ProjectGetAllIn{UserID: "user-xxxxx"}).
+					Return(nil, test.ErrUnexpected)
+			},
+		},
+		{
+			name:    "it should response with success when success",
+			isError: false,
+			expected: expected{
+				contentType: "application/json",
+				statusCode:  http.StatusOK,
+				message:     http.StatusText(http.StatusOK),
+				payload: []map[string]any{
+					{"id": "project-xxxxx", "title": "project_title_x", "created_at": test.TimeBeforeNow.Format(time.RFC3339Nano), "updated_at": test.TimeBeforeNow.Format(time.RFC3339Nano)},
+					{"id": "project-yyyyy", "title": "project_title_y", "created_at": test.TimeBeforeNow.Format(time.RFC3339Nano), "updated_at": test.TimeBeforeNow.Format(time.RFC3339Nano)},
+				},
+			},
+			setup: func(d *dependency) {
+				d.req = test.InjectAuthContext(d.req, entity.UserID("user-xxxxx"))
+
+				d.projectUsecase.On("GetAll", mock.Anything, &dto.ProjectGetAllIn{UserID: "user-xxxxx"}).
+					Return([]dto.ProjectGetAllOut{
+						{ID: "project-xxxxx", Title: "project_title_x", CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+						{ID: "project-yyyyy", Title: "project_title_y", CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+					}, nil)
+			},
+		},
+	}
+
+	for _, t := range tests {
+		s.Run(t.name, func() {
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", "/", nil)
+
+			d := &dependency{
+				req:            req,
+				projectUsecase: &mocks.ProjectUsecase{},
+			}
+			t.setup(d)
+
+			handler := New(nil, d.projectUsecase)
+			handler.Get(rr, d.req)
+
+			s.Equal(t.expected.contentType, rr.Header().Get("Content-Type"))
+			s.Equal(t.expected.statusCode, rr.Code)
+
+			if t.isError {
+				var resBody domain.ErrorResponse
+				json.NewDecoder(rr.Body).Decode(&resBody)
+
+				s.Equal(t.expected.statusCode, resBody.StatusCode)
+				s.Equal(t.expected.message, resBody.Message)
+				s.Equal(t.expected.error, resBody.Error)
+			} else {
+				var resBody domain.SuccessResponse
+				json.NewDecoder(rr.Body).Decode(&resBody)
+				payloadList := resBody.Payload.([]any)
+
+				s.Equal(t.expected.statusCode, resBody.StatusCode)
+				s.Equal(t.expected.message, resBody.Message)
+
+				for i, payload := range t.expected.payload {
+					s.Equal(payload, payloadList[i].(map[string]any))
+				}
 			}
 		})
 	}
