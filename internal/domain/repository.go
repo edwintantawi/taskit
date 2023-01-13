@@ -52,4 +52,5 @@ type TaskRepository interface {
 // ProjectRepository represent project repository contract
 type ProjectRepository interface {
 	Store(ctx context.Context, p *entity.Project) (entity.ProjectID, error)
+	FindAllByUserID(ctx context.Context, userID entity.UserID) ([]entity.Project, error)
 }

@@ -15,6 +15,29 @@ type ProjectRepository struct {
 	mock.Mock
 }
 
+// FindAllByUserID provides a mock function with given fields: ctx, userID
+func (_m *ProjectRepository) FindAllByUserID(ctx context.Context, userID entity.UserID) ([]entity.Project, error) {
+	ret := _m.Called(ctx, userID)
+
+	var r0 []entity.Project
+	if rf, ok := ret.Get(0).(func(context.Context, entity.UserID) []entity.Project); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]entity.Project)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, entity.UserID) error); ok {
+		r1 = rf(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Store provides a mock function with given fields: ctx, p
 func (_m *ProjectRepository) Store(ctx context.Context, p *entity.Project) (entity.ProjectID, error) {
 	ret := _m.Called(ctx, p)
