@@ -1,6 +1,10 @@
 package dto
 
-import "github.com/edwintantawi/taskit/internal/domain/entity"
+import (
+	"time"
+
+	"github.com/edwintantawi/taskit/internal/domain/entity"
+)
 
 // ProjectCreateIn represent create project input.
 type ProjectCreateIn struct {
@@ -19,4 +23,17 @@ func (d *ProjectCreateIn) Validate() error {
 // ProjectCreateIn represent create project input.
 type ProjectCreateOut struct {
 	ID entity.ProjectID `json:"id"`
+}
+
+// ProjectGetAllIn represent get all project input
+type ProjectGetAllIn struct {
+	UserID entity.UserID `json:"-"`
+}
+
+// ProjectGetAllOut represent get all project output
+type ProjectGetAllOut struct {
+	ID        entity.ProjectID `json:"id"`
+	Title     string           `json:"title"`
+	CreatedAt time.Time        `json:"created_at"`
+	UpdatedAt time.Time        `json:"updated_at"`
 }
