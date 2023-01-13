@@ -58,6 +58,8 @@ func HTTPErrorTranslator(err error) (code int, msg string) {
 		return http.StatusBadRequest, "Refresh token is required field"
 	case dto.ErrContentEmpty:
 		return http.StatusBadRequest, "Content is required field"
+	case dto.ErrTitleEmpty:
+		return http.StatusBadRequest, "Title is required field"
 	// Security JWT
 	case security.ErrAccessTokenExpired:
 		return http.StatusUnauthorized, "Access token is expired"

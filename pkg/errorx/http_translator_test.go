@@ -50,6 +50,7 @@ func (s *HTTPErrorTranslatorTestSuite) TestErrorTranslator() {
 		{dto.ErrNameEmpty, 400, "Name is required field"},
 		{dto.ErrRefreshTokenEmpty, 400, "Refresh token is required field"},
 		{dto.ErrContentEmpty, 400, "Content is required field"},
+		{dto.ErrTitleEmpty, 400, "Title is required field"},
 		// Security JWT
 		{security.ErrAccessTokenExpired, 401, "Access token is expired"},
 		{security.ErrAccessTokenInvalid, 401, "Access token is invalid"},
