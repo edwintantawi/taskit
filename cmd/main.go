@@ -103,6 +103,7 @@ func main() {
 		r.Put("/api/tasks/{task_id}", taskHTTPHandler.Put)
 
 		r.Post("/api/projects", projectHTTPHandler.Post)
+		r.Get("/api/projects", projectHTTPHandler.Get)
 	})
 
 	// Start HTTP server.
