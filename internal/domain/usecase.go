@@ -40,6 +40,8 @@ type TaskUsecase interface {
 	Update(ctx context.Context, payload *dto.TaskUpdateIn) (dto.TaskUpdateOut, error)
 }
 
+// ProjectUsecase represent project usecase contract.
 type ProjectUsecase interface {
 	Create(ctx context.Context, payload *dto.ProjectCreateIn) (dto.ProjectCreateOut, error)
+	GetAll(ctx context.Context, payload *dto.ProjectGetAllIn) ([]dto.ProjectGetAllOut, error)
 }
