@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"net/http"
 	"time"
@@ -35,4 +36,30 @@ func InjectChiRouterParams(r *http.Request, params map[string]string) *http.Requ
 		rctx.URLParams.Add(key, value)
 	}
 	return r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
+}
+
+// NewNullString create new null time.
+func NewNullTime(id any) entity.NullTime {
+	var isValid bool
+	var timeValue time.Time
+	if id != nil {
+		timeValue = id.(time.Time)
+		isValid = true
+	}
+	return entity.NullTime{
+		NullTime: sql.NullTime{Time: timeValue, Valid: isValid},
+	}
+}
+
+// NewNullString create new null string.
+func NewNullString(id any) entity.NullString {
+	var isValid bool
+	var stringValue string
+	if id != nil {
+		stringValue = id.(string)
+		isValid = true
+	}
+	return entity.NullString{
+		NullString: sql.NullString{String: stringValue, Valid: isValid},
+	}
 }
