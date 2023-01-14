@@ -17,7 +17,7 @@ func New(projectRepository domain.ProjectRepository) Usecase {
 	return Usecase{projectRepository: projectRepository}
 }
 
-// Create create a new project
+// Create create a new project.
 func (u *Usecase) Create(ctx context.Context, payload *dto.ProjectCreateIn) (dto.ProjectCreateOut, error) {
 	project := &entity.Project{UserID: payload.UserID, Title: payload.Title}
 	id, err := u.projectRepository.Store(ctx, project)
@@ -43,4 +43,9 @@ func (u *Usecase) GetAll(ctx context.Context, payload *dto.ProjectGetAllIn) ([]d
 		}
 	}
 	return output, nil
+}
+
+// GetByID get project by project id.
+func (u *Usecase) GetByID(ctx context.Context, payload *dto.ProjectGetByIDIn) (dto.ProjectGetByIDOut, error) {
+	panic("not implemented")
 }

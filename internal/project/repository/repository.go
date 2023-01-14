@@ -29,6 +29,7 @@ func (r *Repository) Store(ctx context.Context, p *entity.Project) (entity.Proje
 	return id, nil
 }
 
+// FindAllByUserID get all project by user id
 func (r *Repository) FindAllByUserID(ctx context.Context, userID entity.UserID) ([]entity.Project, error) {
 	q := `SELECT id, user_id, title, created_at, updated_at FROM projects WHERE user_id = $1`
 	rows, err := r.db.QueryContext(ctx, q, userID)
@@ -51,4 +52,9 @@ func (r *Repository) FindAllByUserID(ctx context.Context, userID entity.UserID) 
 	}
 
 	return projects, nil
+}
+
+// FindByID get project by project id.
+func (r *Repository) FindByID(ctx context.Context, projectID entity.ProjectID) (entity.Project, error) {
+	panic("not implemented")
 }

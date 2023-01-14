@@ -71,3 +71,8 @@ func (h *HTTPHandler) Get(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	encoder.Encode(domain.NewSuccessResponse(http.StatusOK, http.StatusText(http.StatusOK), output))
 }
+
+// GET /projects/{project_id} to get project by id.
+func (h *HTTPHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+	panic("not implemented")
+}

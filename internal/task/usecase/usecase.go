@@ -89,6 +89,7 @@ func (u *Usecase) GetByID(ctx context.Context, payload *dto.TaskGetByIDIn) (dto.
 	return output, nil
 }
 
+// Update update task by task id
 func (u *Usecase) Update(ctx context.Context, payload *dto.TaskUpdateIn) (dto.TaskUpdateOut, error) {
 	task, err := u.taskRepository.FindByID(ctx, payload.TaskID)
 	if err != nil {

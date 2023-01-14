@@ -25,13 +25,26 @@ type ProjectCreateOut struct {
 	ID entity.ProjectID `json:"id"`
 }
 
-// ProjectGetAllIn represent get all project input
+// ProjectGetAllIn represent get all project input.
 type ProjectGetAllIn struct {
 	UserID entity.UserID `json:"-"`
 }
 
-// ProjectGetAllOut represent get all project output
+// ProjectGetAllOut represent get all project output.
 type ProjectGetAllOut struct {
+	ID        entity.ProjectID `json:"id"`
+	Title     string           `json:"title"`
+	CreatedAt time.Time        `json:"created_at"`
+	UpdatedAt time.Time        `json:"updated_at"`
+}
+
+// ProjectGetByIDIn represent get by id project input.
+type ProjectGetByIDIn struct {
+	ID entity.ProjectID `json:"-"`
+}
+
+// ProjectGetByIDOut represent get by id project output.
+type ProjectGetByIDOut struct {
 	ID        entity.ProjectID `json:"id"`
 	Title     string           `json:"title"`
 	CreatedAt time.Time        `json:"created_at"`
