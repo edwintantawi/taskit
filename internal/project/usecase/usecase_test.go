@@ -133,8 +133,8 @@ func (s *ProjectUsecaseTestSuite) TestGetAll() {
 			},
 			setup: func(d *dependency) {
 				tasks := []entity.Project{
-					{ID: "project-xxxxx", Title: "project_title_x", CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
-					{ID: "project-yyyyy", Title: "project_title_y", CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+					{ID: entity.ProjectID("project-xxxxx"), Title: "project_title_x", CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+					{ID: entity.ProjectID("project-yyyyy"), Title: "project_title_y", CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
 				}
 
 				d.ProjectRepository.On("FindAllByUserID", context.Background(), entity.UserID("user-xxxxx")).

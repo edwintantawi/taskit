@@ -127,7 +127,7 @@ func (s *ProjectHTTPHandlerTestSuite) TestPost() {
 					Return(nil)
 
 				d.projectUsecase.On("Create", mock.Anything, &dto.ProjectCreateIn{UserID: "user-xxxxx"}).
-					Return(dto.ProjectCreateOut{ID: "project-xxxxx"}, nil)
+					Return(dto.ProjectCreateOut{ID: entity.ProjectID("project-xxxxx")}, nil)
 			},
 		},
 	}
@@ -218,8 +218,8 @@ func (s *ProjectHTTPHandlerTestSuite) TestGet() {
 
 				d.projectUsecase.On("GetAll", mock.Anything, &dto.ProjectGetAllIn{UserID: "user-xxxxx"}).
 					Return([]dto.ProjectGetAllOut{
-						{ID: "project-xxxxx", Title: "project_title_x", CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
-						{ID: "project-yyyyy", Title: "project_title_y", CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+						{ID: entity.ProjectID("project-xxxxx"), Title: "project_title_x", CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+						{ID: entity.ProjectID("project-yyyyy"), Title: "project_title_y", CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
 					}, nil)
 			},
 		},
