@@ -39,6 +39,7 @@ func (u *Usecase) GetAll(ctx context.Context, payload *dto.TaskGetAllIn) ([]dto.
 	for i, task := range tasks {
 		output[i] = dto.TaskGetAllOut{
 			ID:          task.ID,
+			ProjectID:   task.ProjectID,
 			Content:     task.Content,
 			Description: task.Description,
 			IsCompleted: task.IsCompleted,
@@ -77,6 +78,7 @@ func (u *Usecase) GetByID(ctx context.Context, payload *dto.TaskGetByIDIn) (dto.
 
 	output := dto.TaskGetByIDOut{
 		ID:          task.ID,
+		ProjectID:   task.ProjectID,
 		Content:     task.Content,
 		Description: task.Description,
 		IsCompleted: task.IsCompleted,
