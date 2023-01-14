@@ -8,6 +8,7 @@ type TaskID string
 type Task struct {
 	ID          TaskID
 	UserID      UserID
+	ProjectID   NullString
 	Content     string
 	Description string
 	IsCompleted bool
