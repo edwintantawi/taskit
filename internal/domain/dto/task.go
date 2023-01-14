@@ -8,10 +8,11 @@ import (
 
 // TaskCreateIn represents the input of task creation.
 type TaskCreateIn struct {
-	UserID      entity.UserID   `json:"-"`
-	Content     string          `json:"content"`
-	Description string          `json:"description"`
-	DueDate     entity.NullTime `json:"due_date"`
+	UserID      entity.UserID     `json:"-"`
+	ProjectID   entity.NullString `json:"project_id"`
+	Content     string            `json:"content"`
+	Description string            `json:"description"`
+	DueDate     entity.NullTime   `json:"due_date"`
 }
 
 func (t *TaskCreateIn) Validate() error {
@@ -70,12 +71,13 @@ type TaskGetByIDOut struct {
 
 // TaskUpdateIn represents the input of task update
 type TaskUpdateIn struct {
-	TaskID      entity.TaskID   `json:"-"`
-	UserID      entity.UserID   `json:"-"`
-	Content     string          `json:"content"`
-	Description string          `json:"description"`
-	IsCompleted bool            `json:"is_completed"`
-	DueDate     entity.NullTime `json:"due_date"`
+	TaskID      entity.TaskID     `json:"-"`
+	UserID      entity.UserID     `json:"-"`
+	ProjectID   entity.NullString `json:"project_id"`
+	Content     string            `json:"content"`
+	Description string            `json:"description"`
+	IsCompleted bool              `json:"is_completed"`
+	DueDate     entity.NullTime   `json:"due_date"`
 }
 
 func (t *TaskUpdateIn) Validate() error {

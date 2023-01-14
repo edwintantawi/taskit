@@ -23,8 +23,8 @@ func New(db *sql.DB, idProvider domain.IDProvider) Repository {
 // Store save a new task.
 func (r *Repository) Store(ctx context.Context, t *entity.Task) (entity.TaskID, error) {
 	id := r.idProvider.Generate()
-	q := `INSERT INTO tasks (id, user_id, content, description, due_date) VALUES ($1, $2, $3, $4, $5)`
-	_, err := r.db.ExecContext(ctx, q, id, t.UserID, t.Content, t.Description, t.DueDate)
+	q := `INSERT INTO tasks (id, user_id, project_id, content, description, due_date) VALUES ($1, $2, $3, $4, $5, $6)`
+	_, err := r.db.ExecContext(ctx, q, id, t.UserID, t.ProjectID, t.Content, t.Description, t.DueDate)
 	if err != nil {
 		return "", err
 	}
@@ -97,8 +97,8 @@ func (r *Repository) DeleteByID(ctx context.Context, taskID entity.TaskID) error
 // Update update task by id.
 func (r *Repository) Update(ctx context.Context, t *entity.Task) (entity.TaskID, error) {
 	t.UpdatedAt = time.Now()
-	q := `UPDATE tasks SET content = $2, description = $3, is_completed = $4, due_date = $5, updated_at = $6 WHERE id = $1`
-	_, err := r.db.ExecContext(ctx, q, t.ID, t.Content, t.Description, t.IsCompleted, t.DueDate, t.UpdatedAt)
+	q := `UPDATE tasks SET project_id = $2, content = $3, description = $4, is_completed = $5, due_date = $6, updated_at = $7 WHERE id = $1`
+	_, err := r.db.ExecContext(ctx, q, t.ID, t.ProjectID, t.Content, t.Description, t.IsCompleted, t.DueDate, t.UpdatedAt)
 	if err != nil {
 		return "", err
 	}

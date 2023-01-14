@@ -50,6 +50,7 @@ func (s *TaskRepositoryTestSuite) TestStore() {
 				ctx: context.Background(),
 				task: &entity.Task{
 					UserID:      "user-xxxxx",
+					ProjectID:   test.NewNullString("project-xxxxx"),
 					Content:     "task_content",
 					Description: "task_description",
 					DueDate:     test.NewNullTime(test.TimeAfterNow),
@@ -61,8 +62,8 @@ func (s *TaskRepositoryTestSuite) TestStore() {
 			},
 			setup: func(d *dependency) {
 				d.idProvider.On("Generate").Return("task-xxxxx")
-				d.mockDB.ExpectExec(regexp.QuoteMeta(`INSERT INTO tasks (id, user_id, content, description, due_date)`)).
-					WithArgs("task-xxxxx", "user-xxxxx", "task_content", "task_description", &test.TimeAfterNow).
+				d.mockDB.ExpectExec(regexp.QuoteMeta(`INSERT INTO tasks (id, user_id, project_id, content, description, due_date) VALUES ($1, $2, $3, $4, $5, $6)`)).
+					WithArgs("task-xxxxx", "user-xxxxx", "project-xxxxx", "task_content", "task_description", &test.TimeAfterNow).
 					WillReturnError(test.ErrDatabase)
 			},
 		},
@@ -72,6 +73,7 @@ func (s *TaskRepositoryTestSuite) TestStore() {
 				ctx: context.Background(),
 				task: &entity.Task{
 					UserID:      "user-xxxxx",
+					ProjectID:   test.NewNullString("project-xxxxx"),
 					Content:     "task_content",
 					Description: "task_description",
 					DueDate:     test.NewNullTime(test.TimeAfterNow),
@@ -83,8 +85,8 @@ func (s *TaskRepositoryTestSuite) TestStore() {
 			},
 			setup: func(d *dependency) {
 				d.idProvider.On("Generate").Return("task-xxxxx")
-				d.mockDB.ExpectExec(regexp.QuoteMeta(`INSERT INTO tasks (id, user_id, content, description, due_date)`)).
-					WithArgs("task-xxxxx", "user-xxxxx", "task_content", "task_description", &test.TimeAfterNow).
+				d.mockDB.ExpectExec(regexp.QuoteMeta(`INSERT INTO tasks (id, user_id, project_id, content, description, due_date) VALUES ($1, $2, $3, $4, $5, $6)`)).
+					WithArgs("task-xxxxx", "user-xxxxx", "project-xxxxx", "task_content", "task_description", &test.TimeAfterNow).
 					WillReturnResult(sqlmock.NewResult(1, 1))
 			},
 		},
@@ -578,8 +580,8 @@ func (s *TaskRepositoryTestSuite) TestUpdate() {
 				err:    test.ErrDatabase,
 			},
 			setup: func(d *dependency) {
-				d.mockDB.ExpectExec(regexp.QuoteMeta("UPDATE tasks SET content = $2, description = $3, is_completed = $4, due_date = $5, updated_at = $6 WHERE id = $1")).
-					WithArgs("", "", "", false, test.NewNullTime(nil), sqlmock.AnyArg()).
+				d.mockDB.ExpectExec(regexp.QuoteMeta("UPDATE tasks SET project_id = $2, content = $3, description = $4, is_completed = $5, due_date = $6, updated_at = $7 WHERE id = $1")).
+					WithArgs("", test.NewNullString(nil), "", "", false, test.NewNullTime(nil), sqlmock.AnyArg()).
 					WillReturnError(test.ErrDatabase)
 			},
 		},
@@ -590,6 +592,7 @@ func (s *TaskRepositoryTestSuite) TestUpdate() {
 				task: &entity.Task{
 					ID:          "task-xxxxx",
 					UserID:      "user-xxxxx",
+					ProjectID:   test.NewNullString("project-xxxxx"),
 					Content:     "task_content",
 					Description: "task_description",
 					IsCompleted: true,
@@ -603,8 +606,8 @@ func (s *TaskRepositoryTestSuite) TestUpdate() {
 				err:    nil,
 			},
 			setup: func(d *dependency) {
-				d.mockDB.ExpectExec(regexp.QuoteMeta("UPDATE tasks SET content = $2, description = $3, is_completed = $4, due_date = $5, updated_at = $6 WHERE id = $1")).
-					WithArgs("task-xxxxx", "task_content", "task_description", true, test.NewNullTime(test.TimeAfterNow), sqlmock.AnyArg()).
+				d.mockDB.ExpectExec(regexp.QuoteMeta("UPDATE tasks SET project_id = $2, content = $3, description = $4, is_completed = $5, due_date = $6, updated_at = $7 WHERE id = $1")).
+					WithArgs("task-xxxxx", test.NewNullString("project-xxxxx"), "task_content", "task_description", true, test.NewNullTime(test.TimeAfterNow), sqlmock.AnyArg()).
 					WillReturnResult(sqlmock.NewResult(1, 1))
 			},
 		},
