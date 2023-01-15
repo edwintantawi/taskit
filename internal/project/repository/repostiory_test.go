@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"regexp"
 	"testing"
@@ -9,6 +10,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/edwintantawi/taskit/internal/domain"
 	"github.com/edwintantawi/taskit/internal/domain/entity"
 	"github.com/edwintantawi/taskit/internal/domain/mocks"
 	"github.com/edwintantawi/taskit/test"
@@ -248,6 +250,117 @@ func (s *ProjectRepositoryTestSuite) TestFindAllByUserID() {
 				s.Equal(t.expected.err, err)
 			}
 			s.Equal(t.expected.projects, tasks)
+		})
+	}
+}
+
+func (s *ProjectRepositoryTestSuite) TestFindByID() {
+	type args struct {
+		ctx       context.Context
+		projectID entity.ProjectID
+	}
+	type expected struct {
+		project entity.Project
+		err     error
+	}
+	tests := []struct {
+		name     string
+		args     args
+		expected expected
+		setup    func(d *dependency)
+	}{
+		{
+			name: "it should return error when database fail to query",
+			args: args{
+				ctx:       context.Background(),
+				projectID: "project-xxxxx",
+			},
+			expected: expected{
+				project: entity.Project{},
+				err:     test.ErrDatabase,
+			},
+			setup: func(d *dependency) {
+				d.mockDB.ExpectQuery(regexp.QuoteMeta("SELECT id, user_id, title, created_at, updated_at FROM projects WHERE id = $1")).
+					WithArgs("project-xxxxx").
+					WillReturnError(test.ErrDatabase)
+			},
+		},
+		{
+			name: "it should return error ErrProjectNotFound when project not found",
+			args: args{
+				ctx:       context.Background(),
+				projectID: "project-xxxxx",
+			},
+			expected: expected{
+				project: entity.Project{},
+				err:     domain.ErrProjectNotFound,
+			},
+			setup: func(d *dependency) {
+				d.mockDB.ExpectQuery(regexp.QuoteMeta("SELECT id, user_id, title, created_at, updated_at FROM projects WHERE id = $1")).
+					WithArgs("project-xxxxx").
+					WillReturnError(sql.ErrNoRows)
+			},
+		},
+		{
+			name: "it should return error when database scan fail",
+			args: args{
+				ctx:       context.Background(),
+				projectID: "project-xxxxx",
+			},
+			expected: expected{
+				project: entity.Project{},
+				err:     test.ErrRowScan,
+			},
+			setup: func(d *dependency) {
+				d.mockDB.ExpectQuery(regexp.QuoteMeta("SELECT id, user_id, title, created_at, updated_at FROM projects WHERE id = $1")).
+					WithArgs("project-xxxxx").
+					WillReturnError(test.ErrRowScan)
+			},
+		},
+		{
+			name: "it should return error nil and project when success",
+			args: args{
+				ctx:       context.Background(),
+				projectID: "project-xxxxx",
+			},
+			expected: expected{
+				project: entity.Project{
+					ID:        "project-xxxxx",
+					UserID:    "user-xxxxx",
+					Title:     "project_title",
+					CreatedAt: test.TimeBeforeNow,
+					UpdatedAt: test.TimeBeforeNow,
+				},
+				err: nil,
+			},
+			setup: func(d *dependency) {
+				mockRow := sqlmock.NewRows([]string{"id", "user_id", "title", "created_at", "updated_at"}).
+					AddRow("project-xxxxx", "user-xxxxx", "project_title", test.TimeBeforeNow, test.TimeBeforeNow)
+
+				d.mockDB.ExpectQuery(regexp.QuoteMeta("SELECT id, user_id, title, created_at, updated_at FROM projects WHERE id = $1")).
+					WithArgs("project-xxxxx").
+					WillReturnRows(mockRow)
+			},
+		},
+	}
+
+	for _, t := range tests {
+		s.Run(t.name, func() {
+			db, mockDB, err := sqlmock.New()
+			if err != nil {
+				s.FailNow("an error '%s' was not expected when opening a database mock connection", err)
+			}
+
+			d := &dependency{
+				mockDB: mockDB,
+			}
+			t.setup(d)
+
+			repository := New(db, nil)
+			project, err := repository.FindByID(t.args.ctx, t.args.projectID)
+
+			s.Equal(t.expected.err, err)
+			s.Equal(t.expected.project, project)
 		})
 	}
 }

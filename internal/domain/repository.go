@@ -23,6 +23,11 @@ var (
 	ErrTaskNotFound = errors.New("task.repository.task_not_found")
 )
 
+// Project repository errors.
+var (
+	ErrProjectNotFound = errors.New("project.repository.project_not_found")
+)
+
 // UserRepository represent user repository contract.
 type UserRepository interface {
 	Store(ctx context.Context, u *entity.User) (entity.UserID, error)

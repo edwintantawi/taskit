@@ -47,6 +47,9 @@ func HTTPErrorTranslator(err error) (code int, msg string) {
 	// Task usecase
 	case domain.ErrTaskAuthorization:
 		return http.StatusForbidden, "Not have access to this task"
+	// Project repository
+	case domain.ErrProjectNotFound:
+		return http.StatusNotFound, "Project not found"
 	// DTO
 	case dto.ErrEmailEmpty:
 		return http.StatusBadRequest, "Email is required field"

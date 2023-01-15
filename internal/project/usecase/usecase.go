@@ -27,6 +27,7 @@ func (u *Usecase) Create(ctx context.Context, payload *dto.ProjectCreateIn) (dto
 	return dto.ProjectCreateOut{ID: id}, nil
 }
 
+// GetAll get all project by user id.
 func (u *Usecase) GetAll(ctx context.Context, payload *dto.ProjectGetAllIn) ([]dto.ProjectGetAllOut, error) {
 	projects, err := u.projectRepository.FindAllByUserID(ctx, payload.UserID)
 	if err != nil {

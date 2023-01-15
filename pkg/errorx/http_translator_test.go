@@ -44,6 +44,8 @@ func (s *HTTPErrorTranslatorTestSuite) TestErrorTranslator() {
 		{domain.ErrTaskNotFound, 404, "Task not found"},
 		// Task usecase
 		{domain.ErrTaskAuthorization, 403, "Not have access to this task"},
+		// Project repository
+		{domain.ErrProjectNotFound, 404, "Project not found"},
 		// DTO
 		{dto.ErrEmailEmpty, 400, "Email is required field"},
 		{dto.ErrPasswordEmpty, 400, "Password is required field"},
