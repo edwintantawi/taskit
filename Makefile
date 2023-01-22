@@ -2,6 +2,8 @@
 include $(PWD)/.env
 export $(shell sed 's/=.*//' $(PWD)/.env)
 
+POSTGRES_DSN=postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable
+
 ## help: show help
 .PHONY: help
 help:
