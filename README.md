@@ -12,8 +12,6 @@ See the [Postman documenter](https://documenter.getpostman.com/view/25225683/2s8
 
 Implement [Clean architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html) by Robert C. Martin (Uncle Bob)
 
-![project architecture](./docs/architecture.png)
-
 ## License
 
 MIT licensed. See the [LICENSE](./LICENSE) file for details.

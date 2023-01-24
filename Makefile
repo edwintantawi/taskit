@@ -10,25 +10,20 @@ help:
 	@echo 'Usage:'
 	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' |  sed -e 's/^/ /'
 
-## dev: run development server
-.PHONY: dev
+## run: start main app
+.PHONY: run
 dev:
-	@APP_ENV=dev go run cmd/main.go
-
-## mocks: generate or update mocks
-.PHONY: mocks
-mocks:
-	@cd internal/domain && mockery --all
+	@go run cmd/main.go
 
 ## test: run tests
 .PHONY: test
 test:
 	@go test -v -cover -coverprofile coverage.out ./...
 
-## coverage: run test coverage
+## cover: run test & show coverage
 .PHONY: cover
 cover: test
-	@go tool cover -html=coverage.out
+	@go tool cover -func=coverage.out
 
 ## migrate/new name=$1: create a new database migration
 .PHONY: migrate/new
