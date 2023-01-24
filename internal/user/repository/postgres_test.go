@@ -11,14 +11,14 @@ import (
 	"github.com/edwintantawi/taskit/internal/entity"
 	"github.com/edwintantawi/taskit/pkg/database"
 	"github.com/edwintantawi/taskit/test"
-	"github.com/edwintantawi/taskit/test/testdb"
 )
 
 type UserRepositoryPostgresTestSuite struct {
 	suite.Suite
 	db              *sql.DB
-	userTableHelper testdb.UserTableHelper
-	cleanUp         func() error
+	userTableHelper test.UserTableHelper
+	cleanUpSuite    func() error
+	cleanUpTest     func()
 }
 
 func TestUserRepositoryPostgresSuite(t *testing.T) {
@@ -31,14 +31,15 @@ func (s *UserRepositoryPostgresTestSuite) SetupSuite() {
 		s.Fail("Could not migrate database", err)
 	}
 
-	s.userTableHelper = testdb.NewUserTableHelper(resource.DB)
+	s.userTableHelper = test.NewUserTableHelper(resource.DB)
 
 	s.db = resource.DB
-	s.cleanUp = resource.CleanUp
+	s.cleanUpSuite = resource.CleanUp
+	s.cleanUpTest = test.TruncateTables(resource.DB)
 }
 
 func (s *UserRepositoryPostgresTestSuite) TearDownSuite() {
-	if err := s.cleanUp(); err != nil {
+	if err := s.cleanUpSuite(); err != nil {
 		log.Fatalf("Could not cleanup resource: %s", err)
 	}
 }
@@ -56,6 +57,8 @@ func (s *UserRepositoryPostgresTestSuite) TestSave() {
 	})
 
 	s.Run("it should save a new user to the database", func() {
+		defer s.cleanUpTest()
+
 		ctx := context.Background()
 		repository := NewPostgres(s.db)
 		newUser := entity.NewUser{
@@ -77,5 +80,58 @@ func (s *UserRepositoryPostgresTestSuite) TestSave() {
 		s.Equal(newUser.Password, userInDB.Password)
 		s.NotEmpty(userInDB.CreatedAt)
 		s.Equal(userInDB.CreatedAt, userInDB.UpdatedAt)
+	})
+}
+
+func (s *UserRepositoryPostgresTestSuite) TestFindByEmail() {
+	s.Run("it should return an error if database fail or operation canceled", func() {
+		ctx := context.Background()
+		repository := NewPostgres(s.db)
+		ctx, cancel := context.WithCancel(ctx)
+		cancel()
+
+		user, err := repository.FindByEmail(ctx, "gopher@gmail.com")
+
+		s.EqualError(err, context.Canceled.Error())
+		s.Empty(user)
+	})
+
+	s.Run("it should return error when user not found", func() {
+		ctx := context.Background()
+		repository := NewPostgres(s.db)
+		email := "gopher@go.dev"
+
+		user, err := repository.FindByEmail(ctx, email)
+
+		s.Equal(ErrUserNotFound, err)
+		s.Empty(user)
+	})
+
+	s.Run("it should return user when user found", func() {
+		defer s.cleanUpTest()
+
+		ctx := context.Background()
+		repository := NewPostgres(s.db)
+		email := "gopher@go.dev"
+
+		existingUserInDB := test.User{
+			ID:        "user-xxxxx",
+			Name:      "Gopher",
+			Email:     email,
+			Password:  "secret_password",
+			CreatedAt: test.TimeBeforeNow,
+			UpdatedAt: test.TimeAfterNow,
+		}
+		s.userTableHelper.Add(existingUserInDB)
+
+		user, err := repository.FindByEmail(ctx, email)
+
+		s.NoError(err)
+		s.Equal(existingUserInDB.ID, user.ID)
+		s.Equal(existingUserInDB.Name, user.Name)
+		s.Equal(existingUserInDB.Email, user.Email)
+		s.Equal(existingUserInDB.Password, user.Password)
+		s.Equal(existingUserInDB.CreatedAt, user.CreatedAt)
+		s.Equal(existingUserInDB.UpdatedAt, user.UpdatedAt)
 	})
 }
