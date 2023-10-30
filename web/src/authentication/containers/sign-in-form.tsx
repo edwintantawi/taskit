@@ -1,4 +1,3 @@
-import React from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { useSearchParams } from 'react-router-dom';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -34,7 +33,7 @@ export function SignInForm() {
   };
 
   return (
-    <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+    <form noValidate className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
       <Input
         type="email"
         placeholder="gopher@go.dev"
@@ -49,11 +48,7 @@ export function SignInForm() {
         {...register('password')}
       />
 
-      {isError && (
-        <Alert severity="error">
-          {error?.response?.data.error ?? error.message}
-        </Alert>
-      )}
+      {isError && <Alert severity="error">{error.error}</Alert>}
 
       <div className="space-y-4 pt-4">
         <Button

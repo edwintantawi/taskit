@@ -1,4 +1,3 @@
-import { AxiosError } from 'axios';
 import { useMutation } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 
@@ -20,11 +19,10 @@ export function useSignOut() {
     navigate('/');
   };
 
-  const mutation = useMutation<
-    unknown,
-    AxiosError<HTTPResponseError>,
-    SignOutPayload
-  >(AuthenticationService.signOut, { onSuccess });
+  const mutation = useMutation<unknown, HTTPResponseError, SignOutPayload>(
+    AuthenticationService.signOut,
+    { onSuccess, onError: (error) => alert(error.error) }
+  );
 
   const signOut = () => {
     mutation.mutate({

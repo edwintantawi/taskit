@@ -1,4 +1,3 @@
-import { AxiosError } from 'axios';
 import { useMutation } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,7 +14,7 @@ export function useSignUp() {
 
   const mutation = useMutation<
     SignUpResponse,
-    AxiosError<HTTPResponseError>,
+    HTTPResponseError,
     SignUpPayload
   >(UserService.signUp, { onSuccess });
 

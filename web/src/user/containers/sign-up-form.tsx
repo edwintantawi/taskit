@@ -30,7 +30,7 @@ export function SignUpForm() {
   };
 
   return (
-    <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+    <form noValidate className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
       <Input
         type="text"
         placeholder="Gopher"
@@ -50,11 +50,7 @@ export function SignUpForm() {
         {...register('password')}
       />
 
-      {isError && (
-        <Alert severity="error">
-          {error?.response?.data.error ?? error.message}
-        </Alert>
-      )}
+      {isError && <Alert severity="error">{error.error}</Alert>}
 
       <div className="space-y-4 pt-4">
         <Button

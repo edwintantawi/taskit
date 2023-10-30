@@ -1,4 +1,3 @@
-import { AxiosError } from 'axios';
 import { useMutation } from 'react-query';
 
 import { HTTPResponseError, queryClient } from '~/common/libs';
@@ -11,9 +10,12 @@ export function useAddTask() {
 
   const mutation = useMutation<
     AddTaskResponse,
-    AxiosError<HTTPResponseError>,
+    HTTPResponseError,
     AddTaskPayload
-  >(TaskService.addTask, { onSuccess });
+  >(TaskService.addTask, {
+    onSuccess,
+    onError: (error) => alert(error.error),
+  });
 
   return mutation;
 }
