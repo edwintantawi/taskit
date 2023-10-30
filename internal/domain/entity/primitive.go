@@ -32,3 +32,26 @@ func (t NullTime) MarshalJSON() ([]byte, error) {
 	}
 	return json.Marshal(t.Time)
 }
+
+type NullString struct {
+	sql.NullString
+}
+
+func (t *NullString) UnmarshalJSON(data []byte) error {
+	if bytes.Equal(data, nullBytes) {
+		t.Valid = false
+		return nil
+	}
+	if err := json.Unmarshal(data, &t.String); err != nil {
+		return err
+	}
+	t.Valid = true
+	return nil
+}
+
+func (t NullString) MarshalJSON() ([]byte, error) {
+	if !t.Valid {
+		return nullBytes, nil
+	}
+	return json.Marshal(t.String)
+}
