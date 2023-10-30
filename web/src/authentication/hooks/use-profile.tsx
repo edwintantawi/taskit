@@ -1,6 +1,6 @@
 import { useQuery } from 'react-query';
 
-import { useAuth } from './use-auth';
+import { useAuth } from '~/authentication/hooks/use-auth';
 
 import {
   AuthenticationService,
