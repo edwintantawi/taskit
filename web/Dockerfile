@@ -9,7 +9,6 @@ RUN npm ci
 COPY . .
 
 ARG VITE_BASE_API_URL
-ENV VITE_BASE_API_URL $VITE_BASE_API_URL
 
 RUN npm run build
 
