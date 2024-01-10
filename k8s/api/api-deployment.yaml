@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: api
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       app: api
@@ -17,6 +17,13 @@ spec:
           image: edwintantawi/taskit-api
           ports:
             - containerPort: 5000
+          resources:
+            requests:
+              cpu: '250m'
+              memory: '256Mi'
+            limits:
+              cpu: '500m'
+              memory: '512Mi'
           env:
             - name: PORT
               valueFrom:

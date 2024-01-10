@@ -1,0 +1,13 @@
+kind: PodChaos
+apiVersion: chaos-mesh.org/v1alpha1
+metadata:
+  name: pod-failure
+spec:
+  selector:
+    namespaces:
+      - default
+    labelSelectors:
+      app: api
+  mode: one
+  action: pod-failure
+  duration: 10m

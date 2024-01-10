@@ -1,65 +1,41 @@
-# Kubernetes Dashboard
+# Kubernetes
 
-## Install the Kubernetes Dashboard.
+## Setup kube system
 
 ```bash
-helm install kubernetes-dashboard k8s-dashboard/kubernetes-dashboard --version 7.0.0-alpha1 --set=cert-manager.enabled=false --set=app.ingress.enabled=false
+kubectl apply -f k8s/kube-system
 ```
 
-### Upgrade the Kubernetes Dashboard.
+## Setup all application service manifests
+
+### Create the database resource
 
 ```bash
-helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard --create-namespace --namespace kubernetes-dashboard
+kubectl apply -f k8s/database
 ```
 
-### Uninstall the Kubernetes Dashboard.
+### Create the api resource
 
 ```bash
-helm delete kubernetes-dashboard
+kubectl apply -f k8s/api
 ```
 
-## Get the Kubernetes Dashboard URL.
+### Create the web resource
 
 ```bash
-export POD_NAME=$(kubectl get pods -n kubernetes-dashboard -l "app.kubernetes.io/name=kubernetes-dashboard,app.kubernetes.io/instance=kubernetes-dashboard" -o jsonpath="{.items[0].metadata.name}")
-echo https://127.0.0.1:8443/
-kubectl -n kubernetes-dashboard port-forward $POD_NAME 8443:8443
+kubectl apply -f k8s/web
 ```
 
-### Create a service account for the Kubernetes Dashboard.
+## Test the application
+
+### Simulate pod failure
 
 ```bash
-kubectl create -f ./k8s/dashboard-account.yaml
+kubectl apply -f k8s/chaos-mesh/pod-failure.yaml
 ```
 
-### Get the token for the Kubernetes Dashboard.
+### Simulate stress test
 
 ```bash
-kubectl -n kube-system create token admin-user
-```
-
-## Chaos Mesh
-
-### Add Chaos Mesh repo.
-
-```bash
-helm repo add chaos-mesh https://charts.chaos-mesh.org
-```
-
-### Create namespace for Chaos Mesh.
-
-```bash
-kubectl create ns chaos-mesh
-```
-
-### Install Chaos Mesh.
-
-```bash
-helm install chaos-mesh chaos-mesh/chaos-mesh -n=chaos-mesh --version 2.6.2
-```
-
-### Run Chaos Mesh dashboard.
-
-```bash
-kubectl port-forward -n chaos-mesh svc/chaos-dashboard 2333:2333
+kubectl apply -f k8s/chaos-mesh/stress-test.yaml
 ```

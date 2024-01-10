@@ -17,3 +17,9 @@ kubectl apply -f k8s/api/api-deployment.yaml
 ```bash
 kubectl apply -f k8s/api/api-service.yaml
 ```
+
+## Create the api hpa
+
+```bash
+kubectl apply -f k8s/api/api-hpa.yaml
+```
