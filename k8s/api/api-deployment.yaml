@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+        - name: api
+          image: edwintantawi/taskit-api
+          ports:
+            - containerPort: 5000
+          env:
+            - name: PORT
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: PORT
+            - name: ALLOWED_ORIGIN
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: ALLOWED_ORIGIN
+            - name: ACCESS_TOKEN_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: ACCESS_TOKEN_KEY
+            - name: REFRESH_TOKEN_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: REFRESH_TOKEN_KEY
+            - name: ACCESS_TOKEN_EXPIRATION
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: ACCESS_TOKEN_EXPIRATION
+            - name: REFRESH_TOKEN_EXPIRATION
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: REFRESH_TOKEN_EXPIRATION
+            - name: AUTO_MIGRATE
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: AUTO_MIGRATE
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: POSTGRES_HOST
+            - name: POSTGRES_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: POSTGRES_PORT
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: POSTGRES_DB
+
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_SSLMODE
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: POSTGRES_SSLMODE
