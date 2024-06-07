@@ -84,3 +84,70 @@ func (s *PrimitiveTestSuite) TestNullTimeMarshalJSON() {
 		s.Equal(fmt.Sprintf("\"%s\"", currentTime.Format(time.RFC3339Nano)), string(r))
 	})
 }
+
+func (s *PrimitiveTestSuite) TestNullStringUnmarshalJSON() {
+	s.Run("it should return error when fail to unmarshal with invalid json", func() {
+		rawJson := `[]`
+		var str NullString
+
+		err := json.Unmarshal([]byte(rawJson), &str)
+
+		s.Error(err)
+		s.False(str.Valid)
+		s.Empty(str.String)
+	})
+
+	s.Run("it should successfully unmarshal and return valid false and string is zero value", func() {
+		rawJson := `null`
+		var str NullString
+
+		err := json.Unmarshal([]byte(rawJson), &str)
+
+		s.NoError(err)
+		s.False(str.Valid)
+		s.Empty(str.String)
+	})
+
+	s.Run("it should successfully unmarshal and return valid true and string is actual string form json", func() {
+		rawJson := `"Gopher"`
+		var str NullString
+
+		err := json.Unmarshal([]byte(rawJson), &str)
+
+		s.NoError(err)
+		s.True(str.Valid)
+		s.Equal("Gopher", str.String)
+	})
+}
+
+func (s *PrimitiveTestSuite) TestNullStringMarshalJSON() {
+	s.Run("it should successfully marshal and return json null when not valid", func() {
+		str := NullString{
+			NullString: sql.NullString{
+				String: "",
+				Valid:  false,
+			},
+		}
+
+		r, err := json.Marshal(str)
+
+		s.NoError(err)
+		s.Equal("null", string(r))
+	})
+
+	s.Run("it should successfully marshal and return json time correctly", func() {
+		strValue := "Gopher"
+
+		str := NullString{
+			NullString: sql.NullString{
+				String: strValue,
+				Valid:  true,
+			},
+		}
+
+		r, err := json.Marshal(str)
+
+		s.NoError(err)
+		s.Equal(fmt.Sprintf("\"%s\"", strValue), string(r))
+	})
+}

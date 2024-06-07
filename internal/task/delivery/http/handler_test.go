@@ -2,7 +2,6 @@ package http
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -210,8 +209,8 @@ func (s *TaskHTTPHandlerTestSuite) TestGet() {
 				statusCode:  http.StatusOK,
 				message:     http.StatusText(http.StatusOK),
 				payload: []map[string]any{
-					{"id": "task-xxxxx", "content": "task_xxxxx_content", "description": "task_xxxxx_description", "is_completed": false, "due_date": nil, "created_at": test.TimeBeforeNow.Format(time.RFC3339Nano), "updated_at": test.TimeBeforeNow.Format(time.RFC3339Nano)},
-					{"id": "task-yyyyy", "content": "task_yyyyy_content", "description": "task_yyyyy_description", "is_completed": true, "due_date": test.TimeAfterNow.Format(time.RFC3339Nano), "created_at": test.TimeBeforeNow.Format(time.RFC3339Nano), "updated_at": test.TimeBeforeNow.Format(time.RFC3339Nano)},
+					{"id": "task-xxxxx", "project_id": "project-xxxxx", "content": "task_xxxxx_content", "description": "task_xxxxx_description", "is_completed": false, "due_date": nil, "created_at": test.TimeBeforeNow.Format(time.RFC3339Nano), "updated_at": test.TimeBeforeNow.Format(time.RFC3339Nano)},
+					{"id": "task-yyyyy", "project_id": "project-yyyyy", "content": "task_yyyyy_content", "description": "task_yyyyy_description", "is_completed": true, "due_date": test.TimeAfterNow.Format(time.RFC3339Nano), "created_at": test.TimeBeforeNow.Format(time.RFC3339Nano), "updated_at": test.TimeBeforeNow.Format(time.RFC3339Nano)},
 				},
 			},
 			setup: func(d *dependency) {
@@ -219,8 +218,8 @@ func (s *TaskHTTPHandlerTestSuite) TestGet() {
 
 				d.taskUsecase.On("GetAll", mock.Anything, &dto.TaskGetAllIn{UserID: "user-xxxxx"}).
 					Return([]dto.TaskGetAllOut{
-						{ID: "task-xxxxx", Content: "task_xxxxx_content", Description: "task_xxxxx_description", IsCompleted: false, DueDate: entity.NullTime{NullTime: sql.NullTime{Valid: false}}, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
-						{ID: "task-yyyyy", Content: "task_yyyyy_content", Description: "task_yyyyy_description", IsCompleted: true, DueDate: entity.NullTime{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}}, CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+						{ID: "task-xxxxx", ProjectID: test.NewNullString("project-xxxxx"), Content: "task_xxxxx_content", Description: "task_xxxxx_description", IsCompleted: false, DueDate: test.NewNullTime(nil), CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
+						{ID: "task-yyyyy", ProjectID: test.NewNullString("project-yyyyy"), Content: "task_yyyyy_content", Description: "task_yyyyy_description", IsCompleted: true, DueDate: test.NewNullTime(test.TimeAfterNow), CreatedAt: test.TimeBeforeNow, UpdatedAt: test.TimeBeforeNow},
 					}, nil)
 			},
 		},
@@ -409,7 +408,7 @@ func (s *TaskHTTPHandlerTestSuite) TestGetByID() {
 				statusCode:  http.StatusOK,
 				message:     http.StatusText(http.StatusOK),
 				payload: map[string]any{
-					"id": "task-xxxxx", "content": "task_xxxxx_content", "description": "task_xxxxx_description", "is_completed": true, "due_date": test.TimeAfterNow.Format(time.RFC3339Nano), "created_at": test.TimeBeforeNow.Format(time.RFC3339Nano), "updated_at": test.TimeBeforeNow.Format(time.RFC3339Nano),
+					"id": "task-xxxxx", "project_id": "project-xxxxx", "content": "task_xxxxx_content", "description": "task_xxxxx_description", "is_completed": true, "due_date": test.TimeAfterNow.Format(time.RFC3339Nano), "created_at": test.TimeBeforeNow.Format(time.RFC3339Nano), "updated_at": test.TimeBeforeNow.Format(time.RFC3339Nano),
 				},
 			},
 			setup: func(d *dependency) {
@@ -418,10 +417,11 @@ func (s *TaskHTTPHandlerTestSuite) TestGetByID() {
 				d.taskUsecase.On("GetByID", mock.Anything, &dto.TaskGetByIDIn{TaskID: "task-xxxxx", UserID: "user-xxxxx"}).
 					Return(dto.TaskGetByIDOut{
 						ID:          "task-xxxxx",
+						ProjectID:   test.NewNullString("project-xxxxx"),
 						Content:     "task_xxxxx_content",
 						Description: "task_xxxxx_description",
 						IsCompleted: true,
-						DueDate:     entity.NullTime{NullTime: sql.NullTime{Time: test.TimeAfterNow, Valid: true}},
+						DueDate:     test.NewNullTime(test.TimeAfterNow),
 						CreatedAt:   test.TimeBeforeNow,
 						UpdatedAt:   test.TimeBeforeNow,
 					}, nil)

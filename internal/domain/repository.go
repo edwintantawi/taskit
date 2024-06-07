@@ -23,6 +23,11 @@ var (
 	ErrTaskNotFound = errors.New("task.repository.task_not_found")
 )
 
+// Project repository errors.
+var (
+	ErrProjectNotFound = errors.New("project.repository.project_not_found")
+)
+
 // UserRepository represent user repository contract.
 type UserRepository interface {
 	Store(ctx context.Context, u *entity.User) (entity.UserID, error)
@@ -47,4 +52,10 @@ type TaskRepository interface {
 	VerifyAvailableByID(ctx context.Context, taskID entity.TaskID) error
 	DeleteByID(ctx context.Context, taskID entity.TaskID) error
 	Update(ctx context.Context, t *entity.Task) (entity.TaskID, error)
+}
+
+// ProjectRepository represent project repository contract
+type ProjectRepository interface {
+	Store(ctx context.Context, p *entity.Project) (entity.ProjectID, error)
+	FindAllByUserID(ctx context.Context, userID entity.UserID) ([]entity.Project, error)
 }

@@ -44,12 +44,15 @@ func (s *HTTPErrorTranslatorTestSuite) TestErrorTranslator() {
 		{domain.ErrTaskNotFound, 404, "Task not found"},
 		// Task usecase
 		{domain.ErrTaskAuthorization, 403, "Not have access to this task"},
+		// Project repository
+		{domain.ErrProjectNotFound, 404, "Project not found"},
 		// DTO
 		{dto.ErrEmailEmpty, 400, "Email is required field"},
 		{dto.ErrPasswordEmpty, 400, "Password is required field"},
 		{dto.ErrNameEmpty, 400, "Name is required field"},
 		{dto.ErrRefreshTokenEmpty, 400, "Refresh token is required field"},
 		{dto.ErrContentEmpty, 400, "Content is required field"},
+		{dto.ErrTitleEmpty, 400, "Title is required field"},
 		// Security JWT
 		{security.ErrAccessTokenExpired, 401, "Access token is expired"},
 		{security.ErrAccessTokenInvalid, 401, "Access token is invalid"},
